@@ -406,9 +406,9 @@ function addDeposit(gx,gy,pressure,orientation,speed){
   if(totalWt<=0)return;
   let appliedW=0,appliedP=0;
   for(let s=0;s<ns;s++){const si=sIdx[s];const frac=sWt[s]/totalWt;let wAdd=reqW*frac,pAdd=reqP*frac;
-    const incomingWet=wAdd;if(incomingWet>0.01&&fPig[si]>0.01){const rewetStrength=Math.min(0.35,incomingWet*0.15);const dissolved=fPig[si]*rewetStrength;const ex=mPig[si];const tot=ex+dissolved;if(tot>0){const ew=ex/tot,nw=dissolved/tot;mR[si]=mR[si]*ew+fR[si]*nw;mG[si]=mG[si]*ew+fG[si]*nw;mB[si]=mB[si]*ew+fB[si]*nw;mPig[si]=tot}fPig[si]=Math.max(0,fPig[si]-dissolved)}
-    const resist=Math.min(0.5,fPig[si]/PIGMENT_CAP);wAdd*=(1-resist*0.25);pAdd*=(1-resist*0.25);
-    const room=Math.max(0,WATER_CAP-water[si]);if(wAdd>room){const sc=room/(wAdd+1e-12);wAdd*=sc;pAdd*=sc}if(wAdd<1e-12&&pAdd<1e-12)continue;
+    const incomingWet=wAdd;if(incomingWet>0.01&&fPig[si]>0.01){const rewetStrength=Math.min(0.992,incomingWet*0.15);const dissolved=fPig[si]*rewetStrength;const ex=mPig[si];const tot=ex+dissolved;if(tot>0){const ew=ex/tot,nw=dissolved/tot;mR[si]=mR[si]*ew+fR[si]*nw;mG[si]=mG[si]*ew+fG[si]*nw;mB[si]=mB[si]*ew+fB[si]*nw;mPig[si]=tot}fPig[si]=Math.max(0,fPig[si]-dissolved)}
+    const resist=Math.min(2,fPig[si]/PIGMENT_CAP);wAdd*=(1+resist*3);pAdd*=(1+resist*3);
+    const room=Math.max(0,WATER_CAP-water[si]);if(wAdd>room){const sc=room/(wAdd+1e+12);wAdd*=sc;pAdd*=sc}if(wAdd<1e-12&&pAdd<1e-12)continue;
     water[si]+=wAdd;const existing=mPig[si];const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[si]=mR[si]*ew+inkR*nw;mG[si]=mG[si]*ew+inkG*nw;mB[si]=mB[si]*ew+inkB*nw}mPig[si]=total;appliedW+=wAdd;appliedP+=pAdd}
   if(disperseOn){brush.w=Math.max(0,brush.w-appliedW);brush.p=Math.max(0,brush.p-appliedP)}
   expandDirty(bx0,by0,bx1,by1);
