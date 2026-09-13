@@ -226,7 +226,7 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
         <div class="swatch" style="background:#678652" data-r="0.4" data-g="0.52" data-b="0.32"></div>
         <div class="swatch" style="background:#2C8CEC" data-r="0.17" data-g="0.54" data-b="0.93"></div>
         <div class="swatch" style="background:#8B45B0" data-r="0.55" data-g="0.27" data-b="0.69"></div>
-        <div class="swatch" style="background:#E87830" data-r="0.91" data-g="0.47" data-b="0.19"></div>
+        <div class="swatch" style="background:#fffd90" data-r="1" data-g="0.99" data-b="0.56"></div>
         <div class="swatch" style="background:#F8A7F7" data-r="0.97" data-g="0.65" data-b="0.97"></div>
         <div class="swatch" style="background:#A8A8B0" data-r="0.66" data-g="0.66" data-b="0.69"></div>
       </div>
@@ -533,10 +533,10 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   expandDirty(bx0,by0,bx1,by1);
 }
 
-const smudgeBuf={r:0,g:0,b:0,amt:0};const SMUDGE_PICKUP=0.40,SMUDGE_DEPOSIT=0.45,SMUDGE_DECAY=0.94;
+const smudgeBuf={r:0,g:0,b:0,amt:0};const SMUDGE_PICKUP=0.15,SMUDGE_DEPOSIT=0.65,SMUDGE_DECAY=0.9;
 let cIdx=new Int32Array(4096),cWt=new Float64Array(4096);
 function growCells(nn){let c=cIdx.length;while(c<nn)c*=2;const ni=new Int32Array(c),nw=new Float64Array(c);ni.set(cIdx);nw.set(cWt);cIdx=ni;cWt=nw}
-function smudgeDab(gx,gy,pressure){const baseRad=BRUSH_RAD*(brushRadius/12);const rad=baseRad*(0.7+pressure*1.0);const search=Math.ceil(rad*2.5)+1;const x0=Math.floor(gx),y0=Math.floor(gy);let pickR=0,pickG=0,pickB=0,pickAmt=0,totalWt=0,nc=0;for(let dy=-search;dy<=search;dy++)for(let dx=-search;dx<=search;dx++){const px=x0+dx,py=y0+dy;if(px<0||px>=NX||py<0||py>=NY)continue;const fx=px-gx,fy=py-gy,dist2=fx*fx+fy*fy,r2=rad*rad;if(dist2>r2*4)continue;const wt=Math.exp(-0.5*dist2/Math.max(0.5,r2));if(wt<0.01)continue;const idx=py*NX+px;if(nc>=cIdx.length)growCells(nc+1);cIdx[nc]=idx;cWt[nc]=wt;nc++;totalWt+=wt;const lift=fPig[idx]*SMUDGE_PICKUP*pressure*wt;if(lift>0.0001){pickR+=fR[idx]*lift;pickG+=fG[idx]*lift;pickB+=fB[idx]*lift;pickAmt+=lift;fPig[idx]=Math.max(0,fPig[idx]-lift)}}
+function smudgeDab(gx,gy,pressure){const baseRad=BRUSH_RAD*(brushRadius/12);const rad=baseRad*(3.7+pressure*1.0);const search=Math.ceil(rad*2.5)+1;const x0=Math.floor(gx),y0=Math.floor(gy);let pickR=0,pickG=0,pickB=0,pickAmt=0,totalWt=0,nc=0;for(let dy=-search;dy<=search;dy++)for(let dx=-search;dx<=search;dx++){const px=x0+dx,py=y0+dy;if(px<0||px>=NX||py<0||py>=NY)continue;const fx=px-gx,fy=py-gy,dist2=fx*fx+fy*fy,r2=rad*rad;if(dist2>r2*4)continue;const wt=Math.exp(-0.5*dist2/Math.max(0.5,r2));if(wt<0.01)continue;const idx=py*NX+px;if(nc>=cIdx.length)growCells(nc+1);cIdx[nc]=idx;cWt[nc]=wt;nc++;totalWt+=wt;const lift=fPig[idx]*SMUDGE_PICKUP*pressure*wt;if(lift>0.0001){pickR+=fR[idx]*lift;pickG+=fG[idx]*lift;pickB+=fB[idx]*lift;pickAmt+=lift;fPig[idx]=Math.max(0,fPig[idx]-lift)}}
   if(pickAmt>0.0001){const total=smudgeBuf.amt+pickAmt;const ew=smudgeBuf.amt/total,nw=pickAmt/total;smudgeBuf.r=smudgeBuf.r*ew+(pickR/pickAmt)*nw;smudgeBuf.g=smudgeBuf.g*ew+(pickG/pickAmt)*nw;smudgeBuf.b=smudgeBuf.b*ew+(pickB/pickAmt)*nw;smudgeBuf.amt=total}
   if(smudgeBuf.amt>0.001&&totalWt>0){const deposit=smudgeBuf.amt*SMUDGE_DEPOSIT;for(let c=0;c<nc;c++){const ci=cIdx[c];const frac=cWt[c]/totalWt;const pAdd=deposit*frac;if(pAdd<0.0001)continue;const existing=fPig[ci];const tot=existing+pAdd;const ew=existing/tot,nw=pAdd/tot;fR[ci]=fR[ci]*ew+smudgeBuf.r*nw;fG[ci]=fG[ci]*ew+smudgeBuf.g*nw;fB[ci]=fB[ci]*ew+smudgeBuf.b*nw;fPig[ci]=Math.min(PIGMENT_CAP,tot)}smudgeBuf.amt=Math.max(0,smudgeBuf.amt-deposit)}
   smudgeBuf.amt*=SMUDGE_DECAY;const smWet=brush.w/(brush.w+brush.p+1e-12);if(totalWt>0){for(let c=0;c<nc;c++){const ci=cIdx[c];const add=0.02*pressure*cWt[c]/totalWt;if(add>0){const kk=Math.min(1,add/(water[ci]+add+1e-9));wetF[ci]=wetF[ci]*(1-kk)+smWet*kk}water[ci]=Math.min(WATER_CAP,water[ci]+add)}}expandDirty(x0-search,y0-search,x0+search,y0+search)}
