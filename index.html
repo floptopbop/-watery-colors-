@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>SUMI v4</title>
+<title>SUMI v6 — coupled character</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100dvh;background:#070b12;overflow:hidden;
@@ -75,6 +75,29 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   transition:transform 0.16s,border-color 0.16s;touch-action:none}
 .bstyle.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1);color:rgba(236,229,210,0.85)}
 #brushRow{display:flex;gap:8px;justify-content:center;align-items:center;padding:0 4px}
+#charRow{display:none;gap:10px;align-items:center;padding:2px 2px 0;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+#charRow.open{display:flex}
+#charRow::-webkit-scrollbar{display:none}
+.chr{display:flex;flex-direction:column;gap:2px;flex:1 0 82px;min-width:82px}
+.chr label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:10px;letter-spacing:0.08em;color:#e8f3ec;text-transform:uppercase;font-weight:600}
+.chr label b{font-weight:700;color:#7dfcb4;font-size:11px}
+.chr input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;
+  background:transparent;touch-action:none;margin:0}
+.chr input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;
+  background:rgba(236,234,210,0.22)}
+.chr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:20px;height:20px;border-radius:50%;background:#7dfcb4;margin-top:-8px;
+  border:2px solid #0b1012;box-shadow:0 1px 5px rgba(0,0,0,.6)}
+.chr input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:rgba(236,234,210,0.22)}
+.chr input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
+  background:#7dfcb4;border:2px solid #0b1012}
+#charToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
+  transition:transform 0.16s,border-color 0.16s;touch-action:none;cursor:pointer}
+#charToggle.on{border-color:#7dfcb4;color:#7dfcb4;transform:scale(1.1)}
 #dipRow{display:flex;gap:8px;height:64px}
 .dip,#napkin{flex:1;border-radius:6px;position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
@@ -232,10 +255,18 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
     <div class="bstyle" data-style="smudge" title="Smudge" style="font-size:11px">擦</div>
     <div class="rowDiv"></div>
     <div id="disperseToggle" title="Brush drain on/off">鎖</div>
+    <div id="charToggle" title="Character controls">性</div>
     <div class="rowDiv"></div>
     <div class="size active" data-r="3"><i style="width:5px;height:5px"></i></div>
     <div class="size" data-r="8"><i style="width:11px;height:11px"></i></div>
     <div class="size" data-r="20"><i style="width:19px;height:19px"></i></div>
+  </div>
+  <div id="charRow">
+    <div class="chr"><label>Chatter <b id="vChat">30</b></label><input type="range" id="sChat" min="0" max="100" step="5" value="30"></div>
+    <div class="chr"><label>Grain <b id="vGrain">30</b></label><input type="range" id="sGrain" min="0" max="30" step="1" value="30"></div>
+    <div class="chr"><label>Heel <b id="vHeel">200</b></label><input type="range" id="sHeel" min="0" max="200" step="5" value="200"></div>
+    <div class="chr"><label>Wet <b id="vWet">100</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="100"></div>
+    <div class="chr"><label>Bloom <b id="vBloom">100</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="100"></div>
   </div>
   <div id="dipRow">
     <div class="dip" id="dipInk"><div class="fill"></div><span>墨 ink</span></div>
@@ -268,9 +299,64 @@ const INK_DARK=3.2,LAYER_COVER=6.0,PAP_R=236,PAP_G=234,PAP_B=210;
 // v4: the wet window. Evaporation and fixing slowed ~6x so mobile pigment has time
 // to actually mix with its neighbours before locking — that is where blending lives.
 // It still DRIES: this is ink on paper, not a wash that never sets.
-const SPREAD_RATE=0.55,EVAP_RATE=0.016,EDGE_EVAP_MULT=0.9,FIX_RATE=0.022,HINDRANCE=0.12;
-const SIGMA_BASE=0.08,SIGMA_PIN=0.30,SIGMA_GRAIN=0.12;
-const K_BASE=0.04,K_GRAIN=0.42,K_PIG=0.28,K_PIN=0.18;
+const SPREAD_RATE=0.55,EDGE_EVAP_MULT=0.9,HINDRANCE=0.12;
+// The v3-merged build NC liked ran EVAP ~1e-6, FIX 1e-3, SIGMA_BASE 0.95,
+// K_PIG 0.90 — endless wet window, water pooling before it bursts into dry
+// paper, fixed pigment damming the flow into blotchy blooms. v4 was the
+// opposite: dries fast, edges lock hard. v6 keeps both and picks per cell.
+// v6: these are no longer live values, they are the two ENDS of a range. Each
+// cell remembers how wet the brush was that fed it (wetF) and interpolates
+// between them per cell. That matters: if the wet/bloom behaviour were global
+// and slaved to the current brush, picking up a dry brush would retroactively
+// lock a wash you laid down five strokes ago. Per-cell means a wet stroke can
+// bloom next to a dry stroke that locks hard, on the same paper.
+const EVAP_DRY=0.016,EVAP_WET=0.00032;   // v4 -> v3
+const FIX_DRY =0.022,FIX_WET =0.0011;    // v4 -> v3
+const SIG_DRY =0.08, SIG_WET =0.95;      // v4 -> v3
+const KPIG_DRY=0.28, KPIG_WET=0.90;      // v4 -> v3
+const SIGMA_PIN=0.30,SIGMA_GRAIN=0.12;
+const K_BASE=0.04,K_GRAIN=0.42,K_PIN=0.18;
+// Coupling gains, 0..1, straight off the Wet / Bloom sliders. 0 = ignore brush
+// wetness entirely and stay at the v4 end; 1 = a fully wet brush reaches v3.
+let WET_GAIN=1.0,BLOOM_GAIN=1.0;
+
+// ═══ v5 CHARACTER ENGINE ═══════════════════════════════════════════════════
+// Nothing below changes the brush STRUCTURE — the ellipse geometry, styleGain,
+// rake tines and skip lanes are untouched. Every term here is a multiplier on
+// the weight/request that addDeposit already computes. All three character
+// sliders are normalised so 0 = exactly stock v4 and 100 = the extreme table.
+// v6: Chatter and Grain are CEILINGS, not fixed amounts. The live value rides
+// the brush's dryness — a loaded wet brush lays down smooth, and the grain and
+// stutter come up as the brush runs dry. That is the physical relationship, so
+// it stops being a setting you have to remember to change. Heel is constant:
+// the drag on the trailing edge doesn't depend on how wet the hair is.
+let CHAT_MAX=0.30,GRAIN_MAX=0.30,HEEL=2.0;
+const DRY_CURVE=1.35;
+
+// Per-style character. bAmp/bFreq scale the existing bristle modulation,
+// heel drags weight to the trailing edge of the footprint, chat/chatFreq are
+// the along-stroke ink stutter, split is speed-driven bristle splaying,
+// catch/skip scale the existing dry-brush masks, spd is speed sensitivity,
+// water biases how much vehicle the style lays down (so the style survives
+// into the bleed, not just the footprint).
+const STYLE_CHAR={
+  round :{bAmp:1.9,bFreq:1.15,heel:0.90,chat:0.55,chatFreq:0.055,split:0.35,catch:1.35,skip:1.20,spd:1.0,water:1.00},
+  point :{bAmp:1.3,bFreq:1.60,heel:1.70,chat:0.40,chatFreq:0.038,split:0.15,catch:0.80,skip:0.70,spd:0.6,water:1.15},
+  side  :{bAmp:3.2,bFreq:0.55,heel:0.45,chat:0.90,chatFreq:0.095,split:0.70,catch:1.95,skip:2.10,spd:1.7,water:0.70},
+  rake  :{bAmp:1.0,bFreq:1.00,heel:1.15,chat:1.00,chatFreq:0.125,split:0.55,catch:1.65,skip:1.70,spd:2.0,water:0.80},
+  smudge:{bAmp:1.0,bFreq:1.00,heel:0.00,chat:0.00,chatFreq:0.000,split:0.00,catch:1.00,skip:1.00,spd:1.0,water:1.00}
+};
+function mix(base,target,amt){return base+(target-base)*amt}
+
+// Stroke-scope state. The v4 bristle phase was hashed from (gx,gy), so it
+// re-randomised on every stamp at 1.5px spacing — streaks never lined up from
+// one stamp to the next and averaged into mush. Hoisting it to the stroke is
+// what makes hairs read as continuous lines running the stroke's length.
+let strokeBristlePhase=0,strokeDist=0;
+function beginStroke(){
+  lastOrient=null;strokeDist=0;
+  strokeBristlePhase=hash11(strokeSeed*1.7+0.31)*Math.PI*2;
+}
 // v4: capillary front pressure (Wang & Rokne, Darcy). Dry paper PULLS ink outward
 // instead of merely failing to resist it. This is what makes an edge irregular
 // from the fibre texture rather than from a noise mask.
@@ -285,6 +371,9 @@ const NX=Math.floor(W_PX/CELL),NY=Math.floor(H_PX/CELL),N=NX*NY;
 const water=new Float32Array(N),mPig=new Float32Array(N),mR=new Float32Array(N),mG=new Float32Array(N),mB=new Float32Array(N);
 const fPig=new Float32Array(N),fR=new Float32Array(N),fG=new Float32Array(N),fB=new Float32Array(N);
 const tex=new Float32Array(N),absorb=new Float32Array(N),pinTex=new Float32Array(N);
+// v6: per-cell memory of the brush wetness that deposited here. Drives the
+// evaporation / fixing / capillary-threshold / pigment-damming behaviour.
+const wetF=new Float32Array(N);
 const wDelta=new Float32Array(N),pDelta=new Float32Array(N);
 const pRDelta=new Float32Array(N),pGDelta=new Float32Array(N),pBDelta=new Float32Array(N);
 const paperPixels=new Uint8ClampedArray(W_PX*H_PX*4);
@@ -321,8 +410,15 @@ function clientToGrid(cx,cy){const r=canvas.getBoundingClientRect();return[(cx-r
 let sIdx=new Int32Array(8192),sWt=new Float64Array(8192);
 function growSamples(n){let c=sIdx.length;while(c<n)c*=2;const ni=new Int32Array(c),nw=new Float64Array(c);ni.set(sIdx);nw.set(sWt);sIdx=ni;sWt=nw}
 
-function addDeposit(gx,gy,pressure,orientation,speed){
+function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   if(brush.w<=0&&brush.p<=0)return;
+  const ch=STYLE_CHAR[brushStyle]||STYLE_CHAR.round;
+  const sD=sDist===undefined?strokeDist:sDist;
+  // Hoisted above the footprint maths because the live character amounts derive
+  // from dryness and the swell term needs them.
+  const wFrac=brush.w/(brush.w+brush.p+1e-12),dryness=1-wFrac;
+  const dryK=Math.pow(dryness,DRY_CURVE);
+  const CHAT=CHAT_MAX*dryK,GRAIN=GRAIN_MAX*dryK;
   pressure=Math.max(0.05,Math.min(1,pressure));
   const baseRad=BRUSH_RAD*(brushRadius/8);
   let a,b,orientOff=0;
@@ -334,12 +430,12 @@ function addDeposit(gx,gy,pressure,orientation,speed){
     case'side':{orientOff=Math.PI*0.5;a=baseRad*(1.8+pressure*3.2);b=baseRad*(0.06+pressure*0.10);break}
     case'rake':{a=baseRad*(0.9+pressure*1.4);b=a*(0.85+pressure*0.1);break}
     default:{a=baseRad*(0.5+pressure*0.85);b=a*(0.80+pressure*0.12)}}
-  // v4.1: stamp-size wobble cut from 40% to 12%. This re-rolled every stamp, so
-  // the stroke edge shimmered instead of holding a line. Scratch should come from
-  // the fibre texture, not from the brush changing size 60 times a second.
-  const stampHash=hash21(gx*0.37+strokeSeed,gy*0.53-strokeSeed*0.2);
-  const catchJitter=1.0+0.12*(stampHash-0.5);
-  a*=catchJitter;b*=catchJitter*(1+0.06*(hash21(gx*1.1,gy*0.7+strokeSeed)-0.5));
+  // v5: the loaded-hair swell is coherent along the stroke now, not a fresh
+  // random number every 1.5px. The brush breathes instead of buzzing.
+  const swell=valueNoise(sD*0.075+strokeSeed*0.41,strokeSeed*0.17);
+  const catchJitter=1.0+0.40*(1+0.9*CHAT)*(swell-0.5);
+  const squash=valueNoise(sD*0.130+strokeSeed*0.83,strokeSeed*0.29);
+  a*=catchJitter;b*=catchJitter*(1+0.15*(1+1.4*CHAT)*(squash-0.5));
   const x0=Math.floor(gx),y0=Math.floor(gy);
   const theta=orientation+orientOff,cosT=Math.cos(theta),sinT=Math.sin(theta);
   // Tight AABB of the rotated 3-sigma ellipse.
@@ -347,31 +443,51 @@ function addDeposit(gx,gy,pressure,orientation,speed){
   const ac=aa*cosT,as=aa*sinT,bc=bb*cosT,bs=bb*sinT;
   const searchX=Math.ceil(3*Math.sqrt(ac*ac+bs*bs))+2;
   const searchY=Math.ceil(3*Math.sqrt(as*as+bc*bc))+2;
-  const wFrac=brush.w/(brush.w+brush.p+1e-12),dryness=1-wFrac;
-  const speedFac=1/(1+speed/30),xferScale=pressure*speedFac;
+  const spd01=Math.min(1,speed/24);
+  // v5: speed sensitivity is per-style. A rake breaks up when you move; a point
+  // brush holds together. Same term, different divisor.
+  const speedDiv=30/mix(1,ch.spd,CHAT);
+  const speedFac=1/(1+speed/speedDiv);
+  // v5: CHATTER — coherent 1D noise sampled along the stroke's arc length, so
+  // the whole stamp pulses and stutters as the brush travels. This is the
+  // "skipping over the tooth of the paper" beat that a per-cell mask can't
+  // produce, because it has to be correlated ALONG the direction of travel.
+  let chatter=1;
+  if(ch.chat>0&&CHAT>0){
+    const c=valueNoise(sD*ch.chatFreq+strokeSeed*0.13,17.3)*0.65
+           +valueNoise(sD*ch.chatFreq*2.7+strokeSeed*0.29,41.9)*0.35;
+    const gate=0.30+0.42*dryness+0.18*spd01;
+    if(c<gate)chatter=Math.max(0.05,c/gate);
+    chatter=1-(1-chatter)*ch.chat*Math.min(1.6,CHAT);
+  }
+  const xferScale=pressure*speedFac*chatter;
   const sizeGain=Math.max(0.15,Math.min(50,(a*b)/3));
   const styleGain=brushStyle==='side'?3.5:brushStyle==='point'?1.4:1.0;
   let reqW=brush.w*DEP_W*xferScale*sizeGain*styleGain,reqP=brush.p*DEP_P*xferScale*sizeGain*styleGain;
-  reqP*=0.25+0.75*wFrac;reqW=Math.min(reqW,brush.w);reqP=Math.min(reqP,brush.p);
+  reqP*=0.25+0.75*wFrac;reqW*=mix(1,ch.water,CHAT);
+  reqW=Math.min(reqW,brush.w);reqP=Math.min(reqP,brush.p);
   if(reqW<1e-9&&reqP<1e-9)return;
-  const skipThresh=dryness*dryness*0.55+Math.min(0.18,speed*0.005);
+  const skipThresh=(dryness*dryness*0.55+Math.min(0.18,speed*0.005))*mix(1,ch.skip,CHAT);
   const grainAmp=0.06+0.20*dryness,gBase=1-grainAmp*1.3,gMul=grainAmp*1.3;
   const isRake=brushStyle==='rake';
   const rakeFreq=isRake?Math.min(0.8,1.2/Math.max(0.4,baseRad*0.12)):0;
   const tineSharp=0.6+0.4*dryness;
-  const bristleFreq=isRake?0:Math.min(0.8,1.8/Math.max(0.8,baseRad*0.35));
-  const bristleAmp=(0.08+0.75*dryness)*(brushStyle==='side'?0.45:1);
+  const bristleFreq=isRake?0:Math.min(0.8+0.7*GRAIN,(1.8/Math.max(0.8,baseRad*0.35))*mix(1,ch.bFreq,GRAIN));
+  // v5: splay — bristles separate as the stroke accelerates, so a fast pass is
+  // visibly hairier than a slow one at the same dryness.
+  const splay=ch.split*spd01*GRAIN*0.45;
+  const bristleAmp=Math.min(0.94,(0.08+0.75*dryness)*(brushStyle==='side'?0.45:1)*mix(1,ch.bAmp,GRAIN)+splay);
   const bristleBase=1-bristleAmp;
-  // v4.1: bristle phase is per-STROKE, not per-stamp. It used to be hashed from
-  // (gx,gy), so the comb shifted at every stamp and the bristle lanes never lined
-  // up between them — shimmer. Locked to strokeSeed, the lanes run continuously
-  // down the whole stroke, which is what reads as scratch.
-  const bristlePhase=hash11(strokeSeed*1.7)*Math.PI*2;
-  const warpAmp=0.4*dryness;
+  const bristlePhase=strokeBristlePhase;
+  const warpAmp=0.4*dryness*(1+0.8*GRAIN);
+  // v5: heel — the only term that reads the ALONG-stroke axis. Every v4 stamp
+  // was symmetric front-to-back, which is why strokes looked extruded rather
+  // than dragged. Negative u is the trailing edge; weight pools there.
+  const heelAmt=ch.heel*HEEL*0.30;
   // v4: catch is an ATTENUATION, not a kill switch. It also uses coherent noise at
   // fibre scale instead of per-pixel white noise, so dry-brush skip happens in
   // clumps a few cells wide — the way a bristle actually misses the paper.
-  const catchThresh=0.30*dryness*dryness+0.05;
+  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT);
   const doSkip=skipThresh>0.012,laneScale=1/Math.max(1.2,b*0.35),skipSoft=skipThresh*1.6;
   const edgeSteep=1+3.5*dryness;
   let totalWt=0,ns=0;
@@ -385,17 +501,17 @@ function addDeposit(gx,gy,pressure,orientation,speed){
     let wt=Math.exp(-0.5*norm);
     // v4: rake tines fade instead of hard-dropping 8% of cells at random.
     if(isRake){wt*=Math.pow(Math.max(0,Math.cos(vRaw*rakeFreq*Math.PI)),tineSharp)*(0.55+0.45*valueNoise(px*0.30,py*0.30+strokeSeed))}
-    // v4.1: stroke-aligned coordinates. Sampling noise in (su,sv) instead of
-    // (px,py) lets it be stretched ~9:1 along travel, so the texture becomes
-    // streaks that run with the brush rather than isotropic speckle.
-    const su=px*cosT+py*sinT,sv=-px*sinT+py*cosT;
-    if(bristleFreq>0){const bristleWarp=valueNoise(su*0.03+strokeSeed,sv*0.14)*warpAmp;wt*=Math.max(0.15,bristleBase+bristleAmp*Math.cos(vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp))}
+    if(heelAmt!==0){wt*=Math.max(0.05,1+heelAmt*(-u))}
+    // v5: warp is coherent noise at fibre scale, not per-pixel white noise —
+    // white noise decorrelates the lanes and cancels the streaking it is
+    // supposed to bend.
+    if(bristleFreq>0){const bristleWarp=(valueNoise(px*0.14+strokeSeed*0.6,py*0.14)-0.5)*2.4*warpAmp;wt*=Math.max(0.12,bristleBase+bristleAmp*Math.cos(vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp))}
     const idx=rowOff+px;
     wt*=gBase+gMul*tex[idx];
-    const catchNoise=valueNoise(su*0.045+strokeSeed*0.11,sv*0.40-strokeSeed*0.07);
+    const catchNoise=valueNoise(px*0.22+strokeSeed*0.11,py*0.22-strokeSeed*0.07);
     if(catchNoise<catchThresh){wt*=0.15+0.85*(catchNoise/catchThresh)}
     if(doSkip){const lane=Math.round(vRaw*laneScale);const laneNoise=hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7);if(laneNoise<skipThresh)wt*=0.08;else if(laneNoise<skipSoft)wt*=0.35}
-    if(norm>1.0){const edgeJitter=1+valueNoise(su*0.055+strokeSeed*0.3,sv*0.5)*0.8*dryness;wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
+    if(norm>1.0){const edgeJitter=1+hash21(px*9.1+strokeSeed,py*4.3)*0.8*dryness;wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
     if(wt<0.005)continue;
     if(ns>=sIdx.length)growSamples(ns+1);
     sIdx[ns]=idx;sWt[ns]=wt;ns++;totalWt+=wt}}
@@ -409,6 +525,9 @@ function addDeposit(gx,gy,pressure,orientation,speed){
     const incomingWet=wAdd;if(incomingWet>0.01&&fPig[si]>0.01){const rewetStrength=Math.min(0.35,incomingWet*0.15);const dissolved=fPig[si]*rewetStrength;const ex=mPig[si];const tot=ex+dissolved;if(tot>0){const ew=ex/tot,nw=dissolved/tot;mR[si]=mR[si]*ew+fR[si]*nw;mG[si]=mG[si]*ew+fG[si]*nw;mB[si]=mB[si]*ew+fB[si]*nw;mPig[si]=tot}fPig[si]=Math.max(0,fPig[si]-dissolved)}
     const resist=Math.min(0.5,fPig[si]/PIGMENT_CAP);wAdd*=(1-resist*0.25);pAdd*=(1-resist*0.25);
     const room=Math.max(0,WATER_CAP-water[si]);if(wAdd>room){const sc=room/(wAdd+1e-12);wAdd*=sc;pAdd*=sc}if(wAdd<1e-12&&pAdd<1e-12)continue;
+    // v6: blend this cell's wetness memory toward the brush's current ratio, in
+    // proportion to how much of the cell's water is newly arrived.
+    if(wAdd>0){const kk=Math.min(1,wAdd/(water[si]+wAdd+1e-9));wetF[si]=wetF[si]*(1-kk)+wFrac*kk}
     water[si]+=wAdd;const existing=mPig[si];const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[si]=mR[si]*ew+inkR*nw;mG[si]=mG[si]*ew+inkG*nw;mB[si]=mB[si]*ew+inkB*nw}mPig[si]=total;appliedW+=wAdd;appliedP+=pAdd}
   if(disperseOn){brush.w=Math.max(0,brush.w-appliedW);brush.p=Math.max(0,brush.p-appliedP)}
   expandDirty(bx0,by0,bx1,by1);
@@ -420,7 +539,7 @@ function growCells(nn){let c=cIdx.length;while(c<nn)c*=2;const ni=new Int32Array
 function smudgeDab(gx,gy,pressure){const baseRad=BRUSH_RAD*(brushRadius/12);const rad=baseRad*(0.7+pressure*1.0);const search=Math.ceil(rad*2.5)+1;const x0=Math.floor(gx),y0=Math.floor(gy);let pickR=0,pickG=0,pickB=0,pickAmt=0,totalWt=0,nc=0;for(let dy=-search;dy<=search;dy++)for(let dx=-search;dx<=search;dx++){const px=x0+dx,py=y0+dy;if(px<0||px>=NX||py<0||py>=NY)continue;const fx=px-gx,fy=py-gy,dist2=fx*fx+fy*fy,r2=rad*rad;if(dist2>r2*4)continue;const wt=Math.exp(-0.5*dist2/Math.max(0.5,r2));if(wt<0.01)continue;const idx=py*NX+px;if(nc>=cIdx.length)growCells(nc+1);cIdx[nc]=idx;cWt[nc]=wt;nc++;totalWt+=wt;const lift=fPig[idx]*SMUDGE_PICKUP*pressure*wt;if(lift>0.0001){pickR+=fR[idx]*lift;pickG+=fG[idx]*lift;pickB+=fB[idx]*lift;pickAmt+=lift;fPig[idx]=Math.max(0,fPig[idx]-lift)}}
   if(pickAmt>0.0001){const total=smudgeBuf.amt+pickAmt;const ew=smudgeBuf.amt/total,nw=pickAmt/total;smudgeBuf.r=smudgeBuf.r*ew+(pickR/pickAmt)*nw;smudgeBuf.g=smudgeBuf.g*ew+(pickG/pickAmt)*nw;smudgeBuf.b=smudgeBuf.b*ew+(pickB/pickAmt)*nw;smudgeBuf.amt=total}
   if(smudgeBuf.amt>0.001&&totalWt>0){const deposit=smudgeBuf.amt*SMUDGE_DEPOSIT;for(let c=0;c<nc;c++){const ci=cIdx[c];const frac=cWt[c]/totalWt;const pAdd=deposit*frac;if(pAdd<0.0001)continue;const existing=fPig[ci];const tot=existing+pAdd;const ew=existing/tot,nw=pAdd/tot;fR[ci]=fR[ci]*ew+smudgeBuf.r*nw;fG[ci]=fG[ci]*ew+smudgeBuf.g*nw;fB[ci]=fB[ci]*ew+smudgeBuf.b*nw;fPig[ci]=Math.min(PIGMENT_CAP,tot)}smudgeBuf.amt=Math.max(0,smudgeBuf.amt-deposit)}
-  smudgeBuf.amt*=SMUDGE_DECAY;if(totalWt>0){for(let c=0;c<nc;c++){const ci=cIdx[c];water[ci]=Math.min(WATER_CAP,water[ci]+0.02*pressure*cWt[c]/totalWt)}}expandDirty(x0-search,y0-search,x0+search,y0+search)}
+  smudgeBuf.amt*=SMUDGE_DECAY;const smWet=brush.w/(brush.w+brush.p+1e-12);if(totalWt>0){for(let c=0;c<nc;c++){const ci=cIdx[c];const add=0.02*pressure*cWt[c]/totalWt;if(add>0){const kk=Math.min(1,add/(water[ci]+add+1e-9));wetF[ci]=wetF[ci]*(1-kk)+smWet*kk}water[ci]=Math.min(WATER_CAP,water[ci]+add)}}expandDirty(x0-search,y0-search,x0+search,y0+search)}
 
 // v4: orientation is carried across segments and slewed, then interpolated per
 // stamp. drawSegment used to hand every stamp one angle computed cold from the
@@ -435,9 +554,11 @@ function drawSegment(x0,y0,x1,y1,pressure){
   else{let d=((orient-o0+Math.PI*3)%(Math.PI*2))-Math.PI;o1=o0+d*0.35}
   lastOrient=o1;
   const steps=Math.max(1,Math.ceil(dist/1.5));
+  const base=strokeDist;
   for(let i=1;i<=steps;i++){const t=i/steps;
     if(brushStyle==='smudge')smudgeDab(x0+dx*t,y0+dy*t,pressure);
-    else addDeposit(x0+dx*t,y0+dy*t,pressure,o0+(o1-o0)*t,dist)}}
+    else addDeposit(x0+dx*t,y0+dy*t,pressure,o0+(o1-o0)*t,dist,base+dist*t)}
+  strokeDist=base+dist}
 
 function simulateStep(){
   if(!hasWet)return;
@@ -450,13 +571,17 @@ function simulateStep(){
 
   for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
     const i=y*NX+x;const w=water[i];if(w<0.001)continue;
-    const kSrc=K_BASE+K_GRAIN*tex[i]+K_PIG*Math.min(1,fPig[i]/PIGMENT_CAP)+K_PIN*pinTex[i];
+    // v6: bloom terms interpolate per cell on its remembered brush wetness.
+    const bfI=wetF[i]*BLOOM_GAIN;
+    const kPigI=KPIG_DRY+(KPIG_WET-KPIG_DRY)*bfI;
+    const sigBase=SIG_DRY+(SIG_WET-SIG_DRY)*bfI;
+    const kSrc=K_BASE+K_GRAIN*tex[i]+kPigI*Math.min(1,fPig[i]/PIGMENT_CAP)+K_PIN*pinTex[i];
     const pigConc=mPig[i]/(w+0.001);
     const nb=[i-1,i+1,i-NX,i+NX];
     for(let n=0;n<4;n++){const j=nb[n];
       let diff;
       if(water[j]<0.001){
-        const sigma=SIGMA_BASE+SIGMA_PIN*pinTex[j]+SIGMA_GRAIN*tex[j];
+        const sigma=sigBase+SIGMA_PIN*pinTex[j]+SIGMA_GRAIN*tex[j];
         if(w<sigma)continue;
         // Front node: capillary suction pulls into the dry cell. Loose fibre
         // (low tex) sucks harder, so the advancing edge frays along the grain.
@@ -465,10 +590,14 @@ function simulateStep(){
         diff=w-water[j];
       }
       if(diff<=0)continue;
-      const kDst=K_BASE+K_GRAIN*tex[j]+K_PIG*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
+      const kPigJ=KPIG_DRY+(KPIG_WET-KPIG_DRY)*wetF[j]*BLOOM_GAIN;
+      const kDst=K_BASE+K_GRAIN*tex[j]+kPigJ*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
       const kAvg=(kSrc+kDst)*0.5;
       let flow=SPREAD_RATE*diff*(1-kAvg);flow=Math.min(flow,w*0.12);if(flow<=0)continue;
       wDelta[i]-=flow;wDelta[j]+=flow;
+      // The wetness class travels with the water, so a bloom stays a bloom as
+      // it advances into dry paper instead of reverting at the front.
+      if(flow>0){const kk=Math.min(1,flow/(water[j]+flow+1e-9));wetF[j]=wetF[j]*(1-kk)+wetF[i]*kk}
       let pigFlow=flow*pigConc*(1-HINDRANCE*tex[i]);pigFlow=Math.min(pigFlow,mPig[i]*0.12);
       if(pigFlow<=0.0001)continue;
       pDelta[i]-=pigFlow;pDelta[j]+=pigFlow;
@@ -496,9 +625,16 @@ function simulateStep(){
       // Edge cells dry fastest, so pigment strands there — this is the dark rim
       // that reads as ink rather than watercolour. Kept strong on purpose.
       const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT;
-      water[i]=Math.max(0,w-EVAP_RATE*w*edgeFac);
+      const bf=wetF[i]*WET_GAIN;
+      const evapR=EVAP_DRY*Math.pow(EVAP_WET/EVAP_DRY,bf);
+      const fixR =FIX_DRY *Math.pow(FIX_WET /FIX_DRY ,bf);
+      // v6: slow relaxation of the wetness memory. Without it a fully wet cell
+      // has an evaporation rate of 3.2e-4 forever and the canvas never truly
+      // settles. This keeps the long v3 wet window but guarantees it ends.
+      wetF[i]*=0.9994;
+      water[i]=Math.max(0,w-evapR*w*edgeFac);
       const dry=1-water[i]/WATER_CAP;
-      const fix=FIX_RATE*dry*dry*absorb[i];
+      const fix=fixR*dry*dry*absorb[i];
       const pRoom=Math.max(0,PIGMENT_CAP-fPig[i]);
       const amount=Math.min(mPig[i]*fix,pRoom);
       if(amount>0.0001){
@@ -519,7 +655,7 @@ function simulateStep(){
           fG[i]=ex>0.001?fG[i]*(1-lockCover)+mG[i]*lockCover:mG[i];
           fB[i]=ex>0.001?fB[i]*(1-lockCover)+mB[i]*lockCover:mB[i];
           fPig[i]=tot}}
-      mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0;water[i]=0}}}
+      mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0;water[i]=0;wetF[i]=0}}}
   if(stillWet){dirtyX0=Math.max(0,newX0-2);dirtyY0=Math.max(0,newY0-2);dirtyX1=Math.min(NX-1,newX1+2);dirtyY1=Math.min(NY-1,newY1+2)}
   else{hasWet=false;dirtyX0=NX;dirtyY0=NY;dirtyX1=0;dirtyY1=0}
 }
@@ -623,7 +759,7 @@ palToggle.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagatio
 document.querySelectorAll('#brushRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);document.querySelectorAll('#brushRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');schedClose()})});
 document.querySelectorAll('#brushRow .bstyle').forEach(bs=>{bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();document.querySelectorAll('#brushRow .bstyle').forEach(s=>s.classList.remove('active'));bs.classList.add('active');brushStyle=bs.dataset.style;schedClose()})});
 
-function resetAll(){water.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
+function resetAll(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
   hasWet=false;dirtyX0=NX;dirtyY0=NY;dirtyX1=0;dirtyY1=0;
   splatParticles.length=0;partBox=null;lastOrient=null;
   smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;
@@ -660,7 +796,7 @@ brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);
 let lastContact=0;
 function getLiveRadius(e){const contact=Math.max(e.width||0,e.height||0);lastContact=contact;if(contact>20){const t=Math.min(1,Math.max(0,(contact-30)/130));return brushRange[0]+t*(brushRange[1]-brushRange[0])}return brushRange[0]+0.3*(brushRange[1]-brushRange[0])}
 
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);const[gx,gy]=clientToGrid(e.clientX,e.clientY);drawing=true;lastGX=gx;lastGY=gy;lastTime=performance.now();strokeSeed=performance.now()%1000;lastOrient=null;strokePts=[{x:gx,y:gy,t:performance.now()}];brushRadius=getLiveRadius(e);if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(gx,gy,getPressure(e))}else{addDeposit(gx,gy,getPressure(e),0,0)}});
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);const[gx,gy]=clientToGrid(e.clientX,e.clientY);drawing=true;lastGX=gx;lastGY=gy;lastTime=performance.now();strokeSeed=performance.now()%1000;beginStroke();strokePts=[{x:gx,y:gy,t:performance.now()}];brushRadius=getLiveRadius(e);if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(gx,gy,getPressure(e))}else{addDeposit(gx,gy,getPressure(e),0,0)}});
 canvas.addEventListener('pointermove',e=>{if(!drawing)return;const[gx,gy]=clientToGrid(e.clientX,e.clientY);const now=performance.now();brushRadius=getLiveRadius(e);drawSegment(lastGX,lastGY,gx,gy,getPressure(e));strokePts.push({x:gx,y:gy,t:now});if(strokePts.length>12)strokePts.shift();lastGX=gx;lastGY=gy;lastTime=now});
 canvas.addEventListener('pointerup',e=>{if(drawing&&brushStyle!=='smudge')maybeFlick();drawing=false;lastOrient=null;strokePts=[];try{canvas.releasePointerCapture(e.pointerId)}catch(_){}});
 canvas.addEventListener('pointercancel',()=>{drawing=false;lastOrient=null});
@@ -723,40 +859,15 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     brushStyle=(stroke.style&&['round','point','side','rake','smudge'].includes(stroke.style))?stroke.style:brushStyle;
     const press=Math.min(1,Math.max(0,stroke.pressure??0.5));
     strokeSeed=(performance.now()%1000+si*137)%1000;
-    lastOrient=null;
-
-    // "taper": end factor 0..1. "swell": 0..0.9, where along the path the stroke
-    // is at full width. "stem": width at the very start (default 0.35).
-    // Without swell the stroke is fattest exactly where it begins, which is why
-    // leaves read as bird wings — a real bamboo leaf has a thin stem, swells about
-    // a third along, then tapers to the point. swell:0 keeps the old behaviour.
-    const tapEnd=(stroke.taper==null)?1:Math.min(1,Math.max(0,stroke.taper));
-    const sw=(stroke.swell==null)?0:Math.min(0.9,Math.max(0,stroke.swell));
-    const stemK=(stroke.stem==null)?0.35:Math.min(1,Math.max(0.05,stroke.stem));
-    function taperK(t){
-      if(sw<=0)return 1+(tapEnd-1)*t*t*t;
-      if(t<=sw){const u=t/sw;return stemK+(1-stemK)*u*(2-u)}
-      const u=(t-sw)/(1-sw);return 1+(tapEnd-1)*u*u*u;
-    }
-    const baseRadius=brushRadius;
+    beginStroke();
 
     const rawPts=stroke.path.map(([nx,ny])=>[nx,ny]);
     const smoothPts=interpPath(rawPts,stroke.interpolation);
     const pts=smoothPts.map(([nx,ny])=>[nx*(NX-1),ny*(NY-1)]);
     if(pts.length===1){addDeposit(pts[0][0],pts[0][1],press,0,0);dabCount++}
     else{addDeposit(pts[0][0],pts[0][1],press,0,0);dabCount++;
-      const nSeg=pts.length-1;
-      for(let p=0;p<nSeg;p++){
-        // v4.1: taper drives RADIUS directly, pressure only weakly (k^0.35).
-        // The point brush squares pressure internally, so scaling both by k made
-        // the effective size go as ~k^3 — the leaf collapsed to a hairline in the
-        // first third regardless of tapEnd. Radius-led keeps it near-linear, and
-        // holding pressure up means the leaf stays dark all the way to its point.
-        const t=(p+0.5)/nSeg,k=taperK(t);
-        brushRadius=Math.max(1,baseRadius*Math.max(0.12,k));
-        drawSegment(pts[p][0],pts[p][1],pts[p+1][0],pts[p+1][1],Math.min(1,Math.max(0.03,press*Math.pow(k,0.35))));
-        const dx=pts[p+1][0]-pts[p][0],dy=pts[p+1][1]-pts[p][1];dabCount+=Math.max(1,Math.ceil(Math.hypot(dx,dy)/1.5))}
-      brushRadius=baseRadius}
+      for(let p=0;p<pts.length-1;p++){drawSegment(pts[p][0],pts[p][1],pts[p+1][0],pts[p+1][1],press);
+        const dx=pts[p+1][0]-pts[p][0],dy=pts[p+1][1]-pts[p][1];dabCount+=Math.max(1,Math.ceil(Math.hypot(dx,dy)/1.5))}}
 
     if(stroke.flick&&pts.length>=2){
       const last=pts[pts.length-1],prev=pts[Math.max(0,pts.length-3)];
@@ -800,7 +911,31 @@ function animate(){
 updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,400);
 if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
 window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
-window.SUMI={state:()=>({water:brush.w/BRUSH_W_CAP,ink:brush.p/BRUSH_P_CAP,tray:trayOpen,contact:lastContact,radius:brushRadius,style:brushStyle})};
+// ═══ v5 CHARACTER CONTROLS ═══
+(function bindCharacter(){
+  const row=document.getElementById('charRow'),tog=document.getElementById('charToggle');
+  tog.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
+    row.classList.toggle('open');tog.classList.toggle('on',row.classList.contains('open'));keepOpen()});
+  function link(id,vid,fn){
+    const el=document.getElementById(id),out=document.getElementById(vid);
+    const apply=()=>{const v=Number(el.value);out.textContent=v;fn(v)};
+    el.addEventListener('input',apply);
+    el.addEventListener('pointerdown',e=>{e.stopPropagation();keepOpen()});
+    el.addEventListener('pointerup',()=>schedClose(6000));
+    apply();
+  }
+  // Chatter / Grain are ceilings reached at full dryness.
+  link('sChat','vChat',v=>{CHAT_MAX=v/100});
+  link('sGrain','vGrain',v=>{GRAIN_MAX=v/100});
+  // Heel is flat — no wetness coupling.
+  link('sHeel','vHeel',v=>{HEEL=v/100});
+  // Wet / Bloom are coupling gains: how far a fully wet brush travels toward v3.
+  link('sWet','vWet',v=>{WET_GAIN=v/100});
+  link('sBloom','vBloom',v=>{BLOOM_GAIN=v/100});
+})();
+
+window.SUMI={state:()=>({water:brush.w/BRUSH_W_CAP,ink:brush.p/BRUSH_P_CAP,tray:trayOpen,contact:lastContact,radius:brushRadius,style:brushStyle,chatMax:CHAT_MAX,grainMax:GRAIN_MAX,heel:HEEL,wetGain:WET_GAIN,bloomGain:BLOOM_GAIN,
+  dryness:1-brush.w/(brush.w+brush.p+1e-12)})};
 })();
 </script>
 
