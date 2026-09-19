@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>SUMI v6 — coupled character</title>
+<title>SUMI v7 — splash</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100dvh;background:#070b12;overflow:hidden;
@@ -75,7 +75,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   transition:transform 0.16s,border-color 0.16s;touch-action:none}
 .bstyle.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1);color:rgba(236,229,210,0.85)}
 #brushRow{display:flex;gap:8px;justify-content:center;align-items:center;padding:0 4px}
-#charRow{display:none;gap:10px;align-items:center;padding:2px 2px 0;overflow-x:auto;
+#charRow{display:none;gap:18px;align-items:center;padding:2px 2px 0;overflow-x:auto;
   -webkit-overflow-scrolling:touch;scrollbar-width:none}
 #charRow.open{display:flex}
 #charRow::-webkit-scrollbar{display:none}
@@ -83,14 +83,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .chr label{display:flex;justify-content:space-between;align-items:baseline;
   font-size:10px;letter-spacing:0.08em;color:#e8f3ec;text-transform:uppercase;font-weight:600}
 .chr label b{font-weight:700;color:#7dfcb4;font-size:11px}
+/* v7: live value riding the brush state. Thumb = your ceiling/gain, amber fill = what the brush is doing right now. */
+.chr label{white-space:nowrap;gap:3px}
+.chr{flex:1 0 104px;min-width:104px}
+.chr label .lv{font-weight:700;color:#ffd27a;font-size:11px;margin-left:auto}
+.chr label .lv::after{content:'/';color:rgba(236,234,210,.55);margin-left:2px}
+.chr.nolive label .lv{display:none}
+.chrDiv{width:1px;align-self:stretch;margin:2px 2px;background:rgba(236,234,210,.18);flex-shrink:0}
 .chr input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;
   background:transparent;touch-action:none;margin:0}
 .chr input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;
-  background:rgba(236,234,210,0.22)}
+  background:linear-gradient(90deg,#ffd27a 0,#ffd27a var(--live,0%),rgba(236,234,210,0.22) var(--live,0%))}
 .chr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
   width:20px;height:20px;border-radius:50%;background:#7dfcb4;margin-top:-8px;
   border:2px solid #0b1012;box-shadow:0 1px 5px rgba(0,0,0,.6)}
-.chr input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:rgba(236,234,210,0.22)}
+.chr input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:linear-gradient(90deg,#ffd27a 0,#ffd27a var(--live,0%),rgba(236,234,210,0.22) var(--live,0%))}
 .chr input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
   background:#7dfcb4;border:2px solid #0b1012}
 #charToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
@@ -208,7 +215,7 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
 <body>
 <canvas id="canvas"></canvas>
 <canvas id="fxCanvas" aria-hidden="true"></canvas>
-<div id="build">SUMI_v4 · WET</div>
+<div id="build">SUMI_v7 · SPLASH</div>
 <div id="liveStatus" aria-hidden="true"><span id="liveMode">READY</span><span id="liveLoad">INK —</span><span id="liveWater">WATER —</span><span id="liveTouch">C —</span></div>
 <div id="bstate">
   <div><div class="bbar" id="barW"><div class="fill"></div></div><div class="bbar-label">W</div></div>
@@ -262,11 +269,15 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
     <div class="size" data-r="20"><i style="width:19px;height:19px"></i></div>
   </div>
   <div id="charRow">
-    <div class="chr"><label>Chatter <b id="vChat">30</b></label><input type="range" id="sChat" min="0" max="100" step="5" value="30"></div>
-    <div class="chr"><label>Grain <b id="vGrain">30</b></label><input type="range" id="sGrain" min="0" max="30" step="1" value="30"></div>
-    <div class="chr"><label>Heel <b id="vHeel">200</b></label><input type="range" id="sHeel" min="0" max="200" step="5" value="200"></div>
-    <div class="chr"><label>Wet <b id="vWet">100</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="100"></div>
-    <div class="chr"><label>Bloom <b id="vBloom">100</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="100"></div>
+    <div class="chr"><label>Chatter <span class="lv" id="lChat">0</span><b id="vChat">30</b></label><input type="range" id="sChat" min="0" max="100" step="5" value="30"></div>
+    <div class="chr"><label>Grain <span class="lv" id="lGrain">0</span><b id="vGrain">30</b></label><input type="range" id="sGrain" min="0" max="30" step="1" value="30"></div>
+    <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">600</b></label><input type="range" id="sHeel" min="0" max="600" step="5" value="600"></div>
+    <div class="chr"><label>Wet <span class="lv" id="lWet">0</span><b id="vWet">0</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="0"></div>
+    <div class="chr"><label>Bloom <span class="lv" id="lBloom">0</span><b id="vBloom">100</b></label><input type="range" id="sBloom" min="0" max="200" step="1" value="200"></div>
+    <div class="chrDiv"></div>
+    <div class="chr"><label>Drop <span class="lv" id="lDrop">0</span><b id="vDrop">100</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="100"></div>
+    <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
+    <div class="chr nolive"><label>Height <span class="lv"></span><b id="vHeight">15</b></label><input type="range" id="sHeight" min="0" max="100" step="1" value="15"></div>
   </div>
   <div id="dipRow">
     <div class="dip" id="dipInk"><div class="fill"></div><span>墨 ink</span></div>
@@ -310,7 +321,7 @@ const SPREAD_RATE=0.55,EDGE_EVAP_MULT=0.9,HINDRANCE=0.12;
 // and slaved to the current brush, picking up a dry brush would retroactively
 // lock a wash you laid down five strokes ago. Per-cell means a wet stroke can
 // bloom next to a dry stroke that locks hard, on the same paper.
-const EVAP_DRY=0.016,EVAP_WET=0.00032;   // v4 -> v3
+const EVAP_DRY=0.00001,EVAP_WET=0.00032;   // v4 -> v3
 const FIX_DRY =0.022,FIX_WET =0.0011;    // v4 -> v3
 const SIG_DRY =0.08, SIG_WET =0.95;      // v4 -> v3
 const KPIG_DRY=0.28, KPIG_WET=0.90;      // v4 -> v3
@@ -332,6 +343,14 @@ let WET_GAIN=1.0,BLOOM_GAIN=1.0;
 // the drag on the trailing edge doesn't depend on how wet the hair is.
 let CHAT_MAX=0.30,GRAIN_MAX=0.30,HEEL=2.0;
 const DRY_CURVE=1.35;
+// v7: Heel now rides the brush LOAD (how full the belly is). A loaded brush
+// pools ink at the trailing edge; as it empties the drag lightens. The floor
+// keeps a trace of heel on a near-empty brush so the stroke never goes
+// perfectly symmetric. Pigment weighs more than water because the pooled
+// heel is ink, not vehicle.
+const HEEL_FLOOR=0.25,HEEL_LOAD_P=0.6,HEEL_LOAD_W=0.4;
+function brushLoad(){return Math.min(1,brush.p/BRUSH_P_CAP*HEEL_LOAD_P+brush.w/BRUSH_W_CAP*HEEL_LOAD_W)}
+function heelLoadK(){return HEEL_FLOOR+(1-HEEL_FLOOR)*brushLoad()}
 
 // Per-style character. bAmp/bFreq scale the existing bristle modulation,
 // heel drags weight to the trailing edge of the footprint, chat/chatFreq are
@@ -483,7 +502,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // v5: heel — the only term that reads the ALONG-stroke axis. Every v4 stamp
   // was symmetric front-to-back, which is why strokes looked extruded rather
   // than dragged. Negative u is the trailing edge; weight pools there.
-  const heelAmt=ch.heel*HEEL*0.30;
+  const heelAmt=ch.heel*HEEL*heelLoadK()*0.30;
   // v4: catch is an ATTENUATION, not a kill switch. It also uses coherent noise at
   // fibre scale instead of per-pixel white noise, so dry-brush skip happens in
   // clumps a few cells wide — the way a bristle actually misses the paper.
@@ -693,7 +712,21 @@ let _lastWp=-1,_lastPp=-1;
 function updateFills(){const wp=Math.round(brush.w/BRUSH_W_CAP*100),pp=Math.round(brush.p/BRUSH_P_CAP*100);
   if(wp===_lastWp&&pp===_lastPp)return;_lastWp=wp;_lastPp=pp;
   fillWater.style.height=wp+'%';fillInk.style.height=pp+'%';
-  barWFill.style.height=Math.min(100,wp)+'%';barPFill.style.height=Math.min(100,pp)+'%'}
+  barWFill.style.height=Math.min(100,wp)+'%';barPFill.style.height=Math.min(100,pp)+'%';
+  refreshLiveChar()}
+// v7: the character sliders show what the brush is doing right now. The thumb
+// is still your setting (a ceiling for Chatter/Grain/Heel, a gain for Wet/Bloom);
+// the amber fill and the amber number are the live amount at the current load.
+// These are exactly the values addDeposit uses for the next stamp.
+const _live=[];
+function refreshLiveChar(){
+  if(!_live.length){[['sChat','lChat'],['sGrain','lGrain'],['sHeel','lHeel'],['sWet','lWet'],['sBloom','lBloom'],['sDrop','lDrop']].forEach(([s,l])=>{const el=document.getElementById(s),out=document.getElementById(l);if(el&&out)_live.push({el,out,id:s})});if(!_live.length)return}
+  const wFrac=brush.w/(brush.w+brush.p+1e-12),dryK=Math.pow(1-wFrac,DRY_CURVE),hk=heelLoadK();
+  for(const o of _live){const v=Number(o.el.value);let k;
+    switch(o.id){case'sChat':case'sGrain':k=dryK;break;case'sHeel':k=hk;break;case'sDrop':k=splDropK()/DROP_GAIN;break;default:k=wFrac}
+    const lv=v*k,pct=Math.max(0,Math.min(100,lv/Number(o.el.max)*100));
+    o.el.style.setProperty('--live',pct.toFixed(1)+'%');
+    o.out.textContent=lv>=10?Math.round(lv):lv.toFixed(1)}}
 
 let holding=null,tickLast=0,trayTimer=null;
 const RAMP_FILL=3.0,RAMP_DRAIN=0.06;
@@ -756,7 +789,7 @@ palToggle.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagatio
   if(!newPage.querySelector('.swatch.active')){const first=newPage.querySelector('.swatch');first.classList.add('active');inkR=parseFloat(first.dataset.r);inkG=parseFloat(first.dataset.g);inkB=parseFloat(first.dataset.b)}
   else{const act=newPage.querySelector('.swatch.active');inkR=parseFloat(act.dataset.r);inkG=parseFloat(act.dataset.g);inkB=parseFloat(act.dataset.b)}keepOpen()});
 
-document.querySelectorAll('#brushRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);document.querySelectorAll('#brushRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');schedClose()})});
+document.querySelectorAll('#brushRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);document.querySelectorAll('#brushRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');refreshLiveChar();schedClose()})});
 document.querySelectorAll('#brushRow .bstyle').forEach(bs=>{bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();document.querySelectorAll('#brushRow .bstyle').forEach(s=>s.classList.remove('active'));bs.classList.add('active');brushStyle=bs.dataset.style;schedClose()})});
 
 function resetAll(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
@@ -768,7 +801,7 @@ document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.prevent
 
 // ═══ TRAY TAB ═══
 const trayTab=document.getElementById('trayTab');let trayOpen=false;
-function openTray(){tray.classList.add('visible');trayTab.textContent='▼ TRAY';trayOpen=true;schedClose(6000)}
+function openTray(){tray.classList.add('visible');trayTab.textContent='▼ TRAY';trayOpen=true;schedClose(6000990)}
 function closeTray(){clearTimeout(trayTimer);tray.classList.remove('visible');trayTab.textContent='▲ TRAY';trayOpen=false;holding=null;initNapkin()}
 trayTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(trayOpen)closeTray();else openTray()});
 document.getElementById('grab').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeTray()});
@@ -777,15 +810,249 @@ document.getElementById('grab').addEventListener('pointerdown',e=>{e.preventDefa
 let disperseOn=true;const disperseBtn=document.getElementById('disperseToggle');
 disperseBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();disperseOn=!disperseOn;disperseBtn.classList.toggle('off',!disperseOn);disperseBtn.title=disperseOn?'Brush drains normally':'Brush locked — infinite ink';keepOpen()});
 
-// ═══ SPLATTER ═══
+// ═══ SPLATTER (v7: SPLAT v3.2 physics, depositing into the ink sim) ═══
+// Ported from splat_v3: Rayleigh–Taylor droplet size, Weber-number breakup
+// regimes, bimodal fat/mist distribution, size-dependent carry, Comiskey/Yarin
+// impact spread, teardrop stain outline, crown satellites, forward spines and
+// ligament bead rows. What's different from SPLAT: nothing is painted onto the
+// canvas. Every stain lands in the mobile pigment + water layers, so splatter
+// bleeds, blooms, rims and dries exactly like a brush stroke does.
+// Gyro-only parts of SPLAT (loft/slam, spin, tilt drips) are not ported — SUMI
+// is touch-driven and the paper is flat.
+//
+// Brush state drives the ink's material: a wet brush throws thin, low-viscosity
+// ink (fine mist, wide cone); a dry, pigment-heavy brush throws thick ink (fewer,
+// fatter drops). Pigment load sets how dark the drops are (it replaces SPLAT's
+// Flow slider), and the brush's wetness is written into wetF so a wet flick
+// blooms under the Wet/Bloom gains.
 let splatParticles=[];
-class SplatParticle{constructor(x,y,vx,vy,radius,r,g,b,id){this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.radius=radius;this.r=r;this.g=g;this.b=b;this.id=id;this.alpha=0.85;this.friction=0.92;this.decay=0.008+hash21(id,9.4)*0.008;this.settled=false}
-  update(){if(this.settled)return;this.x+=this.vx;this.y+=this.vy;this.vx*=this.friction;this.vy*=this.friction;this.alpha-=this.decay;if(this.alpha<=0.03||Math.hypot(this.vx,this.vy)<0.08){this.settled=true;const gx=Math.round(this.x),gy=Math.round(this.y);if(gx>=0&&gx<NX&&gy>=0&&gy<NY){const dropR=Math.ceil(this.radius);const str=Math.max(0.05,this.alpha*0.6);for(let dy=-dropR-1;dy<=dropR+1;dy++)for(let dx=-dropR-1;dx<=dropR+1;dx++){const px=gx+dx,py=gy+dy;if(px<0||px>=NX||py<0||py>=NY)continue;const d2=dx*dx+dy*dy;if(d2>this.radius*this.radius*4)continue;const wt=Math.exp(-d2/(this.radius*this.radius*0.8))*str;if(wt<0.005)continue;const idx=py*NX+px;water[idx]=Math.min(WATER_CAP,water[idx]+wt*0.3);const existing=mPig[idx];const pAdd=wt*0.4;const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[idx]=mR[idx]*ew+(this.r/255)*nw;mG[idx]=mG[idx]*ew+(this.g/255)*nw;mB[idx]=mB[idx]*ew+(this.b/255)*nw}mPig[idx]=total;expandDirty(px-1,py-1,px+1,py+1)}hasWet=true}}}}
+// Tuned SPLAT constants (kept verbatim).
+const SPL_CARRY0=0.22,SPL_CARRY1=0.78,SPL_CARRY_S=5,SPL_IMP_DIV=24;
+const SPL_K_V=760,SPL_MINV=16,SPL_MAXV=6000,SPL_FALL_K=20,SPL_CROWN_THRESH=4;
+// Touch mapping (new, calibrated so realistic flicks span all four breakup
+// regimes). SPL_VEL_K: px/ms → SPLAT velocity units. SPL_ACC_K/JERK_K: how
+// finger speed and speed-up feed droplet size.
+const SPL_VEL_K=0.055,SPL_ACC_K=60,SPL_JERK_K=100;
+// Deposit scale: pigment per stain cell at full ink load and alpha 1, and the
+// water range from a dry to a fully wet brush.
+const SPL_PIG=2.0,SPL_WAT_DRY=0.12,SPL_WAT_WET=0.85;
+const SPL_MAX_DROPS=360,SPL_MAX_THROW=0.35,SPL_FLICK_LOSS=0.06,SPL_MAX_FRAMES=45;
+let SPRAY=1.0,SPLAT_HEIGHT=15,DROP_GAIN=1.0,lastSplat=null;
+// v7.1: drop size follows the brush. brushRadius at release (the live,
+// contact-driven radius, not just the size button) scales every drop and its
+// stain. It is applied AFTER the breakup physics, so a big brush throws big
+// drops without also atomising harder — the Weber regime still comes from
+// flick speed and ink thickness. Darkness still comes from ink load and
+// wetness from water load, so any size can be dark or wet.
+// SPL_R_REF: radius that gives SPLAT's native drop sizes. SPL_R_EXP just
+// under 1 so drops track the brush nearly proportionally. Drop slider
+// multiplies on top.
+const SPL_R_REF=20,SPL_R_EXP=0.9,SPL_DROPK_MIN=0.12,SPL_DROPK_MAX=3.8;
+function splDropK(){return DROP_GAIN*sclamp(Math.pow(Math.max(0.5,brushRadius)/SPL_R_REF,SPL_R_EXP),SPL_DROPK_MIN,SPL_DROPK_MAX)}
+function sclamp(v,a,b){return v<a?a:v>b?b:v}
+function shs(seed,i){const x=Math.sin((seed*0.113+i*1.7321+0.577)*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
+function splatInk(dry){return{rho:mix(0.90,1.25,dry),sigma:mix(0.028,0.070,dry),viscK:mix(0.70,2.0,Math.pow(dry,1.2))}}
+function splRT(ink,A){A=Math.max(A,0.5);return sclamp((5.5/Math.sqrt(A))*ink.viscK*(ink.sigma/0.028),0.35,7)}
+function splRegime(We){
+  if(We<4)return{count:20,spreadDeg:16,fatFrac:0.16};
+  if(We<15)return{count:44,spreadDeg:28,fatFrac:0.13};
+  if(We<60)return{count:90,spreadDeg:44,fatFrac:0.10};
+  return{count:150,spreadDeg:66,fatFrac:0.07}}
+function splCarry(size){return SPL_CARRY0+SPL_CARRY1*(1-Math.exp(-size/SPL_CARRY_S))}
+function splSpread(ink,size,imp){
+  const We=(ink.rho*imp*imp*size)/ink.sigma,Re=ink.rho*imp*size/(ink.viscK*0.02);
+  const Oh=Re>0?Math.sqrt(Math.max(We,0.2))/Re:1;
+  return sclamp(0.61*Math.pow(Math.max(We,0.2),0.30)/Math.pow(Math.max(Oh,0.01),0.166),0.9,2.4)}
 
-function triggerKineticSplatter(px,py,angle,speed){const seed=Math.floor(px)*3.1+Math.floor(py)*7.7+Math.floor(angle*45)*13.9;const scaleMod=0.45;const dropletCount=Math.floor(Math.min(60,speed*(3+hash21(seed,0.77)*3)));if(dropletCount<3)return;const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);for(let i=0;i<dropletCount;i++){const n1=hash21(seed+i*2.4,i*0.73)-0.5,n2=hash21(seed+i*2.4+1000,i*1.1)-0.5;const gaussNoise=(n1+n2)*1.4;const satAngle=angle+gaussNoise*0.25;const satVelocity=(speed*0.4)+(hash21(seed+1.3,i)*speed*0.5);const vx=Math.cos(satAngle)*satVelocity*scaleMod,vy=Math.sin(satAngle)*satVelocity*scaleMod;const refSize=Math.min(140,speed*10)*scaleMod;const sRadius=Math.max(0.4,hash21(seed+2.6,i)*refSize*0.08);splatParticles.push(new SplatParticle(px,py,vx,vy,sRadius,r,g,b,seed+i))}brush.w=Math.max(0,brush.w-brush.w*0.06);brush.p=Math.max(0,brush.p-brush.p*0.06);updateFills()}
+// Drops and satellites that land past the edge are simply off the paper:
+// depositStain clips per cell, so a stain half over the edge is half there.
+// One stain in the sim. Same outline as SPLAT's paintDrop: ellipse along the
+// travel direction, narrower at the leading end (taper), slight wobble. The
+// pigment/water budget is fixed by the caller and normalised over the footprint,
+// so ink is conserved no matter how big the stain turns out.
+let stIdx=new Int32Array(4096),stWt=new Float64Array(4096);
+function depositStain(x,y,R,aspect,dirX,dirY,seed,pig,wat,cr,cg,cb,wf){
+  if(pig<=0&&wat<=0)return;
+  const major=R*aspect,minor=R,ph=seed*0.0031;
+  const ext=Math.ceil(major*1.2)+2;
+  const x0=Math.round(x),y0=Math.round(y);
+  let n=0,tot=0;
+  // Border ring excluded: simulateStep never visits it, so ink there would
+  // stay mobile forever.
+  for(let dy=-ext;dy<=ext;dy++){const py=y0+dy;if(py<1||py>=NY-1)continue;
+    for(let dx=-ext;dx<=ext;dx++){const px=x0+dx;if(px<1||px>=NX-1)continue;
+      const fx=px-x,fy=py-y;let wt;
+      if(R<1.2){const d2=fx*fx+fy*fy;wt=Math.exp(-d2/Math.max(0.35,R*R*0.9))}
+      else{
+        const ex=fx*dirX+fy*dirY,ey=-fx*dirY+fy*dirX;
+        const a=Math.atan2(ey/minor,ex/major),ca=Math.cos(a);
+        const taper=1-0.28*Math.max(0,ca);
+        const wob=1+0.04*Math.sin(3*a+ph)+0.025*Math.sin(5*a+ph*1.7);
+        const rho=Math.sqrt((ex/major)*(ex/major)+(ey/(minor*taper))*(ey/(minor*taper)))/wob;
+        if(rho>=1.15)continue;
+        wt=rho<0.85?1:1-(rho-0.85)/0.30;
+        wt*=0.85+0.15*absorb[py*NX+px];
+      }
+      if(wt<0.01)continue;
+      if(n>=stIdx.length){let c=stIdx.length*2;const ni=new Int32Array(c),nw=new Float64Array(c);ni.set(stIdx);nw.set(stWt);stIdx=ni;stWt=nw}
+      stIdx[n]=py*NX+px;stWt[n]=wt;n++;tot+=wt}}
+  if(tot<=0)return;
+  for(let k=0;k<n;k++){const i=stIdx[k],f=stWt[k]/tot;
+    let wAdd=wat*f;const pAdd=pig*f;
+    const room=Math.max(0,WATER_CAP-water[i]);if(wAdd>room)wAdd=room;
+    if(wAdd>0){const kk=Math.min(1,wAdd/(water[i]+wAdd+1e-9));wetF[i]=wetF[i]*(1-kk)+wf*kk}
+    water[i]+=wAdd;
+    const ex=mPig[i],t=ex+pAdd;
+    if(t>0){const ew=ex/t,nw=pAdd/t;mR[i]=mR[i]*ew+cr*nw;mG[i]=mG[i]*ew+cg*nw;mB[i]=mB[i]*ew+cb*nw}
+    mPig[i]=t}
+  expandDirty(x0-ext,y0-ext,x0+ext,y0+ext);hasWet=true}
+
+class SplatParticle{
+  // A drop in flight. Its landing point, stain and secondary marks are all
+  // decided at launch (SPLAT is deterministic), so flight is just the reveal:
+  // exponential drag whose total travel equals the computed reach. Bigger drops
+  // carry further and decelerate more slowly, like SPLAT's carry fraction.
+  constructor(o){Object.assign(this,o);
+    this.f=0.80+0.10*splCarry(this.size0);
+    const dx=this.lx-this.x0,dy=this.ly-this.y0;
+    this.vx=dx*(1-this.f);this.vy=dy*(1-this.f);
+    this.x=this.x0;this.y=this.y0;this.frame=0;this.settled=false;
+    this.drawR=Math.max(0.6,Math.min(6,this.size*0.45));this.alphaDraw=0.9}
+  update(){
+    if(this.settled)return;
+    this.x+=this.vx;this.y+=this.vy;this.vx*=this.f;this.vy*=this.f;this.frame++;
+    if(this.x<-40||this.y<-40||this.x>NX+40||this.y>NY+40){this.settled=true;return}
+    if(this.frame>=SPL_MAX_FRAMES||Math.hypot(this.lx-this.x,this.ly-this.y)<0.6){
+      this.settled=true;this.land()}}
+  land(){
+    const c=this,tot=c.markW;if(tot<=0)return;
+    for(const m of c.marks){const k=m.w/tot;
+      depositStain(m.x,m.y,m.R,m.aspect,m.dx,m.dy,m.seed,c.pig*k,c.wat*k,c.r,c.g,c.b,c.wf)}}
+}
+
+// px,py: grid coords. angle: radians. speed: legacy flick units (px/ms × 30),
+// kept so JSON `flick` values mean what they always meant. accPx: finger
+// speed-up in px/ms² (0 from JSON).
+function triggerKineticSplatter(px,py,angle,speed,accPx){
+  const load=brushLoad();
+  if(load<0.02||(brush.p<1&&brush.w<1))return;
+  const wFrac=brush.w/(brush.w+brush.p+1e-12),dry=1-wFrac;
+  const ink=splatInk(dry);
+  const vPx=Math.max(0,speed/30);
+  const velE=vPx*SPL_VEL_K*SPRAY;
+  const accelE=Math.max(0.5,velE*SPL_ACC_K+(accPx||0)*SPL_JERK_K*SPRAY);
+  const seed=Math.floor(px)*3.1+Math.floor(py)*7.7+Math.floor(angle*45)*13.9+strokeSeed*0.37;
+
+  const l0=splRT(ink,accelE);
+  const dropK=splDropK();
+  const Vw=sclamp(velE*3.2,0.05,120);
+  const We=(ink.rho*Vw*Vw*l0)/ink.sigma;
+  const reg=splRegime(We);
+  const spreadRad=reg.spreadDeg*Math.PI/180;
+  const Vp=sclamp(velE*SPL_K_V,SPL_MINV,SPL_MAXV);
+  const atom=sclamp(We/60,1,200),countScale=1+Math.log2(atom)*0.42;
+  const fatFrac=reg.fatFrac/countScale;
+  const fallImp=SPL_FALL_K*Math.sqrt(SPLAT_HEIGHT/100);
+  // An emptying brush throws fewer drops, not just paler ones.
+  const loadCount=sclamp(0.2+0.8*Math.sqrt(load),0.2,1);
+  // Big drops are fewer, fine spray is denser, so ink per flick grows roughly
+  // with brush size instead of with stain AREA (which would starve big drops).
+  const sizeCount=sclamp(1/dropK,0.3,2.5);
+  const nDrops=Math.round(sclamp(reg.count*countScale*(0.75+shs(seed,0)*0.4)*loadCount*sizeCount,3,SPL_MAX_DROPS));
+  const maxR=Math.min(NX,NY)*sclamp(0.045*dropK,0.010,0.14),maxSpread=Math.min(NX,NY)*0.72;
+  const dirX=Math.cos(angle),dirY=Math.sin(angle);
+  const pigConc=Math.min(1,brush.p/BRUSH_P_CAP),watConc=Math.min(1,brush.w/BRUSH_W_CAP);
+  const cellPig=SPL_PIG*(0.15+0.85*pigConc);
+  const cellWat=mix(SPL_WAT_DRY,SPL_WAT_WET,wFrac)*(0.5+0.5*watConc);
+  const cr=inkR,cg=inkG,cb=inkB;
+
+  const drops=[],big=[];let sumP=0,sumW=0;
+  for(let i=0;i<nDrops;i++){
+    const isFat=shs(seed,i*3+5)<fatFrac;
+    const size0=isFat?l0*(2.2+3.0*Math.pow(shs(seed,i*2+13),1.4)):l0*(0.22+0.9*Math.pow(shs(seed,i*2+11),2.2));
+    const size=size0*dropK;
+    const su=shs(seed,i*2+12),szK=sclamp(size0/(l0*2.5),0,1);
+    const spd=Vp*(0.45+1.1*su)*(0.7+0.5*szK);
+    const au=shs(seed,i*3+21)+shs(seed,i*3+22)-1,ang=au*spreadRad;
+    const c=Math.cos(ang),s=Math.sin(ang);
+    const vx=dirX*c-dirY*s,vy=dirX*s+dirY*c;
+    // Carry from the physical size: a big brush makes big drops, not longer throws.
+    const rawReach=spd*splCarry(size0);
+    const reach=maxSpread*(1-Math.exp(-rawReach/maxSpread));
+    const lx=(px+vx*reach),ly=(py+vy*reach);
+    const latImp=rawReach/SPL_IMP_DIV;
+    const totalImp=Math.hypot(latImp,fallImp);
+    const directional=latImp/(totalImp+0.001);
+    const R=sclamp(size*splSpread(ink,size,totalImp),0.5,maxR);
+    const rawAspect=1+sclamp(latImp*0.11,0,2.2)*directional;
+    const heightFactor=1-sclamp(fallImp/(fallImp+latImp+0.001),0,0.75);
+    const aspect=1+(rawAspect-1)*heightFactor;
+    const alpha=sclamp(0.45+totalImp*0.03,0.05,0.97);
+    const ds=seed+i*31;
+    // Marks carry relative weight = alpha × area, so the pigment budget splits
+    // between main stain and satellites the way SPLAT's paint coverage does.
+    const marks=[];const addMark=(x,y,r,asp,dx,dy,a,sd)=>{const w=a*Math.PI*r*r*asp;marks.push({x,y,R:r,aspect:asp,dx,dy,seed:sd,w});return w};
+    let mw=addMark(lx,ly,R,aspect,vx,vy,alpha,ds);
+    if(fallImp>SPL_CROWN_THRESH&&R>1.4){
+      const crown=Math.round(sclamp((fallImp-SPL_CROWN_THRESH)*0.8+totalImp*0.15,0,22));
+      for(let k=0;k<crown;k++){
+        const ca=(k/crown)*Math.PI*2+(shs(ds,k*3)-0.5)*0.9;
+        const dist=R*(1.0+shs(ds,k*3+1)*2.0),rr=Math.max(0.5,R*(0.10+shs(ds,k*3+2)*0.16));
+        const sx=(lx+Math.cos(ca)*dist),sy=(ly+Math.sin(ca)*dist);
+        const aa=alpha*(0.4+shs(ds,k*3+2)*0.4);
+        mw+=addMark(sx,sy,rr,1,1,0,aa,ds+k);
+        if(shs(ds,k*3+2)>0.72){mw+=addMark((lx+Math.cos(ca)*dist*1.35),(ly+Math.sin(ca)*dist*1.35),Math.max(0.4,rr*0.5),1,1,0,alpha*0.35,ds+k+97)}}
+    }else if(directional>0.55&&latImp>6&&R>2.5){
+      const sp=1+Math.floor(shs(ds,3)*2.4);
+      for(let k=1;k<=sp;k++){const jit=(shs(ds,k*5)-0.5)*0.5;
+        const sdX=vx*Math.cos(jit)-vy*Math.sin(jit),sdY=vx*Math.sin(jit)+vy*Math.cos(jit);
+        const dist=R*(1.1+k*0.7),rr=Math.max(0.5,R*0.16/k);
+        mw+=addMark((lx+sdX*dist),(ly+sdY*dist),rr,1,1,0,alpha*Math.max(0.3,0.85-k*0.18),ds+k*7)}}
+    const d={x0:px,y0:py,lx,ly,size,size0,R,marks,markW:mw,alpha,r:cr,g:cg,b:cb,wf:wFrac};
+    // Budget is per unit coverage: a stain of area A at alpha a gets cellPig·a
+    // per cell on average.
+    d.pig=cellPig*mw;d.wat=cellWat*mw;sumP+=d.pig;sumW+=d.wat;
+    drops.push(d);if(R>maxR*0.5)big.push(d);
+  }
+  // Ligament bead rows from the release point to the biggest stains.
+  if(We>9&&big.length){
+    const nLig=sclamp(Math.round(We*0.02),1,3);
+    for(let j=0;j<nLig;j++){
+      const t=big[Math.floor(shs(seed,900+j)*big.length)%big.length],ls=seed+400+j*17;
+      const ddx=t.lx-px,ddy=t.ly-py,len=Math.hypot(ddx,ddy)||1,ux=ddx/len,uy=ddy/len,qx=-uy,qy=ux,lw=Math.max(l0*dropK,1.2);
+      const nB=sclamp(Math.round(len/(lw*2.4)),3,9);
+      for(let i=0;i<nB;i++){const tt=i/(nB-1);
+        const wander=Math.sin(tt*6.28+ls)*lw*0.5*(shs(ls,i)-0.5)*2;
+        const rr=Math.max(0.6,lw*(0.8-tt*0.55)*(0.6+shs(ls,i+40)*0.6));
+        const w=0.7*(0.9-tt*0.4)*Math.PI*rr*rr;
+        t.marks.push({x:(px+ddx*tt+qx*wander),y:(py+ddy*tt+qy*wander),R:rr,aspect:1,dx:1,dy:0,seed:ls+i,w});
+        t.markW+=w;t.pig+=cellPig*w;t.wat+=cellWat*w;sumP+=cellPig*w;sumW+=cellWat*w}}
+  }
+  // Never throw more than a fraction of what's on the brush. With the drain
+  // lock on, the brush is treated as bottomless and nothing is scaled.
+  let kP=1,kW=1;
+  if(disperseOn){
+    if(sumP>brush.p*SPL_MAX_THROW)kP=brush.p*SPL_MAX_THROW/(sumP+1e-9);
+    if(sumW>brush.w*SPL_MAX_THROW)kW=brush.w*SPL_MAX_THROW/(sumW+1e-9)}
+  for(const d of drops){d.pig*=kP;d.wat*=kW;splatParticles.push(new SplatParticle(d))}
+  lastSplat={dropK,l0,We,nDrops,maxR,load,pigConc,wFrac,kP,kW,sumP,brushP:brush.p,radius:brushRadius};
+  if(disperseOn){
+    // Ink that landed, plus the mist that leaves the paper on a violent flick.
+    brush.p=Math.max(0,(brush.p-sumP*kP)*(1-SPL_FLICK_LOSS));
+    brush.w=Math.max(0,(brush.w-sumW*kW)*(1-SPL_FLICK_LOSS))}
+  updateFills();
+}
 
 let strokePts=[];
-function maybeFlick(){if(strokePts.length<3)return;const last=strokePts[strokePts.length-1];const prev=strokePts[Math.max(0,strokePts.length-8)];const dx=last.x-prev.x,dy=last.y-prev.y;const dt=(last.t-prev.t)||1;const spd=Math.hypot(dx,dy)/dt*15;const ang=Math.atan2(dy,dx);if(spd>16){triggerKineticSplatter(last.x,last.y,ang,spd*1.3)}}
+function maybeFlick(){if(strokePts.length<3)return;const n=strokePts.length;const last=strokePts[n-1];const prev=strokePts[Math.max(0,n-8)];const dx=last.x-prev.x,dy=last.y-prev.y;const dt=(last.t-prev.t)||1;const spd=Math.hypot(dx,dy)/dt*15;const ang=Math.atan2(dy,dx);
+  if(spd>14){
+    // v7: finger speed-up over the window (px/ms²) — a snapping flick breaks
+    // the ink into finer drops than a steady fast drag.
+    const mid=strokePts[Math.max(0,n-4)];
+    const t1=(mid.t-prev.t)||1,t2=(last.t-mid.t)||1;
+    const v1=Math.hypot(mid.x-prev.x,mid.y-prev.y)/t1,v2=Math.hypot(last.x-mid.x,last.y-mid.y)/t2;
+    const acc=Math.max(0,v2-v1)/Math.max(1,dt*0.5);
+    triggerKineticSplatter(last.x,last.y,ang,spd*2,acc)}}
 
 // ═══ DRAWING ═══
 let drawing=false,lastGX=0,lastGY=0,lastTime=0,strokeSeed=0;
@@ -796,8 +1063,8 @@ brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);
 let lastContact=0;
 function getLiveRadius(e){const contact=Math.max(e.width||0,e.height||0);lastContact=contact;if(contact>20){const t=Math.min(1,Math.max(0,(contact-30)/130));return brushRange[0]+t*(brushRange[1]-brushRange[0])}return brushRange[0]+0.3*(brushRange[1]-brushRange[0])}
 
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);const[gx,gy]=clientToGrid(e.clientX,e.clientY);drawing=true;lastGX=gx;lastGY=gy;lastTime=performance.now();strokeSeed=performance.now()%1000;beginStroke();strokePts=[{x:gx,y:gy,t:performance.now()}];brushRadius=getLiveRadius(e);if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(gx,gy,getPressure(e))}else{addDeposit(gx,gy,getPressure(e),0,0)}});
-canvas.addEventListener('pointermove',e=>{if(!drawing)return;const[gx,gy]=clientToGrid(e.clientX,e.clientY);const now=performance.now();brushRadius=getLiveRadius(e);drawSegment(lastGX,lastGY,gx,gy,getPressure(e));strokePts.push({x:gx,y:gy,t:now});if(strokePts.length>12)strokePts.shift();lastGX=gx;lastGY=gy;lastTime=now});
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);const[gx,gy]=clientToGrid(e.clientX,e.clientY);drawing=true;lastGX=gx;lastGY=gy;lastTime=performance.now();strokeSeed=performance.now()%1000;beginStroke();strokePts=[{x:gx,y:gy,t:e.timeStamp||performance.now()}];brushRadius=getLiveRadius(e);if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(gx,gy,getPressure(e))}else{addDeposit(gx,gy,getPressure(e),0,0)}});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const[gx,gy]=clientToGrid(e.clientX,e.clientY);const now=performance.now();brushRadius=getLiveRadius(e);drawSegment(lastGX,lastGY,gx,gy,getPressure(e));strokePts.push({x:gx,y:gy,t:e.timeStamp||now});if(strokePts.length>12)strokePts.shift();lastGX=gx;lastGY=gy;lastTime=now});
 canvas.addEventListener('pointerup',e=>{if(drawing&&brushStyle!=='smudge')maybeFlick();drawing=false;lastOrient=null;strokePts=[];try{canvas.releasePointerCapture(e.pointerId)}catch(_){}});
 canvas.addEventListener('pointercancel',()=>{drawing=false;lastOrient=null});
 
@@ -898,17 +1165,17 @@ function animate(){
   if(partBox)markRender(partBox[0],partBox[1],partBox[2],partBox[3]);
   let nb=null;
   if(splatParticles.length>0){let a=NX,b=NY,c=-1,d=-1;
-    for(const p of splatParticles){const r=Math.max(0.5,p.radius*CELL*0.3)+2,px=p.x*CELL,py=p.y*CELL;
+    for(const p of splatParticles){const r=p.drawR*CELL+2,px=p.x*CELL,py=p.y*CELL;
       if(px-r<a)a=px-r;if(py-r<b)b=py-r;if(px+r>c)c=px+r;if(py+r>d)d=py+r}
     nb=[Math.max(0,a|0),Math.max(0,b|0),Math.min(NX-1,Math.ceil(c)),Math.min(NY-1,Math.ceil(d))];
     markRender(nb[0],nb[1],nb[2],nb[3])}
   partBox=nb;
   render();
   if(splatParticles.length>0){
-    for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alpha;ctx.fillStyle='rgb('+p.r+','+p.g+','+p.b+')';ctx.beginPath();ctx.arc(px,py,Math.max(0.5,p.radius*CELL*0.3),0,Math.PI*2);ctx.fill()}
+    for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alphaDraw;ctx.fillStyle='rgb('+Math.round(p.r*255)+','+Math.round(p.g*255)+','+Math.round(p.b*255)+')';ctx.beginPath();ctx.arc(px,py,p.drawR*CELL,0,Math.PI*2);ctx.fill()}
     ctx.globalAlpha=1}
   updateFills();requestAnimationFrame(animate)}
-updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,400);
+updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,99400);
 if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
 window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
 // ═══ v5 CHARACTER CONTROLS ═══
@@ -919,9 +1186,9 @@ window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
   function link(id,vid,fn){
     const el=document.getElementById(id),out=document.getElementById(vid);
     const apply=()=>{const v=Number(el.value);out.textContent=v;fn(v)};
-    el.addEventListener('input',apply);
+    el.addEventListener('input',()=>{apply();refreshLiveChar()});
     el.addEventListener('pointerdown',e=>{e.stopPropagation();keepOpen()});
-    el.addEventListener('pointerup',()=>schedClose(6000));
+    el.addEventListener('pointerup',()=>schedClose(9986000));
     apply();
   }
   // Chatter / Grain are ceilings reached at full dryness.
@@ -932,9 +1199,15 @@ window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
   // Wet / Bloom are coupling gains: how far a fully wet brush travels toward v3.
   link('sWet','vWet',v=>{WET_GAIN=v/100});
   link('sBloom','vBloom',v=>{BLOOM_GAIN=v/100});
+  // v7 splash: Spray scales flick energy into the breakup physics, Height is
+  // SPLAT's drop height (fall impact → rounder stains and crown satellites).
+  link('sDrop','vDrop',v=>{DROP_GAIN=v/100});
+  link('sSpray','vSpray',v=>{SPRAY=v/100});
+  link('sHeight','vHeight',v=>{SPLAT_HEIGHT=v});
+  refreshLiveChar();
 })();
 
-window.SUMI={state:()=>({water:brush.w/BRUSH_W_CAP,ink:brush.p/BRUSH_P_CAP,tray:trayOpen,contact:lastContact,radius:brushRadius,style:brushStyle,chatMax:CHAT_MAX,grainMax:GRAIN_MAX,heel:HEEL,wetGain:WET_GAIN,bloomGain:BLOOM_GAIN,
+window.SUMI={state:()=>({water:brush.w/BRUSH_W_CAP,ink:brush.p/BRUSH_P_CAP,tray:trayOpen,contact:lastContact,radius:brushRadius,style:brushStyle,chatMax:CHAT_MAX,grainMax:GRAIN_MAX,heel:HEEL,heelLive:HEEL*heelLoadK(),wetGain:WET_GAIN,bloomGain:BLOOM_GAIN,spray:SPRAY,height:SPLAT_HEIGHT,inFlight:splatParticles.length,lastSplat,
   dryness:1-brush.w/(brush.w+brush.p+1e-12)})};
 })();
 </script>
