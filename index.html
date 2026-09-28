@@ -105,6 +105,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
   transition:transform 0.16s,border-color 0.16s;touch-action:none;cursor:pointer}
 #charToggle.on{border-color:#7dfcb4;color:#7dfcb4;transform:scale(1.1)}
+#tiltToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
+  transition:transform 0.16s,border-color 0.16s;touch-action:none;cursor:pointer}
+#tiltToggle.on{border-color:#ffd27a;color:#ffd27a;transform:scale(1.1)}
+#tiltToggle.waiting{border-color:rgba(255,210,122,0.35);color:rgba(255,210,122,0.5)}
+/* Tilt permission gate. iOS only hands out motion access from inside a real
+   click on a real button, so it gets its own screen at boot like SPLAT's. */
+#permGate{position:fixed;inset:0;z-index:80;background:rgba(18,20,20,0.97);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;text-align:center}
+#permGate .g{font-size:30px;color:#7dfcb4;letter-spacing:.06em}
+#permGate p{color:#ece6d2;font-size:14px;line-height:1.7;max-width:300px;margin:0}
+#permGate button{font-family:inherit;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+  padding:14px 30px;border-radius:5px;cursor:pointer;background:transparent;border:2px solid #7dfcb4;color:#7dfcb4}
+#permGate button.skip{border-color:rgba(236,230,210,0.3);color:rgba(236,230,210,0.6);font-size:12px;padding:10px 22px}
+#permStatus{font-size:12px;color:#ffd27a;min-height:16px;margin:0}
 #dipRow{display:flex;gap:8px;height:64px}
 .dip,#napkin{flex:1;border-radius:6px;position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
@@ -210,7 +226,125 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
 .bstyle.active{color:#fff}
 #trayTab{font-size:11px;color:rgba(145,185,161,.85)}
 #jsonBtn,#resetBtn{color:rgba(236,229,210,.9)}
-</style>
+
+/* ===== SUMI-E AESTHETIC PASS (v7.4) — presentation only ===================
+   Everything below overrides the dark/terminal styling above. The tray and
+   the opening screen now sit on the same cream paper as the canvas, ink is
+   the only "UI colour", and a single vermilion — the seal-stamp red — marks
+   what's active. No green anywhere. */
+:root{
+  --washi:#ecead2;              /* the canvas paper (PAP_R/G/B) */
+  --washi-deep:#e4e0c6;
+  --sumi:#1f1c18;               /* ink */
+  --sumi-2:rgba(31,28,24,.72);
+  --sumi-3:rgba(31,28,24,.45);
+  --sumi-line:rgba(31,28,24,.16);
+  --shu:#b8402c;                /* vermilion seal red */
+  --shu-soft:rgba(184,64,44,.14);
+  --serif:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Iowan Old Style",Georgia,serif;
+  /* Faint fibre texture so the tray reads as the same sheet, not a flat panel. */
+  --fibre:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .32  0 0 0 0 .25  0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23f)'/></svg>");
+}
+html,body{background:var(--washi)}
+
+/* ── top-left build tag and brush meters ── */
+#build{color:rgba(31,28,24,.22)!important;text-shadow:none;font-family:var(--serif);letter-spacing:.22em!important}
+.bbar{background:rgba(31,28,24,.08)}
+.bbar-label{color:rgba(31,28,24,.4)}
+#bstate{filter:none}
+
+/* ── opening screen: a sheet of paper with a seal ── */
+#permGate{background:var(--washi);background-image:var(--fibre);gap:18px}
+#permGate .g{font-family:var(--serif);color:var(--sumi);font-size:26px;letter-spacing:.32em;
+  display:flex;flex-direction:column;align-items:center;gap:14px}
+#permGate .g .kan{font-size:64px;letter-spacing:0;line-height:1;opacity:.9}
+#permGate .g .seal{display:inline-block;width:30px;height:30px;line-height:30px;font-size:14px;
+  letter-spacing:0;color:var(--washi);background:var(--shu);border-radius:3px;
+  transform:rotate(-4deg);margin-top:-6px;opacity:.9}
+#permGate p{font-family:var(--serif);color:var(--sumi-2);font-size:15px;line-height:1.75;max-width:290px}
+#permGate button{font-family:var(--serif);font-size:15px;letter-spacing:.14em;text-transform:none;
+  background:var(--sumi);color:var(--washi);border:none;border-radius:2px;padding:14px 34px;
+  box-shadow:0 1px 0 rgba(0,0,0,.08)}
+#permGate button:active{transform:translateY(1px)}
+#permGate button.skip{background:transparent;color:var(--sumi-2);
+  border:none;border-bottom:1px solid var(--sumi-line);border-radius:0;padding:8px 6px;font-size:14px}
+#permStatus{font-family:var(--serif);color:var(--shu);font-size:13px}
+
+/* ── tray: fades up out of the paper ── */
+#tray{
+  background:
+    var(--fibre),
+    linear-gradient(180deg,rgba(236,234,210,0) 0,rgba(236,234,210,.88) 16px,rgba(236,234,210,.97) 34px,var(--washi) 100%);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-top:none;box-shadow:none;
+  padding:14px 12px calc(14px + env(safe-area-inset-bottom));gap:10px;
+}
+#grab{background:var(--sumi-line);opacity:1}
+#trayTab{
+  /* A soft pool of paper behind the word, not a box — it has to read over
+     painted ink when the tray is closed. */
+  background:radial-gradient(ellipse 60% 75% at 50% 70%,rgba(236,234,210,.95) 35%,rgba(236,234,210,0) 100%);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border:none!important;box-shadow:none;
+  color:var(--sumi-2);font-family:var(--serif);font-size:13px;letter-spacing:.3em;
+  padding:6px 22px 4px;top:-28px;
+}
+
+/* ── swatches: condensed so the row fits a 375–414pt phone ── */
+#swatchRow{gap:4px;justify-content:space-between;overflow-x:auto;padding:4px 5px 3px}
+#paletteWrap,.palPage{gap:4px}
+/* Scales with the screen so the whole row always fits without scrolling. */
+.swatch{width:clamp(20px,5.6vw,24px);height:clamp(20px,5.6vw,24px);border:1.5px solid rgba(31,28,24,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.swatch.active{border-color:var(--sumi);transform:scale(1.14);box-shadow:0 0 0 2px var(--washi),0 0 0 3.5px var(--shu)}
+#palToggle{border:1px solid var(--sumi-line);color:var(--sumi-2);width:20px;height:24px}
+.rowDiv{background:var(--sumi-line);margin:3px 3px}
+#resetBtn,#jsonBtn{width:26px;height:26px;background:transparent;border:1.5px solid var(--sumi-line);color:var(--sumi);font-size:14px}
+#resetBtn{border-color:rgba(184,64,44,.45);color:var(--shu)}
+#resetBtn:active{background:var(--shu-soft)}
+#jsonBtn:active{background:rgba(31,28,24,.06)}
+
+/* ── brush row: tiles shrink together instead of spilling off the edge ── */
+#brushRow{gap:4px;justify-content:space-between;padding:0}
+.bstyle,#disperseToggle,#charToggle,#tiltToggle,.size{
+  flex:0 1 30px;min-width:24px;width:auto;height:30px;
+  border:1.5px solid var(--sumi-line);background:transparent;
+  color:var(--sumi-2);font-family:var(--serif);font-size:16px;border-radius:3px}
+.bstyle[data-style="smudge"]{font-size:14px!important}
+.bstyle.active{background:var(--sumi);color:var(--washi);border-color:var(--sumi);transform:none}
+#disperseToggle{color:var(--sumi);border-color:rgba(31,28,24,.35)}
+#disperseToggle.off{color:var(--shu);border-color:rgba(184,64,44,.5);background:var(--shu-soft)}
+#charToggle.on{background:var(--sumi);color:var(--washi);border-color:var(--sumi);transform:none}
+#tiltToggle.on{background:var(--shu);color:var(--washi);border-color:var(--shu);transform:none}
+#tiltToggle.waiting{border-color:rgba(184,64,44,.45);color:var(--shu);background:var(--shu-soft)}
+.size{border-radius:50%;flex-basis:30px}
+.size i{background:rgba(31,28,24,.45)}
+.size.active{border-color:var(--sumi);transform:none}
+.size.active i{background:var(--sumi)}
+
+/* ── character sliders: ink thumb, vermilion live fill ── */
+#charRow{gap:16px}
+.chr label{color:var(--sumi);font-family:var(--serif);font-size:11px;letter-spacing:.1em;font-weight:600}
+.chr label b{color:var(--sumi);font-size:12px}
+.chr label .lv{color:var(--shu);font-size:12px}
+.chr label .lv::after{color:var(--sumi-3)}
+.chrDiv{background:var(--sumi-line)}
+.chr input[type=range]::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
+.chr input[type=range]::-moz-range-track{
+  background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
+.chr input[type=range]::-webkit-slider-thumb{background:var(--sumi);border:2px solid var(--washi);box-shadow:0 1px 3px rgba(31,28,24,.35)}
+.chr input[type=range]::-moz-range-thumb{background:var(--sumi);border:2px solid var(--washi)}
+
+/* ── ink stone, napkin, water: objects on the desk ── */
+#dipRow{height:58px;gap:7px}
+.dip,#napkin{border-radius:3px;font-family:var(--serif);font-size:.72rem;letter-spacing:.2em}
+#dipInk{background:#2E4148;color:rgba(236,234,210,.92);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+#dipInk .fill{background:rgba(236,234,210,.14)}
+#dipWater{background:#51687a;color:#f1efdf;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+#dipWater .fill{background:rgba(241,239,223,.22)}
+#napkin{background:transparent;color:var(--sumi-2);box-shadow:inset 0 0 0 1px var(--sumi-line)}
+#napkin .napLabel{color:rgba(31,28,24,.55);font-family:var(--serif);font-size:.64rem}
+.napZone.mid{border-color:rgba(31,28,24,.1)}</style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
@@ -771,7 +905,7 @@ function refreshLiveChar(){
 let holding=null,tickLast=0,trayTimer=null;
 const RAMP_FILL=3.0,RAMP_DRAIN=0.06;
 function keepOpen(){clearTimeout(trayTimer)}
-function schedClose(ms=3500){clearTimeout(trayTimer);trayTimer=setTimeout(closeTray,ms)}
+function schedClose(ms=93500){clearTimeout(trayTimer);trayTimer=setTimeout(closeTray,ms)}
 function tickHold(now){if(!holding)return;const dt=Math.min(0.1,(now-tickLast)/1000);tickLast=now;switch(holding){case'ink':brush.p=Math.min(BRUSH_P_CAP,brush.p+RAMP_FILL*dt*BRUSH_P_CAP);break;case'water':brush.w=Math.min(BRUSH_W_CAP,brush.w+RAMP_FILL*dt*BRUSH_W_CAP);break;case'napInk':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);break;case'napWater':brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break;case'napBoth':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break}}
 function startHold(which){tickLast=performance.now();holding=which;keepOpen()}
 function stopHold(){holding=null;schedClose()}
