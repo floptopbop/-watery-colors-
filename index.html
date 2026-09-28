@@ -307,6 +307,41 @@ const WATER_CAP=1.0,PIGMENT_CAP=1.98;
 // pinhole. Ink still outweighs water heavily; this is a wetted brush, not a wash.
 const BRUSH_RAD=1.0,BRUSH_W_CAP=50000,BRUSH_P_CAP=40000,DEP_W=0.000018,DEP_P=0.00012;
 const INK_DARK=3.2,LAYER_COVER=6.0,PAP_R=236,PAP_G=234,PAP_B=210;
+// ═══ v7.2 SUBTRACTIVE COLOUR ═══════════════════════════════════════════════
+// Cell colour (mR/mG/mB, fR/fG/fB) is stored as ABSORBANCE per unit pigment,
+// not as an RGB colour. Every place that averages colours by pigment weight
+// (transport, rewet, smudge, splatter, fixing) therefore averages absorbance,
+// which is subtractive mixing: blue + yellow absorbs red AND blue and leaves
+// green-teal, instead of the RGB average's milky grey. Rendering is
+// Beer–Lambert: the paper's light is filtered through the ink, so layers glaze
+// (multiply) instead of covering. Computed in linear light.
+// Absorbance is measured relative to the paper, so one ordinary layer of a
+// swatch on paper reproduces that swatch — the palette keeps its tuning.
+// LAYER_COVER is no longer used (it was the opaque "newest colour wins" rule).
+const ABS_FLOOR=0.002,ABS_MAX=7.0;
+// Density curve: D = DEN_MAX·(1−exp(−P·DEN_K/DEN_MAX)). DEN_K matches the old
+// renderer's darkness for thin washes; DEN_MAX lets stacked glazes keep
+// deepening without every overlap going straight to black.
+const DEN_K=2.0,DEN_MAX=2.4,MOB_K=2.2/3.2;
+// Tinting-strength cap: an ink's strongest channel is scaled down to ABS_CAP,
+// hue unchanged. Carbon black is ~5x more absorbing than the colours; without
+// this, one density curve can't give both sumi greys and full-strength colour.
+const ABS_CAP=3.0;
+function s2l(c){return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4)}
+function l2s(c){return c<=0.0031308?c*12.92:1.055*Math.pow(c,1/2.4)-0.055}
+const PAP_LIN=[s2l(PAP_R/255),s2l(PAP_G/255),s2l(PAP_B/255)];
+function absOf(r,g,b){
+  const a=[Math.max(0,-Math.log(Math.max(ABS_FLOOR,s2l(r))/PAP_LIN[0])),
+           Math.max(0,-Math.log(Math.max(ABS_FLOOR,s2l(g))/PAP_LIN[1])),
+           Math.max(0,-Math.log(Math.max(ABS_FLOOR,s2l(b))/PAP_LIN[2]))];
+  const m=Math.max(a[0],a[1],a[2]),k=m>ABS_CAP?ABS_CAP/m:1;
+  return[Math.min(ABS_MAX,a[0]*k),Math.min(ABS_MAX,a[1]*k),Math.min(ABS_MAX,a[2]*k)]}
+// sRGB byte ⇄ linear lookup tables for the renderer.
+const S2L_LUT=new Float32Array(256);for(let i=0;i<256;i++)S2L_LUT[i]=s2l(i/255);
+const L2S_N=4096,L2S_LUT=new Uint8ClampedArray(L2S_N+1);for(let i=0;i<=L2S_N;i++)L2S_LUT[i]=Math.round(l2s(i/L2S_N)*255);
+// Cached absorbance of the current ink; recomputed only when the colour changes.
+let _absKey='',_abs=[0,0,0];
+function inkAbs(){const k=inkR+','+inkG+','+inkB;if(k!==_absKey){_absKey=k;_abs=absOf(inkR,inkG,inkB)}return _abs}
 // v4: the wet window. Evaporation and fixing slowed ~6x so mobile pigment has time
 // to actually mix with its neighbours before locking — that is where blending lives.
 // It still DRIES: this is ink on paper, not a wash that never sets.
@@ -540,6 +575,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     if(spx<bx0)bx0=spx;if(spy<by0)by0=spy;if(spx>bx1)bx1=spx;if(spy>by1)by1=spy}}}
   if(totalWt<=0)return;
   let appliedW=0,appliedP=0;
+  const IA=inkAbs(),iaR=IA[0],iaG=IA[1],iaB=IA[2];
   for(let s=0;s<ns;s++){const si=sIdx[s];const frac=sWt[s]/totalWt;let wAdd=reqW*frac,pAdd=reqP*frac;
     const incomingWet=wAdd;if(incomingWet>0.01&&fPig[si]>0.01){const rewetStrength=Math.min(0.35,incomingWet*0.15);const dissolved=fPig[si]*rewetStrength;const ex=mPig[si];const tot=ex+dissolved;if(tot>0){const ew=ex/tot,nw=dissolved/tot;mR[si]=mR[si]*ew+fR[si]*nw;mG[si]=mG[si]*ew+fG[si]*nw;mB[si]=mB[si]*ew+fB[si]*nw;mPig[si]=tot}fPig[si]=Math.max(0,fPig[si]-dissolved)}
     const resist=Math.min(0.5,fPig[si]/PIGMENT_CAP);wAdd*=(1-resist*0.25);pAdd*=(1-resist*0.25);
@@ -547,7 +583,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     // v6: blend this cell's wetness memory toward the brush's current ratio, in
     // proportion to how much of the cell's water is newly arrived.
     if(wAdd>0){const kk=Math.min(1,wAdd/(water[si]+wAdd+1e-9));wetF[si]=wetF[si]*(1-kk)+wFrac*kk}
-    water[si]+=wAdd;const existing=mPig[si];const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[si]=mR[si]*ew+inkR*nw;mG[si]=mG[si]*ew+inkG*nw;mB[si]=mB[si]*ew+inkB*nw}mPig[si]=total;appliedW+=wAdd;appliedP+=pAdd}
+    water[si]+=wAdd;const existing=mPig[si];const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[si]=mR[si]*ew+iaR*nw;mG[si]=mG[si]*ew+iaG*nw;mB[si]=mB[si]*ew+iaB*nw}mPig[si]=total;appliedW+=wAdd;appliedP+=pAdd}
   if(disperseOn){brush.w=Math.max(0,brush.w-appliedW);brush.p=Math.max(0,brush.p-appliedP)}
   expandDirty(bx0,by0,bx1,by1);
 }
@@ -630,7 +666,7 @@ function simulateStep(){
     const newPig=Math.max(0,oldPig+pDelta[i]);
     water[i]=Math.max(0,water[i]+wDelta[i]);
     if(newPig>0.000001){const newR=Math.max(0,oldR+pRDelta[i]),newG=Math.max(0,oldG+pGDelta[i]),newB=Math.max(0,oldB+pBDelta[i]);
-      mPig[i]=newPig;mR[i]=Math.min(1,Math.max(0,newR/newPig));mG[i]=Math.min(1,Math.max(0,newG/newPig));mB[i]=Math.min(1,Math.max(0,newB/newPig))
+      mPig[i]=newPig;mR[i]=Math.min(ABS_MAX,Math.max(0,newR/newPig));mG[i]=Math.min(ABS_MAX,Math.max(0,newG/newPig));mB[i]=Math.min(ABS_MAX,Math.max(0,newB/newPig))
     }else{mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0}}}
 
   let stillWet=false,newX0=NX,newY0=NY,newX1=0,newY1=0;
@@ -659,20 +695,18 @@ function simulateStep(){
       if(amount>0.0001){
         const existing=fPig[i];
         const total=existing+amount;
-        const coverAlpha=1-Math.exp(-amount*LAYER_COVER);
-        fR[i]=existing>0.001?fR[i]*(1-coverAlpha)+mR[i]*coverAlpha:mR[i];
-        fG[i]=existing>0.001?fG[i]*(1-coverAlpha)+mG[i]*coverAlpha:mG[i];
-        fB[i]=existing>0.001?fB[i]*(1-coverAlpha)+mB[i]*coverAlpha:mB[i];
+        // v7.2: glaze. Pigment-weighted absorbance, so a dried layer and the
+        // one fixing on top of it both keep filtering the light.
+        const ew=existing/total,nw=amount/total;
+        fR[i]=fR[i]*ew+mR[i]*nw;fG[i]=fG[i]*ew+mG[i]*nw;fB[i]=fB[i]*ew+mB[i]*nw;
         fPig[i]=total;
         mPig[i]-=amount}}
     if(water[i]<0.005&&mPig[i]>0.001){
       const lockAmt=Math.min(mPig[i],Math.max(0,PIGMENT_CAP-fPig[i]));
       if(lockAmt>0){const ex=fPig[i],tot=ex+lockAmt;
         if(tot>0){
-          const lockCover=1-Math.exp(-lockAmt*LAYER_COVER);
-          fR[i]=ex>0.001?fR[i]*(1-lockCover)+mR[i]*lockCover:mR[i];
-          fG[i]=ex>0.001?fG[i]*(1-lockCover)+mG[i]*lockCover:mG[i];
-          fB[i]=ex>0.001?fB[i]*(1-lockCover)+mB[i]*lockCover:mB[i];
+          const ew=ex/tot,nw=lockAmt/tot;
+          fR[i]=fR[i]*ew+mR[i]*nw;fG[i]=fG[i]*ew+mG[i]*nw;fB[i]=fB[i]*ew+mB[i]*nw;
           fPig[i]=tot}}
       mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0;water[i]=0;wetF[i]=0}}}
   if(stillWet){dirtyX0=Math.max(0,newX0-2);dirtyY0=Math.max(0,newY0-2);dirtyX1=Math.min(NX-1,newX1+2);dirtyY1=Math.min(NY-1,newY1+2)}
@@ -694,11 +728,17 @@ function render(){
       const i=row+x;const fp=fPig[i],mp=mPig[i],w=water[i];
       if(fp<0.003&&mp<0.003&&w<0.01)continue;
       const pi=i*4;let r=px[pi],g=px[pi+1],b=px[pi+2];
-      if(fp>0.003){const fDark=1-Math.exp(-fp*INK_DARK);r=r*(1-fDark)+fR[i]*255*fDark;g=g*(1-fDark)+fG[i]*255*fDark;b=b*(1-fDark)+fB[i]*255*fDark}
-      // v4: mobile pigment reads as ink, not tint. With a longer wet window most
-      // of a fresh stroke is still mobile — the old linear mp*0.5 made it look
-      // like a pale wash until it dried.
-      if(mp>0.003){const mDark=Math.min(1,1-Math.exp(-mp*2.2));r=r*(1-mDark)+mR[i]*255*mDark;g=g*(1-mDark)+mG[i]*255*mDark;b=b*(1-mDark)+mB[i]*255*mDark}
+      // v7.2: Beer–Lambert. Fixed and mobile ink share one optical path, so wet
+      // colour over dry colour already reads as the mix it will dry to.
+      const mw=mp*MOB_K,P=fp+mw;
+      if(P>0.003){
+        const inv=1/P;
+        const aR=(fR[i]*fp+mR[i]*mw)*inv,aG=(fG[i]*fp+mG[i]*mw)*inv,aB=(fB[i]*fp+mB[i]*mw)*inv;
+        const D=DEN_MAX*(1-Math.exp(-P*DEN_K/DEN_MAX));
+        r=L2S_LUT[Math.min(L2S_N,(S2L_LUT[r]*Math.exp(-aR*D)*L2S_N)|0)];
+        g=L2S_LUT[Math.min(L2S_N,(S2L_LUT[g]*Math.exp(-aG*D)*L2S_N)|0)];
+        b=L2S_LUT[Math.min(L2S_N,(S2L_LUT[b]*Math.exp(-aB*D)*L2S_N)|0)];
+      }
       if(w>0.02){const sheen=Math.min(0.12,w*0.08);r=Math.min(255,r*(1+sheen)+sheen*6);g=Math.min(255,g*(1+sheen)+sheen*8);b=Math.min(255,b*(1+sheen)+sheen*14)}
       px[pi]=r|0;px[pi+1]=g|0;px[pi+2]=b|0}}
   ctx.putImageData(imgData,0,0,x0,y0,x1-x0+1,y1-y0+1);
@@ -927,7 +967,7 @@ class SplatParticle{
   land(){
     const c=this,tot=c.markW;if(tot<=0)return;
     for(const m of c.marks){const k=m.w/tot;
-      depositStain(m.x,m.y,m.R,m.aspect,m.dx,m.dy,m.seed,c.pig*k,c.wat*k,c.r,c.g,c.b,c.wf)}}
+      depositStain(m.x,m.y,m.R,m.aspect,m.dx,m.dy,m.seed,c.pig*k,c.wat*k,c.ar,c.ag,c.ab,c.wf)}}
 }
 
 // px,py: grid coords. angle: radians. speed: legacy flick units (px/ms × 30),
@@ -964,7 +1004,7 @@ function triggerKineticSplatter(px,py,angle,speed,accPx){
   const pigConc=Math.min(1,brush.p/BRUSH_P_CAP),watConc=Math.min(1,brush.w/BRUSH_W_CAP);
   const cellPig=SPL_PIG*(0.15+0.85*pigConc);
   const cellWat=mix(SPL_WAT_DRY,SPL_WAT_WET,wFrac)*(0.5+0.5*watConc);
-  const cr=inkR,cg=inkG,cb=inkB;
+  const cr=inkR,cg=inkG,cb=inkB,SA=inkAbs(),car=SA[0],cag=SA[1],cab=SA[2];
 
   const drops=[],big=[];let sumP=0,sumW=0;
   for(let i=0;i<nDrops;i++){
@@ -1008,7 +1048,7 @@ function triggerKineticSplatter(px,py,angle,speed,accPx){
         const sdX=vx*Math.cos(jit)-vy*Math.sin(jit),sdY=vx*Math.sin(jit)+vy*Math.cos(jit);
         const dist=R*(1.1+k*0.7),rr=Math.max(0.5,R*0.16/k);
         mw+=addMark((lx+sdX*dist),(ly+sdY*dist),rr,1,1,0,alpha*Math.max(0.3,0.85-k*0.18),ds+k*7)}}
-    const d={x0:px,y0:py,lx,ly,size,size0,R,marks,markW:mw,alpha,r:cr,g:cg,b:cb,wf:wFrac};
+    const d={x0:px,y0:py,lx,ly,size,size0,R,marks,markW:mw,alpha,r:cr,g:cg,b:cb,ar:car,ag:cag,ab:cab,wf:wFrac};
     // Budget is per unit coverage: a stain of area A at alpha a gets cellPig·a
     // per cell on average.
     d.pig=cellPig*mw;d.wat=cellWat*mw;sumP+=d.pig;sumW+=d.wat;
@@ -1107,7 +1147,7 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     return out
   }
 
-  if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+(ir/255)*nw;fG[idx]=fG[idx]*ew+(ig/255)*nw;fB[idx]=fB[idx]*ew+(ib/255)*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=ir/255;fG[idx]=ig/255;fB[idx]=ib/255}}requestFullRepaint();return}
+  if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const A=absOf(ir/255,ig/255,ib/255);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+A[0]*nw;fG[idx]=fG[idx]*ew+A[1]*nw;fB[idx]=fB[idx]*ew+A[2]*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=A[0];fG[idx]=A[1];fB[idx]=A[2]}}requestFullRepaint();return}
 
   const _brushW=brush.w,_brushP=brush.p,_inkR=inkR,_inkG=inkG,_inkB=inkB,_brushRadius=brushRadius,_brushStyle=brushStyle,_strokeSeed=strokeSeed;
 
