@@ -344,16 +344,34 @@ html,body{background:var(--washi)}
 #dipWater .fill{background:rgba(241,239,223,.22)}
 #napkin{background:transparent;color:var(--sumi-2);box-shadow:inset 0 0 0 1px var(--sumi-line)}
 #napkin .napLabel{color:rgba(31,28,24,.55);font-family:var(--serif);font-size:.64rem}
-.napZone.mid{border-color:rgba(31,28,24,.1)}</style>
+.napZone.mid{border-color:rgba(31,28,24,.1)}
+
+/* ── v7-ink: brush gauges as columns of calligraphy ──────────────────────────
+   Each column is the same characters twice: a faint ghost that marks the empty
+   column, and a solid copy masked from the bottom up to the brush's level. As
+   the brush runs out the characters fade away from the top down. --e is the
+   mask edge in %, set from JS (level * 1.14 so 0 shows nothing, 100 shows all).
+   Water is blue, ink is black; no labels. */
+#bstate{gap:7px;align-items:flex-start}
+.kcol{position:relative;display:flex;flex-direction:column;align-items:center;
+  font-family:var(--serif);font-size:15px;line-height:1.1;font-weight:600;--e:0}
+.kcol .kg span,.kcol .kl span{display:block;text-align:center}
+.kcol .kg{opacity:.10}
+.kcol .kl{position:absolute;left:0;right:0;top:0;bottom:0;
+  -webkit-mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%));
+          mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%))}
+#kInk{color:var(--sumi)}
+#kWater{color:#3f6a8f}
+</style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <canvas id="fxCanvas" aria-hidden="true"></canvas>
 <div id="build">SUMI_v7 · SPLASH</div>
 <div id="liveStatus" aria-hidden="true"><span id="liveMode">READY</span><span id="liveLoad">INK —</span><span id="liveWater">WATER —</span><span id="liveTouch">C —</span></div>
-<div id="bstate">
-  <div><div class="bbar" id="barW"><div class="fill"></div></div><div class="bbar-label">W</div></div>
-  <div><div class="bbar" id="barP"><div class="fill"></div></div><div class="bbar-label">P</div></div>
+<div id="bstate" aria-hidden="true">
+  <div class="kcol" id="kWater"><div class="kg"></div><div class="kl"></div></div>
+  <div class="kcol" id="kInk"><div class="kg"></div><div class="kl"></div></div>
 </div>
 <div id="tray">
   <div id="trayTab">▲ TRAY</div>
@@ -408,6 +426,9 @@ html,body{background:var(--washi)}
     <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">600</b></label><input type="range" id="sHeel" min="0" max="600" step="5" value="600"></div>
     <div class="chr"><label>Wet <span class="lv" id="lWet">0</span><b id="vWet">0</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="0"></div>
     <div class="chr"><label>Bloom <span class="lv" id="lBloom">0</span><b id="vBloom">100</b></label><input type="range" id="sBloom" min="0" max="200" step="1" value="200"></div>
+    <div class="chr nolive"><label>Tip <span class="lv"></span><b id="vTip">0</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="0"></div>
+    <div class="chr nolive"><label>Feather <span class="lv"></span><b id="vFeather">50</b></label><input type="range" id="sFeather" min="0" max="200" step="5" value="50"></div>
+    <div class="chr nolive"><label>Wabi <span class="lv"></span><b id="vWabi">85</b></label><input type="range" id="sWabi" min="0" max="100" step="5" value="85"></div>
     <div class="chrDiv"></div>
     <div class="chr"><label>Drop <span class="lv" id="lDrop">0</span><b id="vDrop">100</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="100"></div>
     <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
@@ -499,6 +520,30 @@ const K_BASE=0.04,K_GRAIN=0.42,K_PIN=0.18;
 // Coupling gains, 0..1, straight off the Wet / Bloom sliders. 0 = ignore brush
 // wetness entirely and stay at the v4 end; 1 = a fully wet brush reaches v3.
 let WET_GAIN=1.0,BLOOM_GAIN=1.0;
+// v7-ink: TIP LOAD (bokashi). Pigment is weighted toward one side of the stroke
+// while water stays even across it, so a single pass fades from dark to light
+// across its width. 0 = exactly the previous behaviour. It scales with brush
+// wetness (a dry brush has no loaded body to shade into), and the pigment
+// handed out per stamp is renormalised so the gradient moves ink around without
+// adding or removing any.
+let TIP_LOAD=0;
+// v7-ink: FEATHER (wet-on-wet). The sim already merges wet neighbours through
+// water-pressure flow, but pigment only travelled WITH that flow. Dark ink laid
+// onto a wet light stroke has almost no water difference to ride on, so it sat
+// there as a hard-edged mark. This adds concentration diffusion between wet
+// cells, so dark ink feathers into a wet wash (nō-tan) and fades out as the
+// paper dries. Scaled by each cell's remembered wetness (and the Bloom slider),
+// hindered by paper grain, and symmetric, so no pigment is created or lost.
+let FEATHER=0.5;const FEATHER_RATE=0.03;
+// v7-ink: WABI. v7 was too tidy: bristle lanes were evenly spaced and ran the
+// full length of every stroke (the comb look), and the dry-brush "catch" and
+// chatter made small high-frequency light flecks everywhere. WABI trades that
+// for the irregularity of a real loaded brush: lanes that wander, start and
+// stop along the stroke, bristle clumps instead of a comb, slow streaky
+// density, and light spots that are fewer and larger instead of speckle.
+// 0 = exactly the old behaviour. Everything it touches is gated on this.
+let WABI=0.85;
+let vTabBuf=new Float32Array(4096);const laneTab=new Float32Array(128);
 
 // ═══ v5 CHARACTER ENGINE ═══════════════════════════════════════════════════
 // Nothing below changes the brush STRUCTURE — the ellipse geometry, styleGain,
@@ -511,6 +556,15 @@ let WET_GAIN=1.0,BLOOM_GAIN=1.0;
 // it stops being a setting you have to remember to change. Heel is constant:
 // the drag on the trailing edge doesn't depend on how wet the hair is.
 let CHAT_MAX=0.30,GRAIN_MAX=0.30,HEEL=2.0;
+// v7-napkin: temporary bristle state raised by how the napkin is worked. It sits on top of
+// the sliders (added, never overwriting them) and relaxes back on its own.
+const NAPMOD={heel:0,chat:0,wet:0,bloom:0};
+const NAP_FX={perPx:0.004,scrub:0.12,decay:0.99};
+function napFx(kind,px){const c=v=>Math.min(1,v);
+  if(kind==='right'){NAPMOD.heel=c(NAPMOD.heel+px*NAP_FX.perPx);NAPMOD.chat=c(NAPMOD.chat+px*NAP_FX.perPx)}
+  else if(kind==='left'){NAPMOD.wet=c(NAPMOD.wet+px*NAP_FX.perPx);NAPMOD.bloom=c(NAPMOD.bloom+px*NAP_FX.perPx)}
+  else if(kind==='scrub'){NAPMOD.heel=c(NAPMOD.heel+NAP_FX.scrub);NAPMOD.chat=c(NAPMOD.chat+NAP_FX.scrub)}}
+setInterval(()=>{for(const k in NAPMOD)NAPMOD[k]*=NAP_FX.decay},100);
 const DRY_CURVE=1.35;
 // v7: Heel now rides the brush LOAD (how full the belly is). A loaded brush
 // pools ink at the trailing edge; as it empties the drag lightens. The floor
@@ -531,7 +585,7 @@ const STYLE_CHAR={
   round :{bAmp:1.9,bFreq:1.15,heel:0.90,chat:0.55,chatFreq:0.055,split:0.35,catch:1.35,skip:1.20,spd:1.0,water:1.00},
   point :{bAmp:1.3,bFreq:1.60,heel:1.70,chat:0.40,chatFreq:0.038,split:0.15,catch:0.80,skip:0.70,spd:0.6,water:1.15},
   side  :{bAmp:3.2,bFreq:0.55,heel:0.45,chat:0.90,chatFreq:0.095,split:0.70,catch:1.95,skip:2.10,spd:1.7,water:0.70},
-  rake  :{bAmp:1.0,bFreq:1.00,heel:1.15,chat:1.00,chatFreq:0.125,split:0.55,catch:1.65,skip:1.70,spd:2.0,water:0.80},
+  rake  :{bAmp:1.0,bFreq:1.00,heel:1.15,chat:0.80,chatFreq:0.085,split:0.55,catch:1.30,skip:1.30,spd:2.0,water:0.80},
   smudge:{bAmp:1.0,bFreq:1.00,heel:0.00,chat:0.00,chatFreq:0.000,split:0.00,catch:1.00,skip:1.00,spd:1.0,water:1.00}
 };
 function mix(base,target,amt){return base+(target-base)*amt}
@@ -595,8 +649,8 @@ generatePaper();
 function clientToGrid(cx,cy){const r=canvas.getBoundingClientRect();return[(cx-r.left)/r.width*NX,(cy-r.top)/r.height*NY]}
 
 // Preallocated sample buffers — no per-cell garbage.
-let sIdx=new Int32Array(8192),sWt=new Float64Array(8192);
-function growSamples(n){let c=sIdx.length;while(c<n)c*=2;const ni=new Int32Array(c),nw=new Float64Array(c);ni.set(sIdx);nw.set(sWt);sIdx=ni;sWt=nw}
+let sIdx=new Int32Array(8192),sWt=new Float64Array(8192),sPg=new Float32Array(8192);
+function growSamples(n){let c=sIdx.length;while(c<n)c*=2;const ni=new Int32Array(c),nw=new Float64Array(c),np=new Float32Array(c);ni.set(sIdx);nw.set(sWt);np.set(sPg);sIdx=ni;sWt=nw;sPg=np}
 
 function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   if(brush.w<=0&&brush.p<=0)return;
@@ -606,7 +660,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // from dryness and the swell term needs them.
   const wFrac=brush.w/(brush.w+brush.p+1e-12),dryness=1-wFrac;
   const dryK=Math.pow(dryness,DRY_CURVE);
-  const CHAT=CHAT_MAX*dryK,GRAIN=GRAIN_MAX*dryK;
+  const CHAT=Math.min(1,CHAT_MAX*dryK+NAPMOD.chat*0.5),GRAIN=GRAIN_MAX*dryK;
   pressure=Math.max(0.05,Math.min(1,pressure));
   const baseRad=BRUSH_RAD*(brushRadius/8);
   let a,b,orientOff=0;
@@ -640,13 +694,15 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // the whole stamp pulses and stutters as the brush travels. This is the
   // "skipping over the tooth of the paper" beat that a per-cell mask can't
   // produce, because it has to be correlated ALONG the direction of travel.
+  const wb=WABI;
   let chatter=1;
   if(ch.chat>0&&CHAT>0){
-    const c=valueNoise(sD*ch.chatFreq+strokeSeed*0.13,17.3)*0.65
-           +valueNoise(sD*ch.chatFreq*2.7+strokeSeed*0.29,41.9)*0.35;
-    const gate=0.30+0.42*dryness+0.18*spd01;
+    const cf=ch.chatFreq*mix(1,0.45,wb);   // wabi: longer, calmer pulses
+    const c=valueNoise(sD*cf+strokeSeed*0.13,17.3)*0.65
+           +valueNoise(sD*cf*2.7+strokeSeed*0.29,41.9)*0.35;
+    const gate=(0.30+0.42*dryness+0.18*spd01)*mix(1,0.75,wb);
     if(c<gate)chatter=Math.max(0.05,c/gate);
-    chatter=1-(1-chatter)*ch.chat*Math.min(1.6,CHAT);
+    chatter=1-(1-chatter)*ch.chat*Math.min(1.6,CHAT)*mix(1,0.7,wb);
   }
   const xferScale=pressure*speedFac*chatter;
   const sizeGain=Math.max(0.15,Math.min(50,(a*b)/3));
@@ -671,14 +727,33 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // v5: heel — the only term that reads the ALONG-stroke axis. Every v4 stamp
   // was symmetric front-to-back, which is why strokes looked extruded rather
   // than dragged. Negative u is the trailing edge; weight pools there.
-  const heelAmt=ch.heel*HEEL*heelLoadK()*0.30;
+  const heelAmt=ch.heel*(HEEL+NAPMOD.heel*3)*heelLoadK()*0.30;
   // v4: catch is an ATTENUATION, not a kill switch. It also uses coherent noise at
   // fibre scale instead of per-pixel white noise, so dry-brush skip happens in
   // clumps a few cells wide — the way a bristle actually misses the paper.
-  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT);
+  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT)*mix(1,0.6,wb),catchF=mix(0.22,0.07,wb);
   const doSkip=skipThresh>0.012,laneScale=1/Math.max(1.2,b*0.35),skipSoft=skipThresh*1.6;
   const edgeSteep=1+3.5*dryness;
-  let totalWt=0,ns=0;
+  // v7-ink wabi: 1-D tables over the across-stroke coordinate, built once per stamp
+  // so the per-pixel cost is a lookup. ch0 rake tine mask, ch1 bristle phase drift,
+  // ch2 lane boundary warp, ch3 slow streaky density.
+  let vTab=vTabBuf,vTabN=0,vOff=0,laneOff=0,laneN=0;
+  if(wb>0){
+    vOff=Math.ceil(3*bb)+2;vTabN=vOff*4+1;
+    if(vTabN*4>vTabBuf.length)vTabBuf=new Float32Array(vTabN*8);
+    vTab=vTabBuf;const ss=strokeSeed;
+    for(let k=0;k<vTabN;k++){const vr=k*0.5-vOff,o=k*4;
+      if(isRake){const tn=valueNoise(vr*rakeFreq*0.9+ss*0.37,sD*0.017+ss*0.11)*0.6+valueNoise(vr*rakeFreq*2.3+ss*0.71,sD*0.041+ss*0.05)*0.4;
+        vTab[o]=Math.min(1,Math.max(0,(tn-0.30)/0.32))}
+      vTab[o+1]=(valueNoise(sD*0.012+ss*0.21,vr*0.04+1.7)-0.5)*5;
+      vTab[o+2]=(valueNoise(vr*0.05+ss*0.43,sD*0.01+9.1)-0.5)*3;
+      vTab[o+3]=valueNoise(vr*0.045+ss*0.19,sD*0.012+5.3)}
+    laneOff=Math.ceil(3*bb*laneScale)+4;laneN=Math.min(laneTab.length,laneOff*2+1);
+    for(let L=0;L<laneN;L++){const ln=L-laneOff;
+      laneTab[L]=hash21(ln*7.13+ss,ln*3.71-ss*0.7)+wb*(valueNoise(ln*3.1+ss*0.7,sD*0.022)-0.5)*0.9}
+  }
+  const tipEff=TIP_LOAD*(0.35+0.65*wFrac),tipOn=tipEff>0.001;
+  let totalWt=0,totalPg=0,ns=0;
   let bx0=x0-searchX,by0=y0-searchY,bx1=x0+searchX,by1=y0+searchY;
   for(let dy=-searchY;dy<=searchY;dy++){const py=y0+dy;if(py<0||py>=NY)continue;const rowOff=py*NX;
   for(let dx=-searchX;dx<=searchX;dx++){
@@ -687,30 +762,41 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     const u=(fx*cosT+fy*sinT)/aa,v=vRaw/bb;
     const norm=u*u+v*v;if(norm>9)continue;
     let wt=Math.exp(-0.5*norm);
+    let tabI=0;
+    if(wb>0){tabI=((vRaw+vOff)*2+0.5)|0;if(tabI<0)tabI=0;else if(tabI>=vTabN)tabI=vTabN-1;tabI*=4}
     // v4: rake tines fade instead of hard-dropping 8% of cells at random.
-    if(isRake){wt*=Math.pow(Math.max(0,Math.cos(vRaw*rakeFreq*Math.PI)),tineSharp)*(0.55+0.45*valueNoise(px*0.30,py*0.30+strokeSeed))}
+    if(isRake){const per=Math.pow(Math.max(0,Math.cos(vRaw*rakeFreq*Math.PI)),tineSharp);
+      // wabi: replace the evenly spaced comb with wandering, clumped tines that start and stop along the stroke
+      wt*=(wb>0?per*(1-wb)*(1-wb)+vTab[tabI]*(1-(1-wb)*(1-wb)):per)*(0.55+0.45*valueNoise(px*0.30,py*0.30+strokeSeed))}
     if(heelAmt!==0){wt*=Math.max(0.05,1+heelAmt*(-u))}
     // v5: warp is coherent noise at fibre scale, not per-pixel white noise —
     // white noise decorrelates the lanes and cancels the streaking it is
     // supposed to bend.
-    if(bristleFreq>0){const bristleWarp=(valueNoise(px*0.14+strokeSeed*0.6,py*0.14)-0.5)*2.4*warpAmp;wt*=Math.max(0.12,bristleBase+bristleAmp*Math.cos(vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp))}
+    if(bristleFreq>0){const bristleWarp=(valueNoise(px*0.14+strokeSeed*0.6,py*0.14)-0.5)*2.4*warpAmp*(1+wb*1.2);wt*=Math.max(0.12,bristleBase+bristleAmp*Math.cos(vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp+(wb>0?vTab[tabI+1]*wb:0)))}
     const idx=rowOff+px;
     wt*=gBase+gMul*tex[idx];
-    const catchNoise=valueNoise(px*0.22+strokeSeed*0.11,py*0.22-strokeSeed*0.07);
+    if(wb>0)wt*=1+wb*1.4*(vTab[tabI+3]-0.5);
+    const catchNoise=valueNoise(px*catchF+strokeSeed*0.11,py*catchF-strokeSeed*0.07);
     if(catchNoise<catchThresh){wt*=0.15+0.85*(catchNoise/catchThresh)}
-    if(doSkip){const lane=Math.round(vRaw*laneScale);const laneNoise=hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7);if(laneNoise<skipThresh)wt*=0.08;else if(laneNoise<skipSoft)wt*=0.35}
-    if(norm>1.0){const edgeJitter=1+hash21(px*9.1+strokeSeed,py*4.3)*0.8*dryness;wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
+    if(doSkip){let laneNoise;
+      if(wb>0){const lane=Math.round(vRaw*laneScale+vTab[tabI+2]*wb),li=lane+laneOff;
+        laneNoise=(li>=0&&li<laneN)?laneTab[li]:hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7)}
+      else{const lane=Math.round(vRaw*laneScale);laneNoise=hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7)}
+      if(laneNoise<skipThresh)wt*=mix(0.08,0.16,wb);else if(laneNoise<skipSoft)wt*=0.35}
+    if(norm>1.0){const edgeJitter=1+hash21(px*9.1+strokeSeed,py*4.3)*0.8*dryness*mix(1,0.5,wb);wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
     if(wt<0.005)continue;
     if(ns>=sIdx.length)growSamples(ns+1);
-    sIdx[ns]=idx;sWt[ns]=wt;ns++;totalWt+=wt}}
+    // across-stroke coordinate: v for every style except the flat side brush, whose long axis is the across axis
+    const pf=tipOn?Math.max(0.03,1+tipEff*Math.max(-1,Math.min(1,(brushStyle==='side'?u:v)/1.5))):1;
+    sIdx[ns]=idx;sWt[ns]=wt;sPg[ns]=pf;ns++;totalWt+=wt;totalPg+=wt*pf}}
   // v4: splatter density cut from 7 to 3 — the stray dots across bare paper were
   // this, firing on every stamp at 1.5-unit spacing.
-  if(speed>2&&dryness<0.8){const splatCount=Math.floor(hash21(gx+strokeSeed,gy-strokeSeed)*3*wFrac*pressure*(1+speed*0.05));for(let sp=0;sp<splatCount;sp++){const angle=hash21(sp*13.7+strokeSeed,sp*7.3+gx)*Math.PI*2;const dist=Math.max(a,b)*(1.5+hash21(sp*3.1+strokeSeed,sp*11.9)*4.0);const spx=Math.round(gx+Math.cos(angle)*dist),spy=Math.round(gy+Math.sin(angle)*dist);if(spx>=0&&spx<NX&&spy>=0&&spy<NY){const spWt=0.2+hash21(sp*5.7,strokeSeed)*0.35;const add=spWt*totalWt*0.012;if(ns>=sIdx.length)growSamples(ns+1);sIdx[ns]=spy*NX+spx;sWt[ns]=add;ns++;totalWt+=add;
+  if(speed>2&&dryness<0.8){const splatCount=Math.floor(hash21(gx+strokeSeed,gy-strokeSeed)*3*wFrac*pressure*(1+speed*0.05));for(let sp=0;sp<splatCount;sp++){const angle=hash21(sp*13.7+strokeSeed,sp*7.3+gx)*Math.PI*2;const dist=Math.max(a,b)*(1.5+hash21(sp*3.1+strokeSeed,sp*11.9)*4.0);const spx=Math.round(gx+Math.cos(angle)*dist),spy=Math.round(gy+Math.sin(angle)*dist);if(spx>=0&&spx<NX&&spy>=0&&spy<NY){const spWt=0.2+hash21(sp*5.7,strokeSeed)*0.35;const add=spWt*totalWt*0.012;if(ns>=sIdx.length)growSamples(ns+1);sIdx[ns]=spy*NX+spx;sWt[ns]=add;sPg[ns]=1;ns++;totalWt+=add;totalPg+=add;
     if(spx<bx0)bx0=spx;if(spy<by0)by0=spy;if(spx>bx1)bx1=spx;if(spy>by1)by1=spy}}}
   if(totalWt<=0)return;
   let appliedW=0,appliedP=0;
   const IA=inkAbs(),iaR=IA[0],iaG=IA[1],iaB=IA[2];
-  for(let s=0;s<ns;s++){const si=sIdx[s];const frac=sWt[s]/totalWt;let wAdd=reqW*frac,pAdd=reqP*frac;
+  for(let s=0;s<ns;s++){const si=sIdx[s];const frac=sWt[s]/totalWt;let wAdd=reqW*frac,pAdd=reqP*(tipOn?sWt[s]*sPg[s]/totalPg:frac);
     const incomingWet=wAdd;if(incomingWet>0.01&&fPig[si]>0.01){const rewetStrength=Math.min(0.35,incomingWet*0.15);const dissolved=fPig[si]*rewetStrength;const ex=mPig[si];const tot=ex+dissolved;if(tot>0){const ew=ex/tot,nw=dissolved/tot;mR[si]=mR[si]*ew+fR[si]*nw;mG[si]=mG[si]*ew+fG[si]*nw;mB[si]=mB[si]*ew+fB[si]*nw;mPig[si]=tot}fPig[si]=Math.max(0,fPig[si]-dissolved)}
     const resist=Math.min(0.5,fPig[si]/PIGMENT_CAP);wAdd*=(1-resist*0.25);pAdd*=(1-resist*0.25);
     const room=Math.max(0,WATER_CAP-water[si]);if(wAdd>room){const sc=room/(wAdd+1e-12);wAdd*=sc;pAdd*=sc}if(wAdd<1e-12&&pAdd<1e-12)continue;
@@ -735,7 +821,8 @@ function smudgeDab(gx,gy,pressure){const baseRad=BRUSH_RAD*(brushRadius/12);cons
 // segment endpoints; on a curve, consecutive segments differ enough that the
 // point brush's needles crossed at the shared endpoint. That was the star.
 let lastOrient=null;
-function drawSegment(x0,y0,x1,y1,pressure){
+// v7-ink: optional pEnd ramps pressure linearly across the segment (JSON taper/swell). Omitted = unchanged.
+function drawSegment(x0,y0,x1,y1,pressure,pEnd){
   const dx=x1-x0,dy=y1-y0,dist=Math.hypot(dx,dy);if(dist<0.001)return;
   const orient=Math.atan2(dy,dx);
   let o0=lastOrient,o1=orient;
@@ -745,8 +832,9 @@ function drawSegment(x0,y0,x1,y1,pressure){
   const steps=Math.max(1,Math.ceil(dist/1.5));
   const base=strokeDist;
   for(let i=1;i<=steps;i++){const t=i/steps;
-    if(brushStyle==='smudge')smudgeDab(x0+dx*t,y0+dy*t,pressure);
-    else addDeposit(x0+dx*t,y0+dy*t,pressure,o0+(o1-o0)*t,dist,base+dist*t)}
+    const pr=pEnd===undefined?pressure:pressure+(pEnd-pressure)*t;
+    if(brushStyle==='smudge')smudgeDab(x0+dx*t,y0+dy*t,pr);
+    else addDeposit(x0+dx*t,y0+dy*t,pr,o0+(o1-o0)*t,dist,base+dist*t)}
   strokeDist=base+dist}
 
 function simulateStep(){
@@ -761,7 +849,7 @@ function simulateStep(){
   for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
     const i=y*NX+x;const w=water[i];if(w<0.001)continue;
     // v6: bloom terms interpolate per cell on its remembered brush wetness.
-    const bfI=wetF[i]*BLOOM_GAIN;
+    const bfI=wetF[i]*(BLOOM_GAIN+NAPMOD.bloom);
     const kPigI=KPIG_DRY+(KPIG_WET-KPIG_DRY)*bfI;
     const sigBase=SIG_DRY+(SIG_WET-SIG_DRY)*bfI;
     const kSrc=K_BASE+K_GRAIN*tex[i]+kPigI*Math.min(1,fPig[i]/PIGMENT_CAP)+K_PIN*pinTex[i];
@@ -779,7 +867,7 @@ function simulateStep(){
         diff=w-water[j];
       }
       if(diff<=0)continue;
-      const kPigJ=KPIG_DRY+(KPIG_WET-KPIG_DRY)*wetF[j]*BLOOM_GAIN;
+      const kPigJ=KPIG_DRY+(KPIG_WET-KPIG_DRY)*wetF[j]*(BLOOM_GAIN+NAPMOD.bloom);
       const kDst=K_BASE+K_GRAIN*tex[j]+kPigJ*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
       const kAvg=(kSrc+kDst)*0.5;
       let flow=SPREAD_RATE*diff*(1-kAvg);flow=Math.min(flow,w*0.12);if(flow<=0)continue;
@@ -792,7 +880,19 @@ function simulateStep(){
       pDelta[i]-=pigFlow;pDelta[j]+=pigFlow;
       const tr=pigFlow*mR[i],tg=pigFlow*mG[i],tb=pigFlow*mB[i];
       pRDelta[i]-=tr;pGDelta[i]-=tg;pBDelta[i]-=tb;
-      pRDelta[j]+=tr;pGDelta[j]+=tg;pBDelta[j]+=tb}}}
+      pRDelta[j]+=tr;pGDelta[j]+=tg;pBDelta[j]+=tb}
+    // v7-ink: wet-on-wet pigment diffusion (see FEATHER).
+    if(FEATHER>0&&w>0.02&&mPig[i]>0.0005){
+      const ci=mPig[i]/(w+0.001),wfi=Math.min(1,wetF[i]*(BLOOM_GAIN+NAPMOD.bloom));
+      for(let n=0;n<4;n++){const j=nb[n],wj=water[j];if(wj<0.02)continue;
+        const dc=ci-mPig[j]/(wj+0.001);if(dc<=0.0005)continue;
+        const wfj=Math.min(1,wetF[j]*(BLOOM_GAIN+NAPMOD.bloom));
+        const kd=FEATHER*FEATHER_RATE*(0.25+0.375*(wfi+wfj))*(1-HINDRANCE*tex[i]);
+        let pf=kd*dc*Math.min(w,wj);pf=Math.min(pf,mPig[i]*0.12);if(pf<=0.00005)continue;
+        pDelta[i]-=pf;pDelta[j]+=pf;
+        const fr=pf*mR[i],fg=pf*mG[i],fb=pf*mB[i];
+        pRDelta[i]-=fr;pGDelta[i]-=fg;pBDelta[i]-=fb;pRDelta[j]+=fr;pGDelta[j]+=fg;pBDelta[j]+=fb}}
+  }}
 
   for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
     const i=y*NX+x;
@@ -814,7 +914,7 @@ function simulateStep(){
       // Edge cells dry fastest, so pigment strands there — this is the dark rim
       // that reads as ink rather than watercolour. Kept strong on purpose.
       const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT;
-      const bf=wetF[i]*WET_GAIN;
+      const bf=wetF[i]*(WET_GAIN+NAPMOD.wet);
       const evapR=EVAP_DRY*Math.pow(EVAP_WET/EVAP_DRY,bf);
       const fixR =FIX_DRY *Math.pow(FIX_WET /FIX_DRY ,bf);
       // v6: slow relaxation of the wetness memory. Without it a fully wet cell
@@ -881,12 +981,19 @@ function render(){
 // ═══ TRAY UI ═══
 const tray=document.getElementById('tray');
 const fillInk=document.querySelector('#dipInk .fill'),fillWater=document.querySelector('#dipWater .fill');
-const barWFill=document.querySelector('#barW .fill'),barPFill=document.querySelector('#barP .fill');
+// Calligraphy gauges. Edit these two strings to change the characters; each
+// column drains from the top as its level falls.
+const KANJI_INK='紙に石を塗る',KANJI_WATER='紙に石を塗';
+const kInkEl=document.getElementById('kInk'),kWaterEl=document.getElementById('kWater');
+[[kInkEl,KANJI_INK],[kWaterEl,KANJI_WATER]].forEach(([el,str])=>{
+  const html=[...str].map(c=>'<span>'+c+'</span>').join('');
+  el.querySelector('.kg').innerHTML=html;el.querySelector('.kl').innerHTML=html});
+function setKanji(el,pct){el.style.setProperty('--e',(Math.min(100,Math.max(0,pct))*1.14).toFixed(1))}
 let _lastWp=-1,_lastPp=-1;
 function updateFills(){const wp=Math.round(brush.w/BRUSH_W_CAP*100),pp=Math.round(brush.p/BRUSH_P_CAP*100);
   if(wp===_lastWp&&pp===_lastPp)return;_lastWp=wp;_lastPp=pp;
   fillWater.style.height=wp+'%';fillInk.style.height=pp+'%';
-  barWFill.style.height=Math.min(100,wp)+'%';barPFill.style.height=Math.min(100,pp)+'%';
+  setKanji(kWaterEl,wp);setKanji(kInkEl,pp);
   refreshLiveChar()}
 // v7: the character sliders show what the brush is doing right now. The thumb
 // is still your setting (a ceiling for Chatter/Grain/Heel, a gain for Wet/Bloom);
@@ -906,7 +1013,7 @@ let holding=null,tickLast=0,trayTimer=null;
 const RAMP_FILL=3.0,RAMP_DRAIN=0.06;
 function keepOpen(){clearTimeout(trayTimer)}
 function schedClose(ms=93500){clearTimeout(trayTimer);trayTimer=setTimeout(closeTray,ms)}
-function tickHold(now){if(!holding)return;const dt=Math.min(0.1,(now-tickLast)/1000);tickLast=now;switch(holding){case'ink':brush.p=Math.min(BRUSH_P_CAP,brush.p+RAMP_FILL*dt*BRUSH_P_CAP);break;case'water':brush.w=Math.min(BRUSH_W_CAP,brush.w+RAMP_FILL*dt*BRUSH_W_CAP);break;case'napInk':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);break;case'napWater':brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break;case'napBoth':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break}}
+function tickHold(now){if(!holding)return;const dt=Math.min(0.1,(now-tickLast)/1000);tickLast=now;switch(holding){case'ink':brush.p=Math.min(BRUSH_P_CAP,brush.p+RAMP_FILL*dt*BRUSH_P_CAP);break;case'water':brush.w=Math.min(BRUSH_W_CAP,brush.w+RAMP_FILL*dt*BRUSH_W_CAP);break;case'napInk':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);break;case'napWater':brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break;case'napBoth':brush.p=Math.max(0,brush.p-RAMP_DRAIN*0.35*dt*BRUSH_P_CAP);brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break}}
 function startHold(which){tickLast=performance.now();holding=which;keepOpen()}
 function stopHold(){holding=null;schedClose()}
 function bindHold(el,which){
@@ -927,7 +1034,7 @@ function initNapkin(){napCvs.width=NAP_W;napCvs.height=NAP_H;napCtx.fillStyle='#
   const x1=Math.floor(NAP_W/3),x2=Math.floor(NAP_W*2/3);
   napCtx.beginPath();napCtx.moveTo(x1+0.5,0);napCtx.lineTo(x1+0.5,NAP_H);napCtx.stroke();
   napCtx.beginPath();napCtx.moveTo(x2+0.5,0);napCtx.lineTo(x2+0.5,NAP_H);napCtx.stroke()}
-function napDabAt(cx,cy,drainZone){if(brush.w<0.5&&brush.p<0.5)return;const wFrac=brush.w/(brush.w+brush.p+1e-12),pigDensity=brush.p/BRUSH_P_CAP;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4));napCtx.fillStyle=col;napCtx.strokeStyle=col;
+function napDabAt(cx,cy,drainZone,dk=1){if(brush.w<0.5&&brush.p<0.5)return;const wFrac=brush.w/(brush.w+brush.p+1e-12),pigDensity=brush.p/BRUSH_P_CAP;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4));napCtx.fillStyle=col;napCtx.strokeStyle=col;
   if(brushStyle==='point'){const pr=dabR*0.5;napCtx.globalAlpha=Math.max(0.06,alpha*0.8);napCtx.beginPath();napCtx.arc(cx,cy,pr,0,Math.PI*2);napCtx.fill()}
   else if(brushStyle==='side'){napCtx.globalAlpha=Math.max(0.04,alpha*0.55);napCtx.save();napCtx.translate(cx,cy);napCtx.beginPath();napCtx.ellipse(0,0,dabR*1.4,dabR*0.5,0,0,Math.PI*2);napCtx.fill();napCtx.restore()}
   else if(brushStyle==='rake'){const bristles=Math.max(3,Math.floor(dabR*0.8));const spacing=dabR*2/bristles;napCtx.globalAlpha=Math.max(0.05,alpha*0.65);for(let i=0;i<bristles;i++){const bx=cx+(i-bristles/2)*spacing;napCtx.beginPath();napCtx.arc(bx,cy,spacing*0.35,0,Math.PI*2);napCtx.fill()}}
@@ -936,17 +1043,23 @@ function napDabAt(cx,cy,drainZone){if(brush.w<0.5&&brush.p<0.5)return;const wFra
   if(wFrac>0.25){napCtx.globalAlpha=Math.max(0.02,alpha*0.10*wFrac);napCtx.beginPath();napCtx.arc(cx,cy,dabR*(1+wFrac*0.8),0,Math.PI*2);napCtx.fill()}
   if(pigDensity>0.06&&brushStyle!=='smudge'){napCtx.globalAlpha=Math.max(0.01,alpha*0.15);napCtx.lineWidth=0.5;napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.2,0,Math.PI*2);napCtx.stroke()}
   napCtx.globalAlpha=1;
-  if(drainZone==='napInk'||drainZone==='napBoth')brush.p=Math.max(0,brush.p-brush.p*0.008);
-  if(drainZone==='napWater'||drainZone==='napBoth')brush.w=Math.max(0,brush.w-brush.w*0.008)}
+  if(drainZone==='napInk'||drainZone==='napBoth')brush.p=Math.max(0,brush.p-brush.p*0.008*dk);
+  if(drainZone==='napWater'||drainZone==='napBoth')brush.w=Math.max(0,brush.w-brush.w*0.008*dk)}
 function napClientToCanvas(cx,cy){const rect=napCvs.getBoundingClientRect();return[(cx-rect.left)/rect.width*NAP_W,(cy-rect.top)/rect.height*NAP_H]}
 setTimeout(initNapkin,300);let _napRz=null;window.addEventListener('resize',()=>{clearTimeout(_napRz);_napRz=setTimeout(initNapkin,250)},{passive:true});
 
-(function setupNapkin(){const nap=document.getElementById('napkin');let napHoldTimer=null,napHolding=false,napActive=false,napMoved=false,lastNapX=0,lastNapY=0,activeZone='napBoth';
+(function setupNapkin(){const nap=document.getElementById('napkin');let napHoldTimer=null,napHolding=false,napActive=false,napMoved=false,lastNapX=0,lastNapY=0,activeZone='napBoth',napLastT=0,napDirSign=0,napStopT=null;
   function getZone(e){const rect=nap.getBoundingClientRect();const xFrac=(e.clientX-rect.left)/rect.width;return xFrac<0.33?'napInk':xFrac>0.66?'napWater':'napBoth'}
-  nap.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();nap.setPointerCapture(e.pointerId);napHolding=false;napActive=true;napMoved=false;activeZone=getZone(e);const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);lastNapX=cx;lastNapY=cy;napHoldTimer=setTimeout(()=>{if(!napMoved){napHolding=true;startHold(activeZone)}},300);napDabAt(cx,cy,activeZone);updateFills();keepOpen()});
-  nap.addEventListener('pointermove',e=>{if(!napActive&&!napHolding)return;if(napHolding)return;e.preventDefault();clearTimeout(napHoldTimer);napMoved=true;const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);const dx=cx-lastNapX,dy=cy-lastNapY,dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)return;const steps=Math.max(1,Math.ceil(dist/3));for(let i=1;i<=steps;i++){const t=i/steps;napDabAt(lastNapX+dx*t,lastNapY+dy*t,activeZone)}updateFills();lastNapX=cx;lastNapY=cy});
-  nap.addEventListener('pointerup',e=>{e.preventDefault();clearTimeout(napHoldTimer);if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false});
-  nap.addEventListener('pointercancel',e=>{clearTimeout(napHoldTimer);if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false})})();
+  nap.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();nap.setPointerCapture(e.pointerId);napHolding=false;napActive=true;napMoved=false;activeZone=getZone(e);const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);lastNapX=cx;lastNapY=cy;napHoldTimer=setTimeout(()=>{if(!napMoved){napHolding=true;startHold(activeZone)}},300);napLastT=0;napDirSign=0;napDabAt(cx,cy,activeZone);updateFills();keepOpen()});
+  nap.addEventListener('pointermove',e=>{if(!napActive&&!napHolding)return;if(napHolding)return;e.preventDefault();clearTimeout(napHoldTimer);napMoved=true;const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);const dx=cx-lastNapX,dy=cy-lastNapY,dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)return;
+    const now=performance.now(),dtm=Math.max(8,now-(napLastT||now-16));napLastT=now;
+    const dk=Math.max(0.35,Math.min(1.8,1.6-(dist/dtm)*1.1));
+    const sgn=dx>0.5?1:dx<-0.5?-1:0;
+    if(sgn){if(napDirSign&&sgn!==napDirSign)napFx('scrub');napDirSign=sgn;napFx(sgn>0?'right':'left',Math.abs(dx))}
+    const steps=Math.max(1,Math.ceil(dist/3));for(let i=1;i<=steps;i++){const t=i/steps;napDabAt(lastNapX+dx*t,lastNapY+dy*t,activeZone,dk)}updateFills();lastNapX=cx;lastNapY=cy;
+    clearTimeout(napStopT);napStopT=setTimeout(()=>{if(napActive&&napMoved&&!napHolding){napDabAt(lastNapX,lastNapY,activeZone,5);updateFills()}},150)});
+  nap.addEventListener('pointerup',e=>{e.preventDefault();clearTimeout(napHoldTimer);clearTimeout(napStopT);napDirSign=0;if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false});
+  nap.addEventListener('pointercancel',e=>{clearTimeout(napHoldTimer);clearTimeout(napStopT);napDirSign=0;if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false})})();
 
 // ═══ PALETTE SWITCHER ═══
 let activePal='vivid';
@@ -1299,15 +1412,28 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     brushRadius=stroke.brush??brushRadius;
     brushStyle=(stroke.style&&['round','point','side','rake','smudge'].includes(stroke.style))?stroke.style:brushStyle;
     const press=Math.min(1,Math.max(0,stroke.pressure??0.5));
+    // v7-ink: press and lift. Optional per-stroke keys, absent = exactly as before.
+    //   taper: 0..1 (or [in,out]) = fraction of the stroke length at each end over which pressure
+    //          eases up from a light touch / back down to one. 0.25 = a quarter of the stroke each end.
+    //   swell: 0..1 = belly. Pressure is full mid-stroke and lighter toward both ends, by this much.
+    const _tp=stroke.taper,tpIO=Array.isArray(_tp)?[+_tp[0]||0,+_tp[1]||0]:[+_tp||0,+_tp||0];
+    const swellK=Math.min(1,Math.max(0,+stroke.swell||0)),shaped=tpIO[0]>0||tpIO[1]>0||swellK>0;
     strokeSeed=(performance.now()%1000+si*137)%1000;
     beginStroke();
 
     const rawPts=stroke.path.map(([nx,ny])=>[nx,ny]);
     const smoothPts=interpPath(rawPts,stroke.interpolation);
     const pts=smoothPts.map(([nx,ny])=>[nx*(NX-1),ny*(NY-1)]);
+    const cumLen=[0];for(let q=1;q<pts.length;q++)cumLen.push(cumLen[q-1]+Math.hypot(pts[q][0]-pts[q-1][0],pts[q][1]-pts[q-1][1]));
+    const totLen=cumLen[cumLen.length-1]||1;
+    const easeP=f=>{f=Math.max(0,Math.min(1,f));return 0.12+0.88*f*f*(3-2*f)};
+    const pressAt=d=>{if(!shaped)return press;const t=d/totLen;let f=1;
+      if(tpIO[0]>0)f*=easeP(t/tpIO[0]);if(tpIO[1]>0)f*=easeP((1-t)/tpIO[1]);
+      if(swellK>0)f*=1-swellK*(1-Math.sin(Math.PI*t));
+      return Math.min(1,Math.max(0.05,press*f))};
     if(pts.length===1){addDeposit(pts[0][0],pts[0][1],press,0,0);dabCount++}
-    else{addDeposit(pts[0][0],pts[0][1],press,0,0);dabCount++;
-      for(let p=0;p<pts.length-1;p++){drawSegment(pts[p][0],pts[p][1],pts[p+1][0],pts[p+1][1],press);
+    else{addDeposit(pts[0][0],pts[0][1],pressAt(0),0,0);dabCount++;
+      for(let p=0;p<pts.length-1;p++){drawSegment(pts[p][0],pts[p][1],pts[p+1][0],pts[p+1][1],pressAt(cumLen[p]),pressAt(cumLen[p+1]));
         const dx=pts[p+1][0]-pts[p][0],dy=pts[p+1][1]-pts[p][1];dabCount+=Math.max(1,Math.ceil(Math.hypot(dx,dy)/1.5))}}
 
     if(stroke.flick&&pts.length>=2){
@@ -1373,6 +1499,12 @@ window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
   // Wet / Bloom are coupling gains: how far a fully wet brush travels toward v3.
   link('sWet','vWet',v=>{WET_GAIN=v/100});
   link('sBloom','vBloom',v=>{BLOOM_GAIN=v/100});
+  // v7-ink: Tip is bokashi strength, 0 = off.
+  link('sTip','vTip',v=>{TIP_LOAD=v/100});
+  // v7-ink: Feather is wet-on-wet pigment diffusion, 0 = off.
+  link('sFeather','vFeather',v=>{FEATHER=v/100});
+  // v7-ink: Wabi is brush irregularity, 0 = the old tidy v7 behaviour.
+  link('sWabi','vWabi',v=>{WABI=v/100});
   // v7 splash: Spray scales flick energy into the breakup physics, Height is
   // SPLAT's drop height (fall impact → rounder stains and crown satellites).
   link('sDrop','vDrop',v=>{DROP_GAIN=v/100});
