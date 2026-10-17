@@ -57,12 +57,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .size i{display:block;border-radius:50%;background:rgba(236,229,210,0.4)}
 .size.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1)}
 .size.active i{background:rgba(236,229,210,0.7)}
-#jsonBtn{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+#jsonBtn,#snapBtn{width:30px;height:30px;border-radius:50%;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   border:2px solid rgba(87,242,161,0.35);background:rgba(7,11,18,0.4);
   color:rgba(87,242,161,0.6);font-size:15px;line-height:1;
   transition:transform 0.16s;touch-action:none}
-#jsonBtn:active{transform:scale(0.88);border-color:rgba(87,242,161,0.7)}
+#jsonBtn:active,#snapBtn:active{transform:scale(0.88);border-color:rgba(87,242,161,0.7)}
 #resetBtn{width:26px;height:26px;border-radius:50%;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   border:2px solid rgba(216,100,80,0.35);background:rgba(120,50,40,0.12);
@@ -225,7 +225,7 @@ button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
 .bstyle{font-size:15px;color:rgba(236,229,210,.65)}
 .bstyle.active{color:#fff}
 #trayTab{font-size:11px;color:rgba(145,185,161,.85)}
-#jsonBtn,#resetBtn{color:rgba(236,229,210,.9)}
+#jsonBtn,#snapBtn,#resetBtn{color:rgba(236,229,210,.9)}
 
 /* ===== SUMI-E AESTHETIC PASS (v7.4) — presentation only ===================
    Everything below overrides the dark/terminal styling above. The tray and
@@ -298,11 +298,15 @@ html,body{background:var(--washi)}
 .swatch.active{border-color:var(--sumi);transform:scale(1.14);box-shadow:0 0 0 2px var(--washi),0 0 0 3.5px var(--shu)}
 #palToggle{border:1px solid var(--sumi-line);color:var(--sumi-2);width:20px;height:24px}
 .rowDiv{background:var(--sumi-line);margin:3px 3px}
-#resetBtn,#jsonBtn{width:26px;height:26px;background:transparent;border:1.5px solid var(--sumi-line);color:var(--sumi);font-size:14px}
-#thumbCanvas{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--sumi-line);flex-shrink:0;object-fit:cover}
+#resetBtn,#jsonBtn,#snapBtn{width:26px;height:26px;background:transparent;border:1.5px solid var(--sumi-line);color:var(--sumi);font-size:14px}
+/* snapshot overlay: long-press the image to save (iOS), tap anywhere to close */
+#snapWrap{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(20,18,15,.84);touch-action:auto}
+#snapWrap.open{display:flex}
+#snapImg{display:block;max-width:94vw;max-height:80vh;border:1px solid rgba(236,229,210,.25);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;touch-action:auto}
+#snapHint{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,229,210,.6)}
 #resetBtn{border-color:rgba(184,64,44,.45);color:var(--shu)}
 #resetBtn:active{background:var(--shu-soft)}
-#jsonBtn:active{background:rgba(31,28,24,.06)}
+#jsonBtn:active,#snapBtn:active{background:rgba(31,28,24,.06)}
 
 /* ── brush row: tiles shrink together instead of spilling off the edge ── */
 #brushRow{gap:4px;justify-content:space-between;padding:0}
@@ -368,6 +372,7 @@ html,body{background:var(--washi)}
 <body>
 <canvas id="canvas"></canvas>
 <canvas id="fxCanvas" aria-hidden="true"></canvas>
+<div id="snapWrap"><img id="snapImg" alt="SUMI snapshot"><div id="snapHint">Long-press image to save · tap to close</div></div>
 <div id="build">SUMI_v7 · SPLASH</div>
 <div id="liveStatus" aria-hidden="true"><span id="liveMode">READY</span><span id="liveLoad">INK —</span><span id="liveWater">WATER —</span><span id="liveTouch">C —</span></div>
 <div id="bstate" aria-hidden="true">
@@ -405,7 +410,7 @@ html,body{background:var(--washi)}
     <div id="palToggle">›</div>
     <div class="rowDiv"></div>
     <div id="resetBtn">↺</div>
-    <canvas id="thumbCanvas" title="Snapshot"></canvas>
+    <div id="snapBtn" title="Snapshot">▣</div>
     <div id="jsonBtn" title="Load JSON">⊕</div>
   </div>
   <div id="brushRow">
@@ -1110,16 +1115,13 @@ function resetAll(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill
   smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;
   requestFullRepaint();updateFills();render();if(typeof initNapkin==='function')initNapkin()}
 document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
-// v7-ink: small live snapshot of the canvas, shown between Reset and JSON.
-// Cheap copy via drawImage, throttled, never driving its own render pass.
-const thumbCanvas=document.getElementById('thumbCanvas'),thumbCtx=thumbCanvas.getContext('2d');
-let thumbLast=0;
-function updateThumb(now){
-  if(now-thumbLast<400)return;thumbLast=now;
-  const s=thumbCanvas.clientWidth||26,dpr=Math.min(2,window.devicePixelRatio||1);
-  if(thumbCanvas.width!==Math.round(s*dpr)){thumbCanvas.width=Math.round(s*dpr);thumbCanvas.height=Math.round(s*dpr)}
-  thumbCtx.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,thumbCanvas.width,thumbCanvas.height)
-}
+// v7-ink: snapshot. Same pattern as the other tools: PNG into an <img> overlay, long-press to save on iOS.
+const snapWrap=document.getElementById('snapWrap'),snapImg=document.getElementById('snapImg');
+document.getElementById('snapBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
+  render();   // flush any pending paint so the PNG matches the screen
+  let url;try{url=canvas.toDataURL('image/png')}catch(err){alert('Snapshot failed: '+err.message);return}
+  snapImg.src=url;snapWrap.classList.add('open')});
+snapWrap.addEventListener('click',()=>{snapWrap.classList.remove('open');snapImg.removeAttribute('src')});
 
 // ═══ TRAY TAB ═══
 const trayTab=document.getElementById('trayTab');let trayOpen=false;
@@ -1511,7 +1513,7 @@ function animate(){
   if(splatParticles.length>0){
     for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alphaDraw;ctx.fillStyle='rgb('+Math.round(p.r*255)+','+Math.round(p.g*255)+','+Math.round(p.b*255)+')';ctx.beginPath();ctx.arc(px,py,p.drawR*CELL,0,Math.PI*2);ctx.fill()}
     ctx.globalAlpha=1}
-  updateFills();updateThumb(performance.now());requestAnimationFrame(animate)}
+  updateFills();requestAnimationFrame(animate)}
 updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,99400);
 if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
 window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
