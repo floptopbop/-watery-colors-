@@ -299,6 +299,7 @@ html,body{background:var(--washi)}
 #palToggle{border:1px solid var(--sumi-line);color:var(--sumi-2);width:20px;height:24px}
 .rowDiv{background:var(--sumi-line);margin:3px 3px}
 #resetBtn,#jsonBtn{width:26px;height:26px;background:transparent;border:1.5px solid var(--sumi-line);color:var(--sumi);font-size:14px}
+#thumbCanvas{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--sumi-line);flex-shrink:0;object-fit:cover}
 #resetBtn{border-color:rgba(184,64,44,.45);color:var(--shu)}
 #resetBtn:active{background:var(--shu-soft)}
 #jsonBtn:active{background:rgba(31,28,24,.06)}
@@ -404,6 +405,7 @@ html,body{background:var(--washi)}
     <div id="palToggle">›</div>
     <div class="rowDiv"></div>
     <div id="resetBtn">↺</div>
+    <canvas id="thumbCanvas" title="Snapshot"></canvas>
     <div id="jsonBtn" title="Load JSON">⊕</div>
   </div>
   <div id="brushRow">
@@ -416,9 +418,8 @@ html,body{background:var(--washi)}
     <div id="disperseToggle" title="Brush drain on/off">鎖</div>
     <div id="charToggle" title="Character controls">性</div>
     <div class="rowDiv"></div>
-    <div class="size active" data-r="3"><i style="width:5px;height:5px"></i></div>
-    <div class="size" data-r="8"><i style="width:11px;height:11px"></i></div>
-    <div class="size" data-r="20"><i style="width:19px;height:19px"></i></div>
+    <div class="size active" data-r="3"><i style="width:6px;height:6px"></i></div>
+    <div class="size" data-r="8"><i style="width:15px;height:15px"></i></div>
   </div>
   <div id="charRow">
     <div class="chr"><label>Chatter <span class="lv" id="lChat">0</span><b id="vChat">30</b></label><input type="range" id="sChat" min="0" max="100" step="5" value="30"></div>
@@ -543,6 +544,13 @@ let FEATHER=0.5;const FEATHER_RATE=0.03;
 // density, and light spots that are fewer and larger instead of speckle.
 // 0 = exactly the old behaviour. Everything it touches is gated on this.
 let WABI=0.85;
+// v7-ink: live-brush tuning. Applies only to touch drawing, never to JSON import,
+// so loaded pieces keep their exact look.
+//  - FINE brushes get extra ink per stamp (darkness used to scale with stamp length, so small brushes were pale)
+//    and their dry-brush dropout (skip lanes, catch spots, stutter) is faded out so they stay solid and precise.
+//  - BROAD brushes space their stamps by stamp width instead of a fixed 1.5px, with ink per stamp scaled to match.
+let liveBrush=true,dabK=1;
+const FINE_A_REF=6,FINE_BOOST_MAX=6,FINE_DROP_LO=1.2,FINE_DROP_HI=5.0,DAB_STEP_K=0.8,DAB_STEP_MAX=8;
 let vTabBuf=new Float32Array(4096);const laneTab=new Float32Array(128);
 
 // ═══ v5 CHARACTER ENGINE ═══════════════════════════════════════════════════
@@ -678,6 +686,8 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   const catchJitter=1.0+0.40*(1+0.9*CHAT)*(swell-0.5);
   const squash=valueNoise(sD*0.130+strokeSeed*0.83,strokeSeed*0.29);
   a*=catchJitter;b*=catchJitter*(1+0.15*(1+1.4*CHAT)*(squash-0.5));
+  // v7-ink: fineK is 0 for tiny stamps and 1 from about a=5 up; 1 always for JSON import.
+  const fineK=liveBrush?Math.min(1,Math.max(0,(a-FINE_DROP_LO)/(FINE_DROP_HI-FINE_DROP_LO))):1;
   const x0=Math.floor(gx),y0=Math.floor(gy);
   const theta=orientation+orientOff,cosT=Math.cos(theta),sinT=Math.sin(theta);
   // Tight AABB of the rotated 3-sigma ellipse.
@@ -702,16 +712,19 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
            +valueNoise(sD*cf*2.7+strokeSeed*0.29,41.9)*0.35;
     const gate=(0.30+0.42*dryness+0.18*spd01)*mix(1,0.75,wb);
     if(c<gate)chatter=Math.max(0.05,c/gate);
-    chatter=1-(1-chatter)*ch.chat*Math.min(1.6,CHAT)*mix(1,0.7,wb);
+    chatter=1-(1-chatter)*ch.chat*Math.min(1.6,CHAT)*mix(1,0.7,wb)*fineK;
   }
   const xferScale=pressure*speedFac*chatter;
   const sizeGain=Math.max(0.15,Math.min(50,(a*b)/3));
+  // pigment line density grows with stamp length along the stroke, so lift short stamps toward FINE_A_REF (capped so ink economy stays sane)
+  const fineBoost=liveBrush?Math.min(FINE_BOOST_MAX,Math.max(1,FINE_A_REF/Math.max(0.3,a))):1;
   const styleGain=brushStyle==='side'?3.5:brushStyle==='point'?1.4:1.0;
   let reqW=brush.w*DEP_W*xferScale*sizeGain*styleGain,reqP=brush.p*DEP_P*xferScale*sizeGain*styleGain;
   reqP*=0.25+0.75*wFrac;reqW*=mix(1,ch.water,CHAT);
+  reqP*=fineBoost*dabK;reqW*=dabK;
   reqW=Math.min(reqW,brush.w);reqP=Math.min(reqP,brush.p);
   if(reqW<1e-9&&reqP<1e-9)return;
-  const skipThresh=(dryness*dryness*0.55+Math.min(0.18,speed*0.005))*mix(1,ch.skip,CHAT);
+  const skipThresh=(dryness*dryness*0.55+Math.min(0.18,speed*0.005))*mix(1,ch.skip,CHAT)*fineK;
   const grainAmp=0.06+0.20*dryness,gBase=1-grainAmp*1.3,gMul=grainAmp*1.3;
   const isRake=brushStyle==='rake';
   const rakeFreq=isRake?Math.min(0.8,1.2/Math.max(0.4,baseRad*0.12)):0;
@@ -731,7 +744,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // v4: catch is an ATTENUATION, not a kill switch. It also uses coherent noise at
   // fibre scale instead of per-pixel white noise, so dry-brush skip happens in
   // clumps a few cells wide — the way a bristle actually misses the paper.
-  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT)*mix(1,0.6,wb),catchF=mix(0.22,0.07,wb);
+  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT)*mix(1,0.6,wb)*fineK,catchF=mix(0.22,0.07,wb);
   const doSkip=skipThresh>0.012,laneScale=1/Math.max(1.2,b*0.35),skipSoft=skipThresh*1.6;
   const edgeSteep=1+3.5*dryness;
   // v7-ink wabi: 1-D tables over the across-stroke coordinate, built once per stamp
@@ -829,13 +842,25 @@ function drawSegment(x0,y0,x1,y1,pressure,pEnd){
   if(o0===null){o0=orient}
   else{let d=((orient-o0+Math.PI*3)%(Math.PI*2))-Math.PI;o1=o0+d*0.35}
   lastOrient=o1;
-  const steps=Math.max(1,Math.ceil(dist/1.5));
+  let step=1.5;
+  if(liveBrush&&brushStyle!=='smudge'){
+    // minor axis of the stamp, same formulas as addDeposit
+    const br=BRUSH_RAD*(brushRadius/8),q=Math.max(0.05,Math.min(1,Math.max(pressure,pEnd===undefined?pressure:pEnd)));let mn;
+    switch(brushStyle){
+      case'point':{const sq=q*q,aa=br*(0.10+sq*1.25);mn=aa*(0.12+sq*0.42);break}
+      case'side':mn=br*(0.06+q*0.10);break;
+      case'rake':{const aa=br*(0.9+q*1.4);mn=aa*(0.85+q*0.1);break}
+      default:{const aa=br*(0.5+q*0.85);mn=aa*(0.80+q*0.12)}}
+    step=Math.max(1.5,Math.min(DAB_STEP_MAX,mn*DAB_STEP_K));
+  }
+  const steps=Math.max(1,Math.ceil(dist/step));
+  dabK=step/1.5;   // keep ink per length the same when stamps are spaced wider
   const base=strokeDist;
   for(let i=1;i<=steps;i++){const t=i/steps;
     const pr=pEnd===undefined?pressure:pressure+(pEnd-pressure)*t;
     if(brushStyle==='smudge')smudgeDab(x0+dx*t,y0+dy*t,pr);
     else addDeposit(x0+dx*t,y0+dy*t,pr,o0+(o1-o0)*t,dist,base+dist*t)}
-  strokeDist=base+dist}
+  dabK=1;strokeDist=base+dist}
 
 function simulateStep(){
   if(!hasWet)return;
@@ -1085,6 +1110,16 @@ function resetAll(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill
   smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;
   requestFullRepaint();updateFills();render();if(typeof initNapkin==='function')initNapkin()}
 document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
+// v7-ink: small live snapshot of the canvas, shown between Reset and JSON.
+// Cheap copy via drawImage, throttled, never driving its own render pass.
+const thumbCanvas=document.getElementById('thumbCanvas'),thumbCtx=thumbCanvas.getContext('2d');
+let thumbLast=0;
+function updateThumb(now){
+  if(now-thumbLast<400)return;thumbLast=now;
+  const s=thumbCanvas.clientWidth||26,dpr=Math.min(2,window.devicePixelRatio||1);
+  if(thumbCanvas.width!==Math.round(s*dpr)){thumbCanvas.width=Math.round(s*dpr);thumbCanvas.height=Math.round(s*dpr)}
+  thumbCtx.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,thumbCanvas.width,thumbCanvas.height)
+}
 
 // ═══ TRAY TAB ═══
 const trayTab=document.getElementById('trayTab');let trayOpen=false;
@@ -1344,7 +1379,8 @@ function maybeFlick(){if(strokePts.length<3)return;const n=strokePts.length;cons
 // ═══ DRAWING ═══
 let drawing=false,lastGX=0,lastGY=0,lastTime=0,strokeSeed=0;
 function getPressure(e){if(e.pressure>0&&e.pressure!==1)return e.pressure;if(e.width&&e.width>1)return Math.min(1,Math.max(0.08,(e.width-8)/42));return 0.5}
-const BRUSH_RANGES={3:[1,25],8:[25,50],20:[50,75]};
+// v7-ink: two sizes. FINE keeps the old small range; BROAD replaces the old mid and large (the old 50-75 range was the laggy one).
+const BRUSH_RANGES={3:[1,25],8:[22,55]};
 let brushRange=BRUSH_RANGES[3];
 brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);
 let lastContact=0;
@@ -1396,6 +1432,7 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
 
   if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const A=absOf(ir/255,ig/255,ib/255);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+A[0]*nw;fG[idx]=fG[idx]*ew+A[1]*nw;fB[idx]=fB[idx]*ew+A[2]*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=A[0];fG[idx]=A[1];fB[idx]=A[2]}}requestFullRepaint();return}
 
+  const _live=liveBrush;liveBrush=false;
   const _brushW=brush.w,_brushP=brush.p,_inkR=inkR,_inkG=inkG,_inkB=inkB,_brushRadius=brushRadius,_brushStyle=brushStyle,_strokeSeed=strokeSeed;
 
   if(data.paper&&data.paper.wetness>0){const wet=Math.min(0.6,data.paper.wetness);for(let cy=0;cy<NY;cy++)for(let cx=0;cx<NX;cx++){const idx=cy*NX+cx;water[idx]=Math.min(1,water[idx]+wet*(0.75+0.25*valueNoise(cx*1.3,cy*2.7)))}expandDirty(0,0,NX-1,NY-1);hasWet=true}
@@ -1448,7 +1485,7 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     if(stroke.pause&&stroke.pause>0){const ticks=Math.min(2000,Math.round(stroke.pause));for(let t=0;t<ticks;t++)simulateStep()}
   }
 
-  brush.w=_brushW;brush.p=_brushP;inkR=_inkR;inkG=_inkG;inkB=_inkB;brushRadius=_brushRadius;brushStyle=_brushStyle;strokeSeed=_strokeSeed;lastOrient=null;updateFills()}
+  brush.w=_brushW;brush.p=_brushP;inkR=_inkR;inkG=_inkG;inkB=_inkB;brushRadius=_brushRadius;brushStyle=_brushStyle;strokeSeed=_strokeSeed;liveBrush=_live;lastOrient=null;updateFills()}
 
 (function buildJsonUI(){const btn=document.getElementById('jsonBtn');const fileIn=document.createElement('input');fileIn.type='file';fileIn.accept='.json,application/json';fileIn.style.display='none';fileIn.addEventListener('change',()=>{const f=fileIn.files[0];if(!f)return;const reader=new FileReader();reader.onload=e=>importJsonLayer(e.target.result);reader.readAsText(f);fileIn.value=''});let pressT=null,longFired=false;
  btn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();longFired=false;keepOpen();
@@ -1474,7 +1511,7 @@ function animate(){
   if(splatParticles.length>0){
     for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alphaDraw;ctx.fillStyle='rgb('+Math.round(p.r*255)+','+Math.round(p.g*255)+','+Math.round(p.b*255)+')';ctx.beginPath();ctx.arc(px,py,p.drawR*CELL,0,Math.PI*2);ctx.fill()}
     ctx.globalAlpha=1}
-  updateFills();requestAnimationFrame(animate)}
+  updateFills();updateThumb(performance.now());requestAnimationFrame(animate)}
 updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,99400);
 if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
 window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
