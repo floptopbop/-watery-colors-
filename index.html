@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>SUMI v7 — splash</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>SUMI v9.2.6 — Material-First Tray</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100dvh;background:#070b12;overflow:hidden;
@@ -24,7 +24,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   z-index:11;padding:5px 20px 6px;
   background:rgba(7,11,18,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-radius:10px 10px 0 0;border:1px solid rgba(87,242,161,0.15);border-bottom:none;
-  color:rgba(87,242,161,0.5);font-size:9px;letter-spacing:0.15em;
+  color:rgba(87,242,161,0.5);font-size:12px;letter-spacing:0.15em;
   font-family:'IBM Plex Mono','Share Tech Mono',monospace;
   touch-action:none;cursor:pointer}
 #tray{position:fixed;left:0;right:0;bottom:0;
@@ -74,7 +74,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
   transition:transform 0.16s,border-color 0.16s;touch-action:none}
 .bstyle.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1);color:rgba(236,229,210,0.85)}
-#brushRow{display:flex;gap:8px;justify-content:center;align-items:center;padding:0 4px}
+#brushRow{display:flex;gap:8px;justify-content:center;align-items:center;padding:0 4px;flex-wrap:nowrap}
+#brushModes{display:flex;flex:1 1 auto;min-width:0;gap:clamp(3px,1vw,6px);align-items:center}
+#brushTools{display:flex;flex:0 0 auto;gap:clamp(3px,1vw,6px);align-items:center}
+#brushModes .bstyle{flex:1 1 0;min-width:0}
+#brushTools .size{flex:0 0 30px}
+#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle{flex:0 0 30px;min-width:30px}
+@media(max-width:360px){#brushRow{gap:4px;padding:0}#brushTools{gap:3px}#brushTools .size{flex-basis:27px;width:27px;height:27px}#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle{flex-basis:27px;min-width:27px;width:27px;height:27px}#brushModes{gap:3px}}
 #charRow{display:none;gap:18px;align-items:center;padding:2px 2px 0;overflow-x:auto;
   -webkit-overflow-scrolling:touch;scrollbar-width:none}
 #charRow.open{display:flex}
@@ -116,7 +122,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #permGate{position:fixed;inset:0;z-index:80;background:rgba(18,20,20,0.97);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;text-align:center}
 #permGate .g{font-size:30px;color:#7dfcb4;letter-spacing:.06em}
-#permGate p{color:#ece6d2;font-size:14px;line-height:1.7;max-width:300px;margin:0}
+#permGate p{color:#ece6d2;font-size:14px;line-height:2.7;max-width:300px;margin:0}
 #permGate button{font-family:inherit;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
   padding:14px 30px;border-radius:5px;cursor:pointer;background:transparent;border:2px solid #7dfcb4;color:#7dfcb4}
 #permGate button.skip{border-color:rgba(236,230,210,0.3);color:rgba(236,230,210,0.6);font-size:12px;padding:10px 22px}
@@ -169,7 +175,7 @@ body{
   padding-top:env(safe-area-inset-top);
   padding-bottom:env(safe-area-inset-bottom);
 }
-#canvas{position:fixed;inset:0;touch-action:none}
+#canvas{position:fixed;inset:0;touch-action:none;object-fit:contain;object-position:50% 50%}
 #fxCanvas{position:fixed;inset:0;z-index:7;pointer-events:none}
 #build{letter-spacing:.16em !important;text-shadow:0 1px 16px rgba(0,0,0,.7);opacity:.82}
 #bstate{filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))}
@@ -191,7 +197,7 @@ body{
   background:linear-gradient(180deg,rgba(23,31,33,.93),rgba(9,14,16,.96));
   border-top:1px solid rgba(236,234,210,.12);
 }
-#trayTab{box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:rgba(236,234,210,.13) !important}
+#trayTab{box-shadow:0 28px 24px rgba(0,0,0,.35);border-color:rgba(236,234,210,.13) !important}
 #trayTab:active{transform:translateY(1px) scale(.985)}
 button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
 #grab{opacity:.65;transition:opacity .2s ease,transform .2s ease}
@@ -343,9 +349,9 @@ html,body{background:var(--washi)}
 /* ── ink stone, napkin, water: objects on the desk ── */
 #dipRow{height:58px;gap:7px}
 .dip,#napkin{border-radius:3px;font-family:var(--serif);font-size:.72rem;letter-spacing:.2em}
-#dipInk{background:#2E4148;color:rgba(236,234,210,.92);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+#dipInk{background:#302d29;color:rgba(236,234,210,.92);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
 #dipInk .fill{background:rgba(236,234,210,.14)}
-#dipWater{background:#51687a;color:#f1efdf;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+#dipWater{background:#69777c;color:#f1efdf;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 #dipWater .fill{background:rgba(241,239,223,.22)}
 #napkin{background:transparent;color:var(--sumi-2);box-shadow:inset 0 0 0 1px var(--sumi-line)}
 #napkin .napLabel{color:rgba(31,28,24,.55);font-family:var(--serif);font-size:.64rem}
@@ -367,107 +373,432 @@ html,body{background:var(--washi)}
           mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%))}
 #kInk{color:var(--sumi)}
 #kWater{color:#3f6a8f}
+
+/* ── v7.5: tray tabs — full tray, napkin only, or closed ── */
+#tabRow{position:absolute;top:-28px;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:11;white-space:nowrap}
+/* tiny brush on the napkin: its shape (point / splay / flat / scrub) and load */
+#napBrush{position:absolute;left:auto;right:5px;top:50%;bottom:auto;width:14px;height:40px;margin-top:-20px;z-index:5;pointer-events:none}
+/* a live value the napkin is currently moving reads water-blue */
+.chr label .lv.nap{color:#3f6a8f}
+
+/* ===== SUMI-E MATERIAL + STUDY LAYER ===== */
+#tabRow #paperTab,#tabRow #studyTab{
+  position:relative;top:auto;left:auto;transform:none;display:flex;align-items:center;justify-content:center;
+  padding:6px 10px 4px;border:0;background:radial-gradient(ellipse 65% 80% at 50% 70%,rgba(236,234,210,.95) 35%,rgba(236,234,210,0) 100%);
+  color:var(--sumi-2);font-family:var(--serif);font-size:11px;letter-spacing:.13em;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;white-space:nowrap
+}
+#tabRow #paperTab{color:var(--shu);letter-spacing:.08em}
+#tabRow #studyTab{color:var(--sumi-2)}
+#tabRow #paperTab:active,#tabRow #studyTab:active{transform:translateY(1px)}
+#flickToggle{flex:0 1 38px;min-width:34px;width:auto;height:30px;border:1.5px solid rgba(184,64,44,.32);
+  background:transparent;color:rgba(184,64,44,.62);border-radius:3px;font:600 9px/1 var(--serif);letter-spacing:.03em;
+  display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer}
+#flickToggle.on{background:var(--shu);border-color:var(--shu);color:var(--washi)}
+#studyPanel{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+  padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+  background:rgba(24,22,18,.48);touch-action:pan-y}
+#studyPanel.open{display:flex}
+.study-card{width:min(94vw,430px);max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:20px 19px 16px;background:var(--washi);color:var(--sumi);border:1px solid rgba(31,28,24,.22);
+  box-shadow:0 16px 50px rgba(20,18,15,.25);font-family:var(--serif);touch-action:pan-y}
+.study-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--sumi-line);padding-bottom:9px}
+#studyKicker{font-size:10px;letter-spacing:.18em;color:var(--shu)}
+#studyClose{width:30px;height:30px;border:0;background:transparent;color:var(--sumi);font:28px/1 var(--serif);cursor:pointer}
+#studyTitle{font:500 24px/1.2 var(--serif);margin:15px 0 11px;letter-spacing:.015em}
+#studyBody{font:15px/1.7 var(--serif);color:var(--sumi-2);white-space:pre-line}
+#studyPrompt{margin-top:14px;padding:12px 13px;border-left:2px solid var(--shu);background:rgba(31,28,24,.045);
+  font:14px/1.65 var(--serif);color:var(--sumi)}
+.study-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.study-nav button{min-height:36px;padding:7px 14px;border:1px solid var(--sumi-line);background:transparent;color:var(--sumi);
+  font:11px/1 var(--serif);letter-spacing:.12em;cursor:pointer}
+.study-nav button:disabled{opacity:.3}
+.study-nav button:last-child{background:var(--sumi);color:var(--washi);border-color:var(--sumi)}
+.study-source{margin-top:13px;font:11px/1.5 var(--serif);color:var(--sumi-3)}
+
+
+
+/* ===== SUMI v9.2.4 · consolidated mobile/material tray ====================
+   One material station, one set of dimensions. No alternate napkin-only modes.
+   The original painting engine, brush input and study tools are unchanged. */
+#tray{
+  width:100%;max-width:100%;max-height:100dvh;overflow:visible;
+  padding:7px 8px calc(7px + env(safe-area-inset-bottom));gap:0;
+  background:linear-gradient(180deg,rgba(236,234,210,.985),var(--washi));
+  box-shadow:0 -4px 14px rgba(31,28,24,.07);
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.2,.8,.2,1);
+}
+#tray.visible{transform:translateY(0)}
+#tabRow{
+  position:absolute;top:-36px;left:0;right:0;width:auto;height:36px;
+  display:block;transform:none;pointer-events:none;z-index:12;
+}
+#tabRow #trayTab{
+  position:absolute;left:50%;top:0;transform:translateX(-50%);
+  display:flex;align-items:center;justify-content:center;
+  width:76px;min-width:76px;height:36px;min-height:36px;padding:0;
+  border:1px solid rgba(49,45,38,.18);border-bottom:0;
+  border-radius:13px 13px 0 0;background:rgba(236,234,210,.98);
+  box-shadow:0 -3px 10px rgba(31,28,24,.07);
+  color:rgba(49,45,38,.78);font:20px/1 sans-serif;letter-spacing:0;
+  pointer-events:auto;touch-action:manipulation;cursor:pointer;
+}
+#tabRow #trayTab.on{background:transparent;border:0;color:var(--sumi)}
+#tabRow #resetQuick{
+  position:absolute;right:5px;top:-8px;display:flex;align-items:center;justify-content:center;
+  width:22px;height:22px;min-width:22px;min-height:22px;padding:0;
+  border:1px solid rgba(184,64,44,.25);border-radius:50%;
+  background:rgba(236,234,210,.94);color:var(--shu);font:16px/1 var(--serif);
+  pointer-events:auto;touch-action:manipulation;
+}
+#tray.visible #resetQuick{display:none}
+#grab{display:none}
+#trayScroll{
+  display:flex;flex:0 1 auto;flex-direction:column;align-items:stretch;justify-content:flex-end;
+  width:100%;min-width:0;max-height:40dvh;gap:5px;
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:none;
+}
+#trayScroll::-webkit-scrollbar{display:none}
+
+/* Brush and palette controls */
+#brushOptions,#settingsPanel{
+  display:none;flex:0 0 auto;width:100%;min-width:0;
+  padding:0;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+#tray #brushOptions{display:flex;flex-direction:column;gap:4px}
+#tray #brushOptions .panelHead{display:none!important}
+#brushOptions.open,#settingsPanel.open{display:flex;flex-direction:column;gap:5px}
+#brushRow{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:4px;width:100%;min-width:0;padding:0}
+#brushModes{display:flex;flex:1 1 auto;min-width:0;align-items:center;justify-content:space-between;gap:3px}
+/* Keep the entire brush-style / utility row out of the everyday tray.
+   The row is removed from layout, not merely emptied; a long-press on the
+   brush handle reveals it with the advanced brush controls. */
+#brushRow{display:none!important}
+#brushOptions.open #brushRow{display:flex!important}
+#brushModes{display:none!important}
+#brushOptions.open #brushModes{display:flex!important;flex:1 1 auto;min-width:0}
+#brushRow .bstyle{
+  display:flex;flex:1 1 0;align-items:center;justify-content:center;
+  width:auto;min-width:0;height:27px;min-height:27px;padding:0 1px;
+  border:1px solid rgba(49,45,38,.15);border-radius:3px;
+  background:transparent;color:rgba(31,28,24,.56);
+  font:14px/1 var(--serif);white-space:nowrap;box-shadow:none;
+}
+#brushRow .bstyle.active{background:var(--sumi);border-color:var(--sumi);color:var(--washi)}
+#brushTools{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:3px;width:auto;min-width:0;padding:0}
+#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle,
+#brushTools #settingsBtn,#brushTools #resetBtn{
+  display:flex;flex:0 0 24px;align-items:center;justify-content:center;
+  width:24px;min-width:24px;height:26px;min-height:26px;padding:0;
+  border:1px solid var(--sumi-line);border-radius:3px;background:transparent;
+  color:var(--sumi-2);font:13px/1 var(--serif);touch-action:manipulation;cursor:pointer;
+}
+#brushTools #settingsBtn{font-size:12px}
+#brushTools #resetBtn{color:var(--shu);border-color:rgba(184,64,44,.35);font-size:17px}
+#brushTools #settingsBtn.on,#brushTools #disperseToggle.on,#brushTools #charToggle.on{
+  background:var(--sumi);border-color:var(--sumi);color:var(--washi)
+}
+#brushTools #disperseToggle.off{background:transparent;border-color:var(--sumi-line);color:var(--shu)}
+#brushTools #flickToggle{color:var(--sumi-3);border-color:rgba(49,45,38,.15)}
+#brushTools #flickToggle.on{background:var(--shu);border-color:var(--shu);color:var(--washi)}
+#swatchRow{
+  display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;
+  gap:5px;width:100%;min-width:0;min-height:25px;padding:0;overflow:hidden;
+}
+#sizeRow{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;gap:3px;padding-left:1px}
+#sizeRow .size{
+  display:flex;flex:0 0 25px;align-items:center;justify-content:center;
+  width:25px;min-width:25px;height:25px;min-height:25px;
+  border:1px solid rgba(31,28,24,.2);border-radius:50%;background:transparent;
+  touch-action:manipulation;
+}
+#sizeRow .size.active{border:2px solid var(--sumi);background:rgba(31,28,24,.05)}
+#sizeRow .size i{display:block;max-width:13px;max-height:13px;border-radius:50%;background:rgba(31,28,24,.5)}
+#sizeRow .size.active i{background:var(--sumi)}
+#paletteWrap{display:flex;flex:1 1 auto;min-width:0;overflow:hidden;gap:3px}
+#paletteWrap .palPage.active{display:flex;flex:1 1 auto;min-width:0;align-items:center;justify-content:space-between;gap:clamp(2px,.55vw,4px)}
+#paletteWrap .palPage:not(.active){display:none}
+#swatchRow .swatch{
+  display:block;flex:0 0 clamp(14px,4.6vw,18px);width:clamp(14px,4.6vw,18px);
+  height:clamp(14px,4.6vw,18px);min-width:0;min-height:0;border-radius:50%;
+  border:1px solid rgba(31,28,24,.2);opacity:.86;
+}
+#swatchRow .swatch.active{opacity:1;transform:scale(1.08);box-shadow:0 0 0 1px var(--washi),0 0 0 2px var(--shu)}
+#palToggle{display:flex;flex:0 0 21px;align-items:center;justify-content:center;width:21px;min-width:21px;height:23px;min-height:23px;padding:0;border:1px solid rgba(31,28,24,.18);border-radius:3px;color:var(--sumi-2);font-size:15px}
+#palToggle.flipped{background:var(--sumi);border-color:var(--sumi);color:var(--washi)}
+#charRow{display:none;flex:0 0 auto;width:100%;min-width:0;max-width:100%;gap:8px;padding:3px 0;max-height:58px;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#charRow.open{display:flex}
+#charRow::-webkit-scrollbar{display:none}
+#charRow .chr{flex:0 0 92px;min-width:92px}
+#charRow .chr label{color:var(--sumi);font-family:var(--serif);font-size:10px;letter-spacing:.08em}
+#charRow .chr label b{color:var(--sumi);font-size:11px}
+#charRow .chr label .lv{color:var(--shu);font-size:11px}
+#charRow .chr input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
+#charRow .chr input[type=range]::-moz-range-track{background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
+#charRow .chr input[type=range]::-webkit-slider-thumb{background:var(--sumi);border:2px solid var(--washi)}
+#charRow .chr input[type=range]::-moz-range-thumb{background:var(--sumi);border:2px solid var(--washi)}
+
+/* The material wells and napkin have one permanent geometry in every view. */
+#dipRow{
+  display:flex;flex:0 0 62px;align-items:stretch;gap:5px;
+  width:100%;min-width:0;height:62px;min-height:62px;margin-top:1px;
+}
+#dipInk,#dipWater{
+  display:flex;position:relative;flex:1 1 0;align-items:center;justify-content:center;
+  width:auto;min-width:0;height:62px;min-height:62px;overflow:hidden;border-radius:3px;
+  font:20px/1 var(--serif);letter-spacing:0;touch-action:none;-webkit-tap-highlight-color:transparent;
+  box-shadow:inset 0 0 0 1px rgba(31,28,24,.08);
+}
+#dipInk{background:#302d29;color:rgba(236,234,210,.90)}
+#dipWater{background:#71838a;color:rgba(245,244,230,.96)}
+#dipInk.pressed,#dipWater.pressed{filter:brightness(1.12);box-shadow:inset 0 0 0 2px rgba(236,234,210,.32)}
+#dipInk .fill,#dipWater .fill{opacity:.65;pointer-events:none}
+#dipInk span,#dipWater span{position:relative;z-index:2;font-size:19px;pointer-events:none}
+#napkin{
+  position:relative;display:flex;flex:1.4 1 0;align-items:center;justify-content:center;
+  width:auto;min-width:0;height:62px;min-height:62px;overflow:hidden;border-radius:3px;
+  background:rgba(236,234,210,.36);box-shadow:inset 0 0 0 1px rgba(31,28,24,.13);
+  touch-action:none;cursor:crosshair;
+}
+#napCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:3px;pointer-events:none;opacity:.9}
+.napZones{position:absolute;inset:0;display:flex;z-index:4;pointer-events:none}
+.napZone{position:relative;flex:1;min-width:0}
+.napZone.mid{border-left:1px solid rgba(31,28,24,.095);border-right:1px solid rgba(31,28,24,.095)}
+#napkin .napLabel{position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:5;color:rgba(31,28,24,.48);font:9px/1 var(--serif);letter-spacing:.15em;pointer-events:none}
+.napZone::after{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);font:9px/1 var(--serif);color:rgba(31,28,24,.30);pointer-events:none}
+.napZone:first-child::after{content:'墨'}
+.napZone.mid::after{content:'調'}
+.napZone:last-child::after{content:'水'}
+#brushHandle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);z-index:8;
+  display:flex;align-items:center;justify-content:center;width:34px;height:48px;margin:0;
+  border-radius:20px;background:rgba(236,234,210,.42);border:1px solid rgba(31,28,24,.12);
+  box-shadow:0 2px 9px rgba(31,28,24,.06);touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+#brushHandle:active,#brushHandle.pressed{background:rgba(31,28,24,.08);border-color:rgba(31,28,24,.38)}
+#napBrush{position:relative;display:block;width:16px;height:40px;margin:0;z-index:1;pointer-events:none}
+#brushFlash{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;color:rgba(31,28,24,.82);font:30px/1 var(--serif);pointer-events:none;opacity:0;text-shadow:0 1px 8px rgba(236,234,210,.8)}
+#brushFlash.show{animation:brushFlashLife 1s ease both}
+@keyframes brushFlashLife{0%{opacity:0;filter:blur(2px);transform:translate(-50%,-46%) scale(.94)}18%{opacity:.92;filter:blur(0);transform:translate(-50%,-50%) scale(1)}76%{opacity:.92}100%{opacity:0;filter:blur(1px);transform:translate(-50%,-54%) scale(1.02)}}
+
+/* Settings are a separate panel; they do not resize the material station. */
+#settingsPanel.open{display:flex;flex-direction:column;gap:4px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+#settingsPanel .panelHead{display:none!important}
+#settingsActions{display:flex;align-items:center;gap:4px}
+#settingsActions #paperTab,#settingsActions #studyTab,#settingsActions #snapBtn,#settingsActions #jsonBtn{
+  display:flex;flex:1 1 0;align-items:center;justify-content:center;min-width:0;height:26px;min-height:26px;padding:0;
+  border:1px solid rgba(31,28,24,.16);border-radius:2px;background:transparent;color:var(--sumi-2);
+  font:14px/1 var(--serif);touch-action:manipulation;
+}
+#settingsActions #paperTab:active,#settingsActions #studyTab:active,#settingsActions #snapBtn:active,#settingsActions #jsonBtn:active{background:rgba(31,28,24,.08)}
+#tray.settings-open #brushOptions{display:none!important}
+#tray.settings-open #dipRow{display:none!important}
+#tray #settingsPanel .panelHead{display:none!important}
+#liveStatus{display:none!important}
+#build{color:rgba(31,28,24,.22)!important;text-shadow:none;font-family:var(--serif);letter-spacing:.22em!important}
+#bstate{filter:none;gap:7px;align-items:flex-start}
+.kcol{position:relative;display:flex;flex-direction:column;align-items:center;font-family:var(--serif);font-size:15px;line-height:1.1;font-weight:600;--e:0}
+.kcol .kg span,.kcol .kl span{display:block;text-align:center}
+.kcol .kg{opacity:.10}
+.kcol .kl{position:absolute;left:0;right:0;top:0;bottom:0;-webkit-mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%));mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%))}
+#kInk{color:var(--sumi)}#kWater{color:#3f6a8f}
+
+
+@media(max-width:360px){
+  #tray{padding-left:7px;padding-right:7px}
+  #trayScroll{gap:4px;max-height:44dvh}
+  #brushRow{gap:3px}
+  #brushRow .bstyle{height:25px;min-height:25px;font-size:12px}
+  #brushTools{gap:2px}
+  #brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle,#brushTools #settingsBtn,#brushTools #resetBtn{flex-basis:22px;width:22px;min-width:22px;height:24px;min-height:24px}
+  #sizeRow{gap:2px}
+  #sizeRow .size{flex-basis:23px;width:23px;min-width:23px;height:23px;min-height:23px}
+  #swatchRow{gap:3px}
+  #swatchRow .swatch{flex-basis:13px;width:13px;height:13px}
+  #palToggle{flex-basis:19px;width:19px;min-width:19px;height:21px;min-height:21px}
+  #dipRow{gap:4px;height:62px;min-height:62px;flex-basis:62px}
+  #dipInk,#dipWater,#napkin{height:62px;min-height:62px}
+  #brushHandle{right:4px;width:30px;height:45px}
+  #napBrush{width:14px;height:36px}
+}
+@media(max-height:700px){#trayScroll{max-height:38dvh}}
+
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <canvas id="fxCanvas" aria-hidden="true"></canvas>
 <div id="snapWrap"><img id="snapImg" alt="SUMI snapshot"><div id="snapHint">Long-press image to save · tap to close</div></div>
-<div id="build">SUMI_v7 · SPLASH</div>
+<div id="studyPanel" aria-hidden="true">
+  <section class="study-card" role="dialog" aria-modal="true" aria-labelledby="studyTitle">
+    <div class="study-head"><span id="studyKicker">PRACTICE · 01 / 07</span><button id="studyClose" type="button" aria-label="Close study guide">×</button></div>
+    <h2 id="studyTitle">Prepare the brush</h2>
+    <p id="studyBody"></p>
+    <div id="studyPrompt"></div>
+    <div class="study-nav"><button id="studyPrev" type="button">PREVIOUS</button><button id="studyNext" type="button">NEXT</button></div>
+    <p class="study-source">Based on Naomi Okamoto, <i>Japanese Ink Painting: The Art of Sumi-e</i>.</p>
+  </section>
+</div>
+<div id="build">SUMI_v9.2.4 · SUMI-E · MATERIAL STUDY</div>
 <div id="liveStatus" aria-hidden="true"><span id="liveMode">READY</span><span id="liveLoad">INK —</span><span id="liveWater">WATER —</span><span id="liveTouch">C —</span></div>
 <div id="bstate" aria-hidden="true">
   <div class="kcol" id="kWater"><div class="kg"></div><div class="kl"></div></div>
   <div class="kcol" id="kInk"><div class="kg"></div><div class="kl"></div></div>
 </div>
 <div id="tray">
-  <div id="trayTab">▲ TRAY</div>
+  <div id="tabRow">
+    <div id="trayTab" role="button" tabindex="0" aria-label="Open or close painting tray">⌃</div>
+    <div id="resetQuick" role="button" tabindex="0" aria-label="Reset painting" title="Reset painting">↶</div>
+  </div>
   <div id="grab"></div>
-  <div id="swatchRow">
-    <div id="paletteWrap">
-      <div class="palPage active" data-pal="vivid">
-        <div class="swatch active" style="background:#0d0b09" data-r="0.05" data-g="0.04" data-b="0.035"></div>
-        <div class="swatch" style="background:#FF3434" data-r="1" data-g="0.20" data-b="0.20"></div>
-        <div class="swatch" style="background:#A77E58" data-r="0.65" data-g="0.49" data-b="0.34"></div>
-        <div class="swatch" style="background:#678652" data-r="0.4" data-g="0.52" data-b="0.32"></div>
-        <div class="swatch" style="background:#2C8CEC" data-r="0.17" data-g="0.54" data-b="0.93"></div>
-        <div class="swatch" style="background:#8B45B0" data-r="0.55" data-g="0.27" data-b="0.69"></div>
-        <div class="swatch" style="background:#fffd90" data-r="1" data-g="0.99" data-b="0.56"></div>
-        <div class="swatch" style="background:#F8A7F7" data-r="0.97" data-g="0.65" data-b="0.97"></div>
-        <div class="swatch" style="background:#A8A8B0" data-r="0.66" data-g="0.66" data-b="0.69"></div>
+  <div id="trayScroll">
+    <section id="brushOptions" aria-label="Brush and color options">
+      <div class="panelHead"><span>筆 · BRUSH</span><button id="brushOptionsClose" type="button" aria-label="Close brush options">×</button></div>
+      <div id="brushRow">
+        <div id="brushModes" aria-label="Brush form">
+          <div class="bstyle active" data-style="round" title="Body: a loaded, rounded brush stroke">丸</div>
+          <div class="bstyle" data-style="point" title="Tip: controlled narrow lines and details">尖</div>
+          <div class="bstyle" data-style="side" title="Flat: broad marks from a low brush angle">平</div>
+          <div class="bstyle" data-style="rake" title="Fray: dry broken bristle marks">裂</div>
+          <div class="bstyle" data-style="smudge" title="Blend: digital drag tool">滲</div>
+        </div>
+        <div id="brushTools" aria-label="Brush settings">
+          <div id="disperseToggle" title="Brush load drain on/off">耗</div>
+          <div id="charToggle" title="Advanced brush character">調</div>
+          <div id="flickToggle" title="Experimental splatter; off by default">散</div>
+          <div id="settingsBtn" role="button" tabindex="0" aria-label="Settings" title="Settings">調</div>
+          <div id="resetBtn" role="button" tabindex="0" aria-label="Reset painting" title="Reset painting">↶</div>
+        </div>
       </div>
-      <div class="palPage" data-pal="earth">
-        <div class="swatch" style="background:#1a1614" data-r="0.10" data-g="0.09" data-b="0.08"></div>
-        <div class="swatch" style="background:#8B3A3A" data-r="0.55" data-g="0.23" data-b="0.23"></div>
-        <div class="swatch" style="background:#765649" data-r="0.46" data-g="0.34" data-b="0.29"></div>
-        <div class="swatch" style="background:#4A5A3C" data-r="0.29" data-g="0.35" data-b="0.24"></div>
-        <div class="swatch" style="background:#4E555B" data-r="0.31" data-g="0.33" data-b="0.36"></div>
-        <div class="swatch" style="background:#5C3D6E" data-r="0.36" data-g="0.24" data-b="0.43"></div>
-        <div class="swatch" style="background:#9E5A28" data-r="0.62" data-g="0.35" data-b="0.16"></div>
-        <div class="swatch" style="background:#8A7438" data-r="0.54" data-g="0.45" data-b="0.22"></div>
-        <div class="swatch" style="background:#787878" data-r="0.47" data-g="0.47" data-b="0.47"></div>
+      <div id="swatchRow">
+        <div id="sizeRow" aria-label="Brush size">
+          <div class="size active" data-r="3" role="button" tabindex="0" aria-label="Fine brush size" title="Fine size"><i style="width:6px;height:6px"></i></div>
+          <div class="size" data-r="8" role="button" tabindex="0" aria-label="Broad brush size" title="Broad size"><i style="width:15px;height:15px"></i></div>
+        </div>
+        <div id="paletteWrap">
+          <div class="palPage active" data-pal="ink">
+            <div class="swatch active" style="background:#171513" data-r="0.04" data-g="0.035" data-b="0.03"></div>
+            <div class="swatch" style="background:#302d29" data-r="0.12" data-g="0.11" data-b="0.10"></div>
+            <div class="swatch" style="background:#49443d" data-r="0.23" data-g="0.22" data-b="0.19"></div>
+            <div class="swatch" style="background:#655f55" data-r="0.36" data-g="0.34" data-b="0.30"></div>
+            <div class="swatch" style="background:#827b6f" data-r="0.51" data-g="0.48" data-b="0.43"></div>
+            <div class="swatch" style="background:#a19a88" data-r="0.64" data-g="0.61" data-b="0.54"></div>
+            <div class="swatch" style="background:#beb6a2" data-r="0.77" data-g="0.74" data-b="0.65"></div>
+            <div class="swatch" style="background:#d6cfb8" data-r="0.86" data-g="0.83" data-b="0.73"></div>
+            <div class="swatch" style="background:#eee8d5" data-r="0.94" data-g="0.91" data-b="0.82"></div>
+          </div>
+          <div class="palPage" data-pal="mineral">
+            <div class="swatch active" style="background:#a84632" data-r="0.52" data-g="0.19" data-b="0.12"></div>
+            <div class="swatch" style="background:#8f5e40" data-r="0.38" data-g="0.22" data-b="0.13"></div>
+            <div class="swatch" style="background:#67785b" data-r="0.27" data-g="0.34" data-b="0.22"></div>
+            <div class="swatch" style="background:#586a80" data-r="0.20" data-g="0.27" data-b="0.39"></div>
+            <div class="swatch" style="background:#8b7863" data-r="0.37" data-g="0.29" data-b="0.20"></div>
+            <div class="swatch" style="background:#b6a275" data-r="0.61" data-g="0.48" data-b="0.27"></div>
+            <div class="swatch" style="background:#7b5960" data-r="0.34" data-g="0.20" data-b="0.23"></div>
+            <div class="swatch" style="background:#c4bca3" data-r="0.72" data-g="0.68" data-b="0.56"></div>
+            <div class="swatch" style="background:#d2c7a7" data-r="0.82" data-g="0.75" data-b="0.57"></div>
+          </div>
+        </div>
+        <div id="palToggle" title="Switch between ink values and mineral colour">›</div>
       </div>
+      <div id="charRow">
+        <div class="chr"><label>Dry drag <span class="lv" id="lChat">0</span><b id="vChat">6</b></label><input type="range" id="sChat" min="0" max="100" step="1" value="6"></div>
+        <div class="chr"><label>Bristle <span class="lv" id="lGrain">0</span><b id="vGrain">14</b></label><input type="range" id="sGrain" min="0" max="45" step="1" value="14"></div>
+        <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">90</b></label><input type="range" id="sHeel" min="0" max="300" step="5" value="90"></div>
+        <div class="chr"><label>Water <span class="lv" id="lWet">0</span><b id="vWet">82</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="82"></div>
+        <div class="chr"><label>Spread <span class="lv" id="lBloom">78</span><b id="vBloom">78</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="78"></div>
+        <div class="chr nolive"><label>Tone load <span class="lv"></span><b id="vTip">70</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="70"></div>
+        <div class="chr nolive"><label>Wet blend <span class="lv"></span><b id="vFeather">85</b></label><input type="range" id="sFeather" min="0" max="150" step="5" value="85"></div>
+        <div class="chr"><label>Variation <span class="lv" id="lWabi">0</span><b id="vWabi">22</b></label><input type="range" id="sWabi" min="0" max="100" step="1" value="22"></div>
+        <div class="chrDiv"></div>
+        <div class="chr"><label>Drop <span class="lv" id="lDrop">95</span><b id="vDrop">95</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="95"></div>
+        <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
+        <div class="chr nolive"><label>Height <span class="lv"></span><b id="vHeight">95</b></label><input type="range" id="sHeight" min="0" max="100" step="1" value="95"></div>
+      </div>
+    </section>
+
+    <section id="settingsPanel" aria-label="Settings">
+      <div class="panelHead"><span>調 · SETTINGS</span><button id="settingsClose" type="button" aria-label="Close settings">×</button></div>
+      <div id="settingsActions">
+        <div id="paperTab" role="button" tabindex="0" title="Change paper; creates a new sheet">紙</div>
+        <div id="studyTab" role="button" tabindex="0" title="Open the book-based practice guide">習</div>
+        <div id="snapBtn" role="button" tabindex="0" title="Snapshot">▣</div>
+        <div id="jsonBtn" role="button" tabindex="0" title="Load JSON">⊕</div>
+      </div>
+
+    </section>
+
+    <div id="dipRow">
+      <div class="dip" id="dipInk" title="Hold to reload pigment"><div class="fill"></div><span>墨</span></div>
+      <div id="napkin" aria-label="Brush conditioning cloth" title="Swipe left to lift pigment, center to balance both, right to remove water. Brush movement changes its shape.">
+        <canvas id="napCanvas" width="200" height="100"></canvas>
+        <div class="napZones" aria-hidden="true">
+          <div class="napZone"></div>
+          <div class="napZone mid"></div>
+          <div class="napZone"></div>
+        </div>
+        <span class="napLabel">布</span>
+        <span id="brushFlash" aria-hidden="true"></span>
+        <div id="brushHandle" role="button" tabindex="0" aria-label="Tap to change brush, hold for brush options" title="Tap: next brush · hold: options">
+          <canvas id="napBrush" aria-hidden="true"></canvas>
+        </div>
+      </div>
+      <div class="dip" id="dipWater" title="Hold to reload water"><div class="fill"></div><span>水</span></div>
     </div>
-    <div id="palToggle">›</div>
-    <div class="rowDiv"></div>
-    <div id="resetBtn">↺</div>
-    <div id="snapBtn" title="Snapshot">▣</div>
-    <div id="jsonBtn" title="Load JSON">⊕</div>
-  </div>
-  <div id="brushRow">
-    <div class="bstyle active" data-style="round" title="Round">丸</div>
-    <div class="bstyle" data-style="point" title="Point">穂</div>
-    <div class="bstyle" data-style="side" title="Side">側</div>
-    <div class="bstyle" data-style="rake" title="Rake">熊</div>
-    <div class="bstyle" data-style="smudge" title="Smudge" style="font-size:11px">擦</div>
-    <div class="rowDiv"></div>
-    <div id="disperseToggle" title="Brush drain on/off">鎖</div>
-    <div id="charToggle" title="Character controls">性</div>
-    <div class="rowDiv"></div>
-    <div class="size active" data-r="3"><i style="width:6px;height:6px"></i></div>
-    <div class="size" data-r="8"><i style="width:15px;height:15px"></i></div>
-  </div>
-  <div id="charRow">
-    <div class="chr"><label>Chatter <span class="lv" id="lChat">0</span><b id="vChat">30</b></label><input type="range" id="sChat" min="0" max="100" step="5" value="30"></div>
-    <div class="chr"><label>Grain <span class="lv" id="lGrain">0</span><b id="vGrain">30</b></label><input type="range" id="sGrain" min="0" max="30" step="1" value="30"></div>
-    <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">600</b></label><input type="range" id="sHeel" min="0" max="600" step="5" value="600"></div>
-    <div class="chr"><label>Wet <span class="lv" id="lWet">0</span><b id="vWet">0</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="0"></div>
-    <div class="chr"><label>Bloom <span class="lv" id="lBloom">0</span><b id="vBloom">100</b></label><input type="range" id="sBloom" min="0" max="200" step="1" value="200"></div>
-    <div class="chr nolive"><label>Tip <span class="lv"></span><b id="vTip">0</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="0"></div>
-    <div class="chr nolive"><label>Feather <span class="lv"></span><b id="vFeather">50</b></label><input type="range" id="sFeather" min="0" max="200" step="5" value="50"></div>
-    <div class="chr nolive"><label>Wabi <span class="lv"></span><b id="vWabi">85</b></label><input type="range" id="sWabi" min="0" max="100" step="5" value="85"></div>
-    <div class="chrDiv"></div>
-    <div class="chr"><label>Drop <span class="lv" id="lDrop">0</span><b id="vDrop">100</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="100"></div>
-    <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
-    <div class="chr nolive"><label>Height <span class="lv"></span><b id="vHeight">15</b></label><input type="range" id="sHeight" min="0" max="100" step="1" value="15"></div>
-  </div>
-  <div id="dipRow">
-    <div class="dip" id="dipInk"><div class="fill"></div><span>墨 ink</span></div>
-    <div id="napkin">
-      <canvas id="napCanvas" width="200" height="100"></canvas>
-      <div class="napZones">
-        <div class="napZone"></div>
-        <div class="napZone mid"></div>
-        <div class="napZone"></div>
-      </div>
-      <span class="napLabel">巾 napkin</span>
-    </div>
-    <div class="dip" id="dipWater"><div class="fill"></div><span>水 water</span></div>
-  </div>
+  </div><!-- /#trayScroll -->
 </div>
 
-<script>
-(()=>{
+<script type="text/plain" id="sumiEngine">
+function SUMI_ENGINE(host){
+"use strict";
 function hash21(x,y){let s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s)}
 function hash11(n){let s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
-function valueNoise(x,y){const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy),a=hash21(ix,iy),b=hash21(ix+1,iy),c=hash21(ix,iy+1),d=hash21(ix+1,iy+1);return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy}
+
+// Exact-result lattice cache for valueNoise(). Adjacent pixels/stamps repeatedly
+// request the same integer lattice hashes; caching removes the repeated sin()
+// calls without changing a single noise value. Collisions only replace entries.
+const NOISE_CACHE_SIZE=1<<16,NOISE_CACHE_MASK=NOISE_CACHE_SIZE-1;
+const noiseCacheX=new Int32Array(NOISE_CACHE_SIZE);
+const noiseCacheY=new Int32Array(NOISE_CACHE_SIZE);
+const noiseCacheV=new Float64Array(NOISE_CACHE_SIZE);
+const noiseCacheValid=new Uint8Array(NOISE_CACHE_SIZE);
+function hashLattice(ix,iy){
+  const slot=(Math.imul(ix,374761393)^Math.imul(iy,668265263))&NOISE_CACHE_MASK;
+  if(noiseCacheValid[slot]&&noiseCacheX[slot]===ix&&noiseCacheY[slot]===iy)return noiseCacheV[slot];
+  const v=hash21(ix,iy);
+  noiseCacheX[slot]=ix;noiseCacheY[slot]=iy;noiseCacheV[slot]=v;noiseCacheValid[slot]=1;
+  return v;
+}
+function valueNoise(x,y){const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy),a=hashLattice(ix,iy),b=hashLattice(ix+1,iy),c=hashLattice(ix,iy+1),d=hashLattice(ix+1,iy+1);return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy}
 
 const CELL=1;
-const WATER_CAP=1.0,PIGMENT_CAP=1.98;
+const WATER_CAP=1.0,PIGMENT_CAP=3.00;
 // v4: water deposit raised ~45x. The old 0.0000004 meant strokes were pigment with
 // no vehicle — nothing for the transport step to move, so every pinhole stayed a
 // pinhole. Ink still outweighs water heavily; this is a wetted brush, not a wash.
 const BRUSH_RAD=1.0,BRUSH_W_CAP=50000,BRUSH_P_CAP=40000,DEP_W=0.000018,DEP_P=0.00012;
-const INK_DARK=3.2,LAYER_COVER=6.0,PAP_R=236,PAP_G=234,PAP_B=210;
+// Paper is part of the instrument: each surface changes tooth, fibre density,
+// capillary movement, edge drying and pigment fixation. These are tuned digital
+// analogues of the book's material descriptions, not laboratory measurements.
+const PAPER_PRESETS={
+  gasenshi:{name:'Gasen-shi',frequency:1.00,tooth:1.00,fibre:1.00,fibreLength:1.00,spread:1.00,suction:1.00,fix:1.00,edge:1.00,tone:1.00},
+  kozo:{name:'Kōzo / Ma-shi',frequency:0.78,tooth:1.30,fibre:1.42,fibreLength:1.25,spread:1.18,suction:1.28,fix:1.22,edge:1.10,tone:1.08},
+  torinoko:{name:'Torinoko',frequency:1.15,tooth:0.38,fibre:0.24,fibreLength:0.72,spread:0.68,suction:0.62,fix:0.72,edge:0.62,tone:0.55}
+};
+let PAPER_ID='gasenshi',paperPhysics=PAPER_PRESETS[PAPER_ID];
+// v7.5b: how the live brush spends its load.
+// INK_KNEE: the stroke keeps full ink strength until the brush is down to about
+// this share of its ink, then fades out. INK_KNEE_N is the softness of that knee
+// (higher = sharper). INK_DRAIN / WATER_DRAIN: share of what a stroke lays down
+// that actually leaves the brush, so one load paints about twice as far.
+// Touch drawing only — JSON layers keep the old linear load and full drain, so
+// loaded pieces look exactly as before.
+const INK_KNEE=0.10,INK_KNEE_N=4,INK_DRAIN=0.2,WATER_DRAIN=0.5;
+const _inkNorm=(1/INK_KNEE)/Math.pow(1+Math.pow(1/INK_KNEE,INK_KNEE_N),1/INK_KNEE_N);
+function inkStrength(){const L=Math.max(0,brush.p)/BRUSH_P_CAP/INK_KNEE;return Math.min(1,L/Math.pow(1+Math.pow(L,INK_KNEE_N),1/INK_KNEE_N)/_inkNorm)}
+const INK_DARK=3.8,LAYER_COVER=8.0,PAP_R=236,PAP_G=234,PAP_B=210;
 // ═══ v7.2 SUBTRACTIVE COLOUR ═══════════════════════════════════════════════
 // Cell colour (mR/mG/mB, fR/fG/fB) is stored as ABSORBANCE per unit pigment,
 // not as an RGB colour. Every place that averages colours by pigment weight
@@ -483,7 +814,7 @@ const ABS_FLOOR=0.002,ABS_MAX=7.0;
 // Density curve: D = DEN_MAX·(1−exp(−P·DEN_K/DEN_MAX)). DEN_K matches the old
 // renderer's darkness for thin washes; DEN_MAX lets stacked glazes keep
 // deepening without every overlap going straight to black.
-const DEN_K=2.0,DEN_MAX=2.4,MOB_K=2.2/3.2;
+const DEN_K=1.6,DEN_MAX=2.4,MOB_K=2.2/(DEN_K+DEN_MAX);
 // Tinting-strength cap: an ink's strongest channel is scaled down to ABS_CAP,
 // hue unchanged. Carbon black is ~5x more absorbing than the colours; without
 // this, one density curve can't give both sumi greys and full-strength colour.
@@ -506,7 +837,7 @@ function inkAbs(){const k=inkR+','+inkG+','+inkB;if(k!==_absKey){_absKey=k;_abs=
 // v4: the wet window. Evaporation and fixing slowed ~6x so mobile pigment has time
 // to actually mix with its neighbours before locking — that is where blending lives.
 // It still DRIES: this is ink on paper, not a wash that never sets.
-const SPREAD_RATE=0.55,EDGE_EVAP_MULT=0.9,HINDRANCE=0.12;
+const SPREAD_RATE=2.6,EDGE_EVAP_MULT=0.9,HINDRANCE=0.68;
 // The v3-merged build NC liked ran EVAP ~1e-6, FIX 1e-3, SIGMA_BASE 0.95,
 // K_PIG 0.90 — endless wet window, water pooling before it bursts into dry
 // paper, fixed pigment damming the flow into blotchy blooms. v4 was the
@@ -517,22 +848,22 @@ const SPREAD_RATE=0.55,EDGE_EVAP_MULT=0.9,HINDRANCE=0.12;
 // and slaved to the current brush, picking up a dry brush would retroactively
 // lock a wash you laid down five strokes ago. Per-cell means a wet stroke can
 // bloom next to a dry stroke that locks hard, on the same paper.
-const EVAP_DRY=0.00001,EVAP_WET=0.00032;   // v4 -> v3
-const FIX_DRY =0.022,FIX_WET =0.0011;    // v4 -> v3
+const EVAP_DRY=0.001,EVAP_WET=0.032;   // v4 -> v3
+const FIX_DRY =.8,FIX_WET =0.0011;    // v4 -> v3
 const SIG_DRY =0.08, SIG_WET =0.95;      // v4 -> v3
 const KPIG_DRY=0.28, KPIG_WET=0.90;      // v4 -> v3
 const SIGMA_PIN=0.30,SIGMA_GRAIN=0.12;
-const K_BASE=0.04,K_GRAIN=0.42,K_PIN=0.18;
+const K_BASE=0.04,K_GRAIN=0.8,K_PIN=0.18;
 // Coupling gains, 0..1, straight off the Wet / Bloom sliders. 0 = ignore brush
 // wetness entirely and stay at the v4 end; 1 = a fully wet brush reaches v3.
-let WET_GAIN=1.0,BLOOM_GAIN=1.0;
+let WET_GAIN=0.82,BLOOM_GAIN=0.78;
 // v7-ink: TIP LOAD (bokashi). Pigment is weighted toward one side of the stroke
 // while water stays even across it, so a single pass fades from dark to light
 // across its width. 0 = exactly the previous behaviour. It scales with brush
 // wetness (a dry brush has no loaded body to shade into), and the pigment
 // handed out per stamp is renormalised so the gradient moves ink around without
 // adding or removing any.
-let TIP_LOAD=0;
+let TIP_LOAD=0.70;
 // v7-ink: FEATHER (wet-on-wet). The sim already merges wet neighbours through
 // water-pressure flow, but pigment only travelled WITH that flow. Dark ink laid
 // onto a wet light stroke has almost no water difference to ride on, so it sat
@@ -540,7 +871,7 @@ let TIP_LOAD=0;
 // cells, so dark ink feathers into a wet wash (nō-tan) and fades out as the
 // paper dries. Scaled by each cell's remembered wetness (and the Bloom slider),
 // hindered by paper grain, and symmetric, so no pigment is created or lost.
-let FEATHER=0.5;const FEATHER_RATE=0.03;
+let FEATHER=0.85;const FEATHER_RATE=0.03;
 // v7-ink: WABI. v7 was too tidy: bristle lanes were evenly spaced and ran the
 // full length of every stroke (the comb look), and the dry-brush "catch" and
 // chatter made small high-frequency light flecks everywhere. WABI trades that
@@ -548,7 +879,7 @@ let FEATHER=0.5;const FEATHER_RATE=0.03;
 // stop along the stroke, bristle clumps instead of a comb, slow streaky
 // density, and light spots that are fewer and larger instead of speckle.
 // 0 = exactly the old behaviour. Everything it touches is gated on this.
-let WABI=0.85;
+let WABI=0.22;
 // v7-ink: live-brush tuning. Applies only to touch drawing, never to JSON import,
 // so loaded pieces keep their exact look.
 //  - FINE brushes get extra ink per stamp (darkness used to scale with stamp length, so small brushes were pale)
@@ -568,23 +899,34 @@ let vTabBuf=new Float32Array(4096);const laneTab=new Float32Array(128);
 // stutter come up as the brush runs dry. That is the physical relationship, so
 // it stops being a setting you have to remember to change. Heel is constant:
 // the drag on the trailing edge doesn't depend on how wet the hair is.
-let CHAT_MAX=0.30,GRAIN_MAX=0.30,HEEL=2.0;
-// v7-napkin: temporary bristle state raised by how the napkin is worked. It sits on top of
-// the sliders (added, never overwriting them) and relaxes back on its own.
-const NAPMOD={heel:0,chat:0,wet:0,bloom:0};
-const NAP_FX={perPx:0.004,scrub:0.12,decay:0.99};
-function napFx(kind,px){const c=v=>Math.min(1,v);
-  if(kind==='right'){NAPMOD.heel=c(NAPMOD.heel+px*NAP_FX.perPx);NAPMOD.chat=c(NAPMOD.chat+px*NAP_FX.perPx)}
-  else if(kind==='left'){NAPMOD.wet=c(NAPMOD.wet+px*NAP_FX.perPx);NAPMOD.bloom=c(NAPMOD.bloom+px*NAP_FX.perPx)}
-  else if(kind==='scrub'){NAPMOD.heel=c(NAPMOD.heel+NAP_FX.scrub);NAPMOD.chat=c(NAPMOD.chat+NAP_FX.scrub)}}
-setInterval(()=>{for(const k in NAPMOD)NAPMOD[k]*=NAP_FX.decay},100);
-const DRY_CURVE=1.35;
+let CHAT_MAX=0.06,GRAIN_MAX=0.14,HEEL=0.90;
+// ═══ v7.5 NAPKIN-SHAPED BRUSH ═══════════════════════════════════════════════
+// How the brush was worked on the napkin leaves it in a shape, carried as four
+// charges 0..1. The page reads the napkin gestures and sends the charges with
+// every stroke event; they wear off as you paint (that part lives in the page,
+// next to the gesture reader). Touch drawing only: JSON layers ignore them.
+//   P point  clean pull-downs drew the hairs to a tip: calmer, more solid stroke
+//   S splay  smushing / pushing spread the hairs: chatter, grain, split hairs
+//   F flat   a sideways drag pressed it into a chisel: more heel, less chatter/grain
+//   Z scrub  a quick zigzag roughed it up: chatter, grain, wabi
+// Wet and Bloom are not on this list on purpose: a napkin only ever takes water out.
+const NAP={P:0,S:0,F:0,Z:0};
+const NAP_CALM_P=0.85,NAP_CALM_F=0.6;     // share of the slider chatter/grain a full point / flat takes away
+const NAP_CHAT_S=0.45,NAP_CHAT_Z=0.40;    // chatter a full splay / scrub adds on top
+const NAP_GRAIN_S=0.20,NAP_GRAIN_Z=0.30,NAP_GRAIN_CAP=0.6;
+const NAP_HEEL_F=3.0;                     // heel a full flat adds (300 on the Heel slider)
+const NAP_WABI_Z=0.5,NAP_WABI_CAP=1.35;   // wabi a full scrub adds
+const NAP_TIDY_P=0.75,NAP_TIDY_BR=0.5;    // dry-skip/catch and bristle streaking a full point removes
+const NAP_SKIP_S=0.8,NAP_SKIP_Z=0.5;      // dry-skip/catch a full splay / scrub adds
+const NAP_SPLAY_S=0.30;                   // extra bristle separation from a full splay
+function setNap(v){if(!v)return;NAP.P=+v.P||0;NAP.S=+v.S||0;NAP.F=+v.F||0;NAP.Z=+v.Z||0}
+const DRY_CURVE=2;
 // v7: Heel now rides the brush LOAD (how full the belly is). A loaded brush
 // pools ink at the trailing edge; as it empties the drag lightens. The floor
 // keeps a trace of heel on a near-empty brush so the stroke never goes
 // perfectly symmetric. Pigment weighs more than water because the pooled
 // heel is ink, not vehicle.
-const HEEL_FLOOR=0.25,HEEL_LOAD_P=0.6,HEEL_LOAD_W=0.4;
+const HEEL_FLOOR=0.35,HEEL_LOAD_P=0.8,HEEL_LOAD_W=0.4;
 function brushLoad(){return Math.min(1,brush.p/BRUSH_P_CAP*HEEL_LOAD_P+brush.w/BRUSH_W_CAP*HEEL_LOAD_W)}
 function heelLoadK(){return HEEL_FLOOR+(1-HEEL_FLOOR)*brushLoad()}
 
@@ -617,11 +959,12 @@ function beginStroke(){
 // from the fibre texture rather than from a noise mask.
 const P0_FRONT=0.13;
 
-const canvas=document.getElementById('canvas');
-const W_PX=Math.floor(window.innerWidth),H_PX=Math.floor(window.innerHeight);
-canvas.width=W_PX;canvas.height=H_PX;
-const ctx=canvas.getContext('2d',{alpha:false});
+const canvas=host.canvas;
+const W_PX=host.W,H_PX=host.H;
+if(canvas.width!==W_PX)canvas.width=W_PX;if(canvas.height!==H_PX)canvas.height=H_PX;
+const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
 const NX=Math.floor(W_PX/CELL),NY=Math.floor(H_PX/CELL),N=NX*NY;
+const NEIGHBOUR_OFFSETS=new Int32Array([-1,1,-NX,NX]);
 
 const water=new Float32Array(N),mPig=new Float32Array(N),mR=new Float32Array(N),mG=new Float32Array(N),mB=new Float32Array(N);
 const fPig=new Float32Array(N),fR=new Float32Array(N),fG=new Float32Array(N),fB=new Float32Array(N);
@@ -636,36 +979,141 @@ const imgData=ctx.createImageData(W_PX,H_PX);
 
 const brush={w:BRUSH_W_CAP*0.5,p:BRUSH_P_CAP*0.1};
 let brushRadius=1,inkR=0.05,inkG=0.04,inkB=0.035,brushStyle='round';
-let dirtyX0=NX,dirtyY0=NY,dirtyX1=0,dirtyY1=0,hasWet=false;
+let hasWet=false;
 
-// Render dirty rect — only these cells get recomposited + uploaded each frame.
-let rX0=NX,rY0=NY,rX1=-1,rY1=-1,renderPending=false,fullRepaint=true;
-function markRender(x0,y0,x1,y1){if(x0<rX0)rX0=x0;if(y0<rY0)rY0=y0;if(x1>rX1)rX1=x1;if(y1>rY1)rY1=y1;renderPending=true}
-function requestFullRepaint(){fullRepaint=true;renderPending=true}
+// ── Sparse tile bookkeeping ─────────────────────────────────────────────
+// The grid is cut into TS×TS tiles. tileWet marks the tiles the sim visits:
+// tiles holding live water, plus a neighbour tile only where a wet cell sits on
+// the shared edge (water moves one cell per step, so that is the only place it
+// can cross). v7.5: this replaces the old 3×3 halo around every wet tile, which
+// made a thin stroke simulate ~3 tile rows of dry paper.
+// tileRen marks tiles that need recompositing. A tile that is only drying is no
+// longer redrawn every step: its visible change is accumulated (tileAcc) and it
+// is redrawn once that reaches about one 8-bit level, or every REN_MAX_AGE
+// steps while it is still changing at all.
+const TS=16,TS_SH=4,TS_M=15,TX=Math.ceil(NX/TS),TY=Math.ceil(NY/TS),NT=TX*TY;
+const tileWet=new Uint8Array(NT),tileNext=new Uint8Array(NT),tileRen=new Uint8Array(NT);
+const simTileIds=new Int32Array(NT),renTileIds=new Int32Array(NT);let simTileCount=0,renTileCount=0;
+const tileAcc=new Float32Array(NT),tileStep=new Float32Array(NT),tileAge=new Uint16Array(NT);
+// Visible-change weights: density P = fixed + MOB_K·mobile, so moving mobile
+// pigment counts MOB_K and fixing it counts (1-MOB_K); water only shows as sheen.
+// REN_EPS ≈ one 8-bit level of black on paper.
+const REN_EPS=0.002,REN_TRICKLE=0.0002,REN_MAX_AGE=12,VIS_W=0.04,VIS_FIX=1-MOB_K;
+const simRuns={x0:new Int32Array(NT),x1:new Int32Array(NT),row:new Int32Array(TY+1)};
+const renRuns={x0:new Int32Array(NT),x1:new Int32Array(NT),row:new Int32Array(TY+1)};
+// Collapse each tile row into horizontal runs of flagged tiles (cell coords).
+function buildRuns(flags,R,collectTiles){let n=0,cn=0;
+  for(let ty=0;ty<TY;ty++){R.row[ty]=n;const r=ty*TX;let tx=0;
+    while(tx<TX){if(!flags[r+tx]){tx++;continue}const s=tx;
+      while(tx<TX&&flags[r+tx]){if(collectTiles)collectTiles[cn++]=r+tx;tx++}
+      R.x0[n]=s*TS;R.x1[n]=Math.min(NX,tx*TS)-1;n++}}
+  R.row[TY]=n;if(collectTiles===simTileIds)simTileCount=cn;else if(collectTiles===renTileIds)renTileCount=cn;return n}
+function markTiles(flags,x0,y0,x1,y1){
+  const a=Math.max(0,x0|0),b=Math.max(0,y0|0),c=Math.min(NX-1,Math.ceil(x1)),d=Math.min(NY-1,Math.ceil(y1));
+  if(c<a||d<b)return false;
+  const tx0=(a/TS)|0,tx1=(c/TS)|0,ty0=(b/TS)|0,ty1=(d/TS)|0;
+  for(let ty=ty0;ty<=ty1;ty++){const r=ty*TX;for(let tx=tx0;tx<=tx1;tx++)flags[r+tx]=1}
+  return true}
+
+let renderPending=false,fullRepaint=true;
+// The wet-paper simulation is calibrated around 60 steps/second. Keep that
+// rate stable on both 60 Hz and 120 Hz phones, and let the renderer sleep when
+// there is no wet ink, flying splatter, held control, or pending paint update.
+let SIM_STEP_MS=1000/30; // Adaptive mobile cadence: 30 Hz normally, slower only for broad active wet regions.
+// Max sim steps per frame. Was 4: a slow frame queued MORE work for the next
+// one, which is how a busy page spiralled into a stall. At 2, a heavy moment
+// briefly slows the drying clock instead of dropping frames.
+const SIM_CATCHUP=1; // Never queue multiple expensive wet-simulation passes after a slow phone frame.
+let frameHandle=0,frameExecuting=false,lastFrameTime=0,simAccumulator=0;
+// The engine runs in a worker when it can (see the page script). Workers may not
+// have requestAnimationFrame, so fall back to a 60 Hz timer there.
+const HAS_RAF=typeof requestAnimationFrame==='function'&&typeof cancelAnimationFrame==='function';
+const RAF=HAS_RAF?cb=>requestAnimationFrame(cb):cb=>setTimeout(()=>cb(performance.now()),SIM_STEP_MS);
+const CAF=HAS_RAF?h=>cancelAnimationFrame(h):h=>clearTimeout(h);
+let hidden=false;
+function wakeAnimation(){
+  if(hidden||frameHandle||frameExecuting)return;
+  frameHandle=RAF(animate);
+}
+function holdNeedsWork(){
+  if(!holding)return false;
+  switch(holding){
+    case'ink':return brush.p<BRUSH_P_CAP-0.5;
+    case'water':return brush.w<BRUSH_W_CAP-0.5;
+    case'napInk':return brush.p>0.5;
+    case'napWater':return brush.w>0.5;
+    case'napBoth':return brush.p>0.5||brush.w>0.5;
+    default:return false;
+  }
+}
+function animationNeedsWork(){
+  return hasWet||splatParticles.length>0||renderPending||fullRepaint||holdNeedsWork();
+}
+function markRender(x0,y0,x1,y1){if(markTiles(tileRen,x0,y0,x1,y1)){renderPending=true;wakeAnimation()}}
+function requestFullRepaint(){fullRepaint=true;renderPending=true;wakeAnimation()}
 
 function expandDirty(x0,y0,x1,y1){
-  const a=Math.max(0,x0|0),b=Math.max(0,y0|0),c=Math.min(NX-1,Math.ceil(x1)),d=Math.min(NY-1,Math.ceil(y1));
-  if(a<dirtyX0)dirtyX0=a;if(b<dirtyY0)dirtyY0=b;if(c>dirtyX1)dirtyX1=c;if(d>dirtyY1)dirtyY1=d;
-  hasWet=true;markRender(a,b,c,d)}
+  hasWet=true;
+  // +1 cell: water at the edge of what was just laid down can flow one cell
+  // further on the next step, so that neighbour tile has to be visited too.
+  if(markTiles(tileWet,x0-1,y0-1,x1+1,y1+1))markRender(x0,y0,x1,y1);
+  else wakeAnimation()}
 
-function generatePaper(){
+function generatePaper(id=PAPER_ID){
+  PAPER_ID=PAPER_PRESETS[id]?id:'gasenshi';
+  paperPhysics=PAPER_PRESETS[PAPER_ID];
+  const profile=paperPhysics,f=profile.frequency;
   let min=Infinity,max=-Infinity;
-  for(let gy=0;gy<NY;gy++)for(let gx=0;gx<NX;gx++){const i=gy*NX+gx;let v=valueNoise(gx*0.15,gy*0.16)*0.15+valueNoise(gx*0.4,gy*0.42)*0.30+valueNoise(gx*0.9,gy*0.95)*0.30+valueNoise(gx*2.0,gy*2.1)*0.15;v+=valueNoise(gx*0.8,gy*0.04)*0.10;tex[i]=v;if(v<min)min=v;if(v>max)max=v}
-  const range=max-min||1;for(let i=0;i<N;i++){tex[i]=(tex[i]-min)/range;absorb[i]=0.96+0.04*tex[i]}
-  pinTex.fill(0);const numLines=Math.floor(N*0.003);
-  for(let n=0;n<numLines;n++){const sx=hash21(n*1.31,n*2.17)*NX,sy=hash21(n*3.71,n*0.53)*NY,angle=hash21(n*5.13,n*7.91)*Math.PI,len=3+hash21(n*0.37,n*4.29)*8,ca=Math.cos(angle),sa=Math.sin(angle),steps=Math.ceil(len);for(let s=0;s<=steps;s++){const px=Math.round(sx+ca*s),py=Math.round(sy+sa*s);if(px>=0&&px<NX&&py>=0&&py<NY)pinTex[py*NX+px]=1}}
-  const ptCopy=new Float32Array(pinTex);for(let y=1;y<NY-1;y++)for(let x=1;x<NX-1;x++){const i=y*NX+x;pinTex[i]=(ptCopy[i]*2+ptCopy[i-1]+ptCopy[i+1]+ptCopy[i-NX]+ptCopy[i+NX])/6}
-  for(let gy=0;gy<NY;gy++)for(let gx=0;gx<NX;gx++){const t=tex[gy*NX+gx],pi=(gy*W_PX+gx)*4;paperPixels[pi]=PAP_R-t*9|0;paperPixels[pi+1]=PAP_G-t*7|0;paperPixels[pi+2]=PAP_B-t*5|0;paperPixels[pi+3]=255}
+  // A multi-scale fibre field gives each sheet a distinct tooth, while keeping
+  // the canvas texture quiet enough that it never competes with the brushwork.
+  for(let gy=0;gy<NY;gy++)for(let gx=0;gx<NX;gx++){
+    const i=gy*NX+gx;
+    let v=valueNoise(gx*0.15*f,gy*0.16*f)*0.15
+      +valueNoise(gx*0.4*f,gy*0.42*f)*0.30
+      +valueNoise(gx*0.9*f,gy*0.95*f)*0.30
+      +valueNoise(gx*2.0*f,gy*2.1*f)*0.15
+      +valueNoise(gx*0.8*f,gy*0.04*f)*0.10;
+    tex[i]=v;if(v<min)min=v;if(v>max)max=v;
+  }
+  const range=max-min||1;
+  for(let i=0;i<N;i++){
+    const n=(tex[i]-min)/range;
+    tex[i]=Math.max(0.015,Math.min(0.985,0.5+(n-0.5)*profile.tooth));
+    absorb[i]=0.96+0.04*tex[i];
+  }
+  pinTex.fill(0);
+  const numLines=Math.floor(N*0.001*profile.fibre);
+  for(let n=0;n<numLines;n++){
+    const sx=hash21(n*1.31,n*2.17)*NX,sy=hash21(n*3.71,n*0.53)*NY;
+    const angle=hash21(n*5.13,n*7.91)*Math.PI;
+    const len=(3+hash21(n*0.37,n*4.29)*8)*profile.fibreLength;
+    const ca=Math.cos(angle),sa=Math.sin(angle),steps=Math.ceil(len);
+    for(let q=0;q<=steps;q++){
+      const px=Math.round(sx+ca*q),py=Math.round(sy+sa*q);
+      if(px>=0&&px<NX&&py>=0&&py<NY)pinTex[py*NX+px]=1;
+    }
+  }
+  const ptCopy=new Float32Array(pinTex);
+  for(let y=1;y<NY-1;y++)for(let x=1;x<NX-1;x++){
+    const i=y*NX+x;
+    pinTex[i]=(ptCopy[i]*2+ptCopy[i-1]+ptCopy[i+1]+ptCopy[i-NX]+ptCopy[i+NX])/6;
+  }
+  for(let gy=0;gy<NY;gy++)for(let gx=0;gx<NX;gx++){
+    const i=gy*NX+gx,t=tex[i],fib=pinTex[i],pi=(gy*W_PX+gx)*4;
+    const toothTone=profile.tone;
+    paperPixels[pi]=PAP_R-t*(5+4*toothTone)-fib*1.8|0;
+    paperPixels[pi+1]=PAP_G-t*(4+3*toothTone)-fib*1.5|0;
+    paperPixels[pi+2]=PAP_B-t*(3+2*toothTone)-fib*1.2|0;
+    paperPixels[pi+3]=255;
+  }
 }
-generatePaper();
-
-function clientToGrid(cx,cy){const r=canvas.getBoundingClientRect();return[(cx-r.left)/r.width*NX,(cy-r.top)/r.height*NY]}
+generatePaper(PAPER_ID);
 
 // Preallocated sample buffers — no per-cell garbage.
 let sIdx=new Int32Array(8192),sWt=new Float64Array(8192),sPg=new Float32Array(8192);
 function growSamples(n){let c=sIdx.length;while(c<n)c*=2;const ni=new Int32Array(c),nw=new Float64Array(c),np=new Float32Array(c);ni.set(sIdx);nw.set(sWt);np.set(sPg);sIdx=ni;sWt=nw;sPg=np}
 
-function addDeposit(gx,gy,pressure,orientation,speed,sDist){
+function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
   if(brush.w<=0&&brush.p<=0)return;
   const ch=STYLE_CHAR[brushStyle]||STYLE_CHAR.round;
   const sD=sDist===undefined?strokeDist:sDist;
@@ -673,8 +1121,11 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // from dryness and the swell term needs them.
   const wFrac=brush.w/(brush.w+brush.p+1e-12),dryness=1-wFrac;
   const dryK=Math.pow(dryness,DRY_CURVE);
-  const CHAT=Math.min(1,CHAT_MAX*dryK+NAPMOD.chat*0.5),GRAIN=GRAIN_MAX*dryK;
-  pressure=Math.max(0.05,Math.min(1,pressure));
+  // v7.5: napkin shape rides on top of the sliders (all 0 = exactly as before).
+  const nP=NAP.P,nS=NAP.S,nF=NAP.F,nZ=NAP.Z,napCalm=(1-NAP_CALM_P*nP)*(1-NAP_CALM_F*nF);
+  const napRough=(1-NAP_TIDY_P*nP)*(1+NAP_SKIP_S*nS+NAP_SKIP_Z*nZ);
+  const CHAT=Math.min(1,CHAT_MAX*dryK*napCalm+NAP_CHAT_S*nS+NAP_CHAT_Z*nZ),GRAIN=Math.min(NAP_GRAIN_CAP,GRAIN_MAX*dryK*napCalm+NAP_GRAIN_S*nS+NAP_GRAIN_Z*nZ);
+  pressure=Math.max(0.02,Math.min(1,pressure));
   const baseRad=BRUSH_RAD*(brushRadius/8);
   let a,b,orientOff=0;
   switch(brushStyle){
@@ -684,17 +1135,17 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     case'point':{const pSq=pressure*pressure;a=baseRad*(0.10+pSq*1.25);b=a*(0.12+pSq*0.42);break}
     case'side':{orientOff=Math.PI*0.5;a=baseRad*(1.8+pressure*3.2);b=baseRad*(0.06+pressure*0.10);break}
     case'rake':{a=baseRad*(0.9+pressure*1.4);b=a*(0.85+pressure*0.1);break}
-    default:{a=baseRad*(0.5+pressure*0.85);b=a*(0.80+pressure*0.12)}}
+    default:{a=baseRad*(0.5+pressure*0.85);b=a*(0.80+pressure*0.30)}}
   // v5: the loaded-hair swell is coherent along the stroke now, not a fresh
   // random number every 1.5px. The brush breathes instead of buzzing.
   const swell=valueNoise(sD*0.075+strokeSeed*0.41,strokeSeed*0.17);
-  const catchJitter=1.0+0.40*(1+0.9*CHAT)*(swell-0.5);
-  const squash=valueNoise(sD*0.130+strokeSeed*0.83,strokeSeed*0.29);
+  const catchJitter=1.0+0.8*(1+0.9*CHAT)*(swell-0.5);
+  const squash=valueNoise(sD*0.130+strokeSeed*0.83,strokeSeed*0.26);
   a*=catchJitter;b*=catchJitter*(1+0.15*(1+1.4*CHAT)*(squash-0.5));
   // v7-ink: fineK is 0 for tiny stamps and 1 from about a=5 up; 1 always for JSON import.
   const fineK=liveBrush?Math.min(1,Math.max(0,(a-FINE_DROP_LO)/(FINE_DROP_HI-FINE_DROP_LO))):1;
   const x0=Math.floor(gx),y0=Math.floor(gy);
-  const theta=orientation+orientOff,cosT=Math.cos(theta),sinT=Math.sin(theta);
+  const theta=orientation+orientOff+(Number.isFinite(roll)?roll:0),cosT=Math.cos(theta),sinT=Math.sin(theta);
   // Tight AABB of the rotated 3-sigma ellipse.
   const aa=Math.max(0.3,a),bb=Math.max(0.3,b);
   const ac=aa*cosT,as=aa*sinT,bc=bb*cosT,bs=bb*sinT;
@@ -709,7 +1160,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // the whole stamp pulses and stutters as the brush travels. This is the
   // "skipping over the tooth of the paper" beat that a per-cell mask can't
   // produce, because it has to be correlated ALONG the direction of travel.
-  const wb=WABI;
+  const wb=Math.min(NAP_WABI_CAP,WABI+NAP_WABI_Z*nZ);
   let chatter=1;
   if(ch.chat>0&&CHAT>0){
     const cf=ch.chatFreq*mix(1,0.45,wb);   // wabi: longer, calmer pulses
@@ -724,12 +1175,13 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // pigment line density grows with stamp length along the stroke, so lift short stamps toward FINE_A_REF (capped so ink economy stays sane)
   const fineBoost=liveBrush?Math.min(FINE_BOOST_MAX,Math.max(1,FINE_A_REF/Math.max(0.3,a))):1;
   const styleGain=brushStyle==='side'?3.5:brushStyle==='point'?1.4:1.0;
-  let reqW=brush.w*DEP_W*xferScale*sizeGain*styleGain,reqP=brush.p*DEP_P*xferScale*sizeGain*styleGain;
+  const pLoad=liveBrush?BRUSH_P_CAP*inkStrength():brush.p;
+  let reqW=brush.w*DEP_W*xferScale*sizeGain*styleGain,reqP=pLoad*DEP_P*xferScale*sizeGain*styleGain;
   reqP*=0.25+0.75*wFrac;reqW*=mix(1,ch.water,CHAT);
   reqP*=fineBoost*dabK;reqW*=dabK;
   reqW=Math.min(reqW,brush.w);reqP=Math.min(reqP,brush.p);
   if(reqW<1e-9&&reqP<1e-9)return;
-  const skipThresh=(dryness*dryness*0.55+Math.min(0.18,speed*0.005))*mix(1,ch.skip,CHAT)*fineK;
+  const skipThresh=(dryness*dryness*0.55+Math.min(0.18,speed*0.05))*mix(1,ch.skip,CHAT)*fineK*napRough;
   const grainAmp=0.06+0.20*dryness,gBase=1-grainAmp*1.3,gMul=grainAmp*1.3;
   const isRake=brushStyle==='rake';
   const rakeFreq=isRake?Math.min(0.8,1.2/Math.max(0.4,baseRad*0.12)):0;
@@ -738,18 +1190,18 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
   // v5: splay — bristles separate as the stroke accelerates, so a fast pass is
   // visibly hairier than a slow one at the same dryness.
   const splay=ch.split*spd01*GRAIN*0.45;
-  const bristleAmp=Math.min(0.94,(0.08+0.75*dryness)*(brushStyle==='side'?0.45:1)*mix(1,ch.bAmp,GRAIN)+splay);
+  const bristleAmp=Math.min(0.94,((0.08+0.75*dryness)*(brushStyle==='side'?0.45:1)*mix(1,ch.bAmp,GRAIN)+splay+NAP_SPLAY_S*nS)*(1-NAP_TIDY_BR*nP));
   const bristleBase=1-bristleAmp;
   const bristlePhase=strokeBristlePhase;
   const warpAmp=0.4*dryness*(1+0.8*GRAIN);
   // v5: heel — the only term that reads the ALONG-stroke axis. Every v4 stamp
   // was symmetric front-to-back, which is why strokes looked extruded rather
   // than dragged. Negative u is the trailing edge; weight pools there.
-  const heelAmt=ch.heel*(HEEL+NAPMOD.heel*3)*heelLoadK()*0.30;
+  const heelAmt=ch.heel*(HEEL+NAP_HEEL_F*nF)*heelLoadK()*0.30;
   // v4: catch is an ATTENUATION, not a kill switch. It also uses coherent noise at
   // fibre scale instead of per-pixel white noise, so dry-brush skip happens in
   // clumps a few cells wide — the way a bristle actually misses the paper.
-  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT)*mix(1,0.6,wb)*fineK,catchF=mix(0.22,0.07,wb);
+  const catchThresh=(0.30*dryness*dryness+0.05)*mix(1,ch.catch,CHAT)*mix(1,0.6,wb)*fineK*napRough,catchF=mix(0.22,0.07,wb);
   const doSkip=skipThresh>0.012,laneScale=1/Math.max(1.2,b*0.35),skipSoft=skipThresh*1.6;
   const edgeSteep=1+3.5*dryness;
   // v7-ink wabi: 1-D tables over the across-stroke coordinate, built once per stamp
@@ -809,7 +1261,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     sIdx[ns]=idx;sWt[ns]=wt;sPg[ns]=pf;ns++;totalWt+=wt;totalPg+=wt*pf}}
   // v4: splatter density cut from 7 to 3 — the stray dots across bare paper were
   // this, firing on every stamp at 1.5-unit spacing.
-  if(speed>2&&dryness<0.8){const splatCount=Math.floor(hash21(gx+strokeSeed,gy-strokeSeed)*3*wFrac*pressure*(1+speed*0.05));for(let sp=0;sp<splatCount;sp++){const angle=hash21(sp*13.7+strokeSeed,sp*7.3+gx)*Math.PI*2;const dist=Math.max(a,b)*(1.5+hash21(sp*3.1+strokeSeed,sp*11.9)*4.0);const spx=Math.round(gx+Math.cos(angle)*dist),spy=Math.round(gy+Math.sin(angle)*dist);if(spx>=0&&spx<NX&&spy>=0&&spy<NY){const spWt=0.2+hash21(sp*5.7,strokeSeed)*0.35;const add=spWt*totalWt*0.012;if(ns>=sIdx.length)growSamples(ns+1);sIdx[ns]=spy*NX+spx;sWt[ns]=add;sPg[ns]=1;ns++;totalWt+=add;totalPg+=add;
+  if(flickEnabled&&speed>2&&dryness<0.8){const splatCount=Math.floor(hash21(gx+strokeSeed,gy-strokeSeed)*3*wFrac*pressure*(1+speed*0.05));for(let sp=0;sp<splatCount;sp++){const angle=hash21(sp*13.7+strokeSeed,sp*7.3+gx)*Math.PI*2;const dist=Math.max(a,b)*(1.5+hash21(sp*3.1+strokeSeed,sp*11.9)*4.0);const spx=Math.round(gx+Math.cos(angle)*dist),spy=Math.round(gy+Math.sin(angle)*dist);if(spx>=0&&spx<NX&&spy>=0&&spy<NY){const spWt=0.2+hash21(sp*5.7,strokeSeed)*0.35;const add=spWt*totalWt*0.012;if(ns>=sIdx.length)growSamples(ns+1);sIdx[ns]=spy*NX+spx;sWt[ns]=add;sPg[ns]=1;ns++;totalWt+=add;totalPg+=add;
     if(spx<bx0)bx0=spx;if(spy<by0)by0=spy;if(spx>bx1)bx1=spx;if(spy>by1)by1=spy}}}
   if(totalWt<=0)return;
   let appliedW=0,appliedP=0;
@@ -822,7 +1274,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist){
     // proportion to how much of the cell's water is newly arrived.
     if(wAdd>0){const kk=Math.min(1,wAdd/(water[si]+wAdd+1e-9));wetF[si]=wetF[si]*(1-kk)+wFrac*kk}
     water[si]+=wAdd;const existing=mPig[si];const total=existing+pAdd;if(total>0){const ew=existing/total,nw=pAdd/total;mR[si]=mR[si]*ew+iaR*nw;mG[si]=mG[si]*ew+iaG*nw;mB[si]=mB[si]*ew+iaB*nw}mPig[si]=total;appliedW+=wAdd;appliedP+=pAdd}
-  if(disperseOn){brush.w=Math.max(0,brush.w-appliedW);brush.p=Math.max(0,brush.p-appliedP)}
+  if(disperseOn){const kw=liveBrush?WATER_DRAIN:1,kp=liveBrush?INK_DRAIN:1;brush.w=Math.max(0,brush.w-appliedW*kw);brush.p=Math.max(0,brush.p-appliedP*kp)}
   expandDirty(bx0,by0,bx1,by1);
 }
 
@@ -838,9 +1290,9 @@ function smudgeDab(gx,gy,pressure){const baseRad=BRUSH_RAD*(brushRadius/12);cons
 // stamp. drawSegment used to hand every stamp one angle computed cold from the
 // segment endpoints; on a curve, consecutive segments differ enough that the
 // point brush's needles crossed at the shared endpoint. That was the star.
-let lastOrient=null;
+let lastOrient=null,lastPressure=0.5,lastRoll=0;
 // v7-ink: optional pEnd ramps pressure linearly across the segment (JSON taper/swell). Omitted = unchanged.
-function drawSegment(x0,y0,x1,y1,pressure,pEnd){
+function drawSegment(x0,y0,x1,y1,pressure,pEnd,rollStart,rollEnd){
   const dx=x1-x0,dy=y1-y0,dist=Math.hypot(dx,dy);if(dist<0.001)return;
   const orient=Math.atan2(dy,dx);
   let o0=lastOrient,o1=orient;
@@ -860,100 +1312,141 @@ function drawSegment(x0,y0,x1,y1,pressure,pEnd){
   }
   const steps=Math.max(1,Math.ceil(dist/step));
   dabK=step/1.5;   // keep ink per length the same when stamps are spaced wider
-  const base=strokeDist;
+  const base=strokeDist,r0=Number.isFinite(rollStart)?rollStart:0,r1=Number.isFinite(rollEnd)?rollEnd:r0;
   for(let i=1;i<=steps;i++){const t=i/steps;
     const pr=pEnd===undefined?pressure:pressure+(pEnd-pressure)*t;
+    const roll=r0+(r1-r0)*t;
     if(brushStyle==='smudge')smudgeDab(x0+dx*t,y0+dy*t,pr);
-    else addDeposit(x0+dx*t,y0+dy*t,pr,o0+(o1-o0)*t,dist,base+dist*t)}
+    else addDeposit(x0+dx*t,y0+dy*t,pr,o0+(o1-o0)*t,dist,base+dist*t,roll)}
   dabK=1;strokeDist=base+dist}
+
+
+// ═══ ENGINE STATE shared by the sections below ═══
+let statePending=true;            // brush / params changed → post a state message to the page
+let holding=null,tickLast=0;      // which dish or napkin zone is being held down
+let drawing=false,lastGX=0,lastGY=0,strokeSeed=0;
+let disperseOn=true;              // off = bottomless brush
+let flickEnabled=false;           // experimental splatter is opt-in, not a default brush mark
+
+// ═══ HOLDS — ink stone, water dish, napkin press; ticked inside the sim loop ═══
+const RAMP_FILL=3.0,RAMP_DRAIN=0.06;
+function tickHold(now){if(!holding)return;const elapsed=now-tickLast;if(elapsed<=0)return;const dt=Math.min(0.1,elapsed/1000);tickLast=now;switch(holding){case'ink':brush.p=Math.min(BRUSH_P_CAP,brush.p+RAMP_FILL*dt*BRUSH_P_CAP);break;case'water':brush.w=Math.min(BRUSH_W_CAP,brush.w+RAMP_FILL*dt*BRUSH_W_CAP);break;case'napInk':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);break;case'napWater':brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break;case'napBoth':brush.p=Math.max(0,brush.p-RAMP_DRAIN*0.35*dt*BRUSH_P_CAP);brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break}statePending=true}
+
+// pow(a,b) == exp(b·ln a); the ratios are constant, so hoist the logs.
+const LN_EVAP=Math.log(EVAP_WET/EVAP_DRY),LN_FIX=Math.log(FIX_WET/FIX_DRY);
+// v7.5: exp(-x) table for the renderer: 4 exp() per inked pixel became 4
+// lookups (linear interpolation, ±1 8-bit level at most). Display only — the
+// simulation itself still uses Math.exp, so the ink behaves exactly as before.
+const EXPN_RES=256,EXPN_MAX=24,EXPN_N=EXPN_MAX*EXPN_RES;
+const EXPN=new Float32Array(EXPN_N+2);for(let k=0;k<=EXPN_N+1;k++)EXPN[k]=Math.exp(-k/EXPN_RES);
+function expn(x){const f=x*EXPN_RES;if(f>=0&&f<EXPN_N){const k=f|0;return EXPN[k]+(EXPN[k+1]-EXPN[k])*(f-k)}return Math.exp(-x)}
 
 function simulateStep(){
   if(!hasWet)return;
-  const margin=2;
-  const sx0=Math.max(1,dirtyX0-margin),sy0=Math.max(1,dirtyY0-margin);
-  const sx1=Math.min(NX-2,dirtyX1+margin),sy1=Math.min(NY-2,dirtyY1+margin);
-  if(sx1<sx0||sy1<sy0){hasWet=false;dirtyX0=NX;dirtyY0=NY;dirtyX1=0;dirtyY1=0;return}
-  markRender(sx0,sy0,sx1,sy1);
-  for(let y=sy0;y<=sy1;y++){const row=y*NX;for(let x=sx0;x<=sx1;x++){const i=row+x;wDelta[i]=0;pDelta[i]=0;pRDelta[i]=0;pGDelta[i]=0;pBDelta[i]=0}}
-
-  for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
-    const i=y*NX+x;const w=water[i];if(w<0.001)continue;
+  if(!buildRuns(tileWet,simRuns,simTileIds)){hasWet=false;return}
+  const RX0=simRuns.x0,RX1=simRuns.x1,RROW=simRuns.row;
+  const bloomK=BLOOM_GAIN,wetK=WET_GAIN;
+  const KPD=KPIG_WET-KPIG_DRY,SGD=SIG_WET-SIG_DRY,FK=FEATHER*FEATHER_RATE;
+  const NB=NEIGHBOUR_OFFSETS;
+  // Pass 1 — transport. Iteration stays row-major over the active cells, same
+  // order as before, so the in-place wetF blend behaves the same. The deltas are
+  // always zero here: pass 2 clears each one as it reads it (v7.5 — the old
+  // separate clearing pass over every active cell is gone).
+  for(let ty=0;ty<TY;ty++){const r0=RROW[ty],r1=RROW[ty+1];if(r0===r1)continue;
+    const ya=Math.max(1,ty*TS),yb=Math.min(NY-2,ty*TS+TS-1);
+    for(let y=ya;y<=yb;y++){const row=y*NX;for(let r=r0;r<r1;r++){const xa=Math.max(1,RX0[r]),xb=Math.min(NX-2,RX1[r]);
+      for(let x=xa;x<=xb;x++){
+    const i=row+x;const w=water[i];if(w<0.001)continue;
     // v6: bloom terms interpolate per cell on its remembered brush wetness.
-    const bfI=wetF[i]*(BLOOM_GAIN+NAPMOD.bloom);
-    const kPigI=KPIG_DRY+(KPIG_WET-KPIG_DRY)*bfI;
-    const sigBase=SIG_DRY+(SIG_WET-SIG_DRY)*bfI;
+    const bfI=wetF[i]*bloomK;
+    const kPigI=KPIG_DRY+KPD*bfI;
+    const sigBase=SIG_DRY+SGD*bfI;
     const kSrc=K_BASE+K_GRAIN*tex[i]+kPigI*Math.min(1,fPig[i]/PIGMENT_CAP)+K_PIN*pinTex[i];
-    const pigConc=mPig[i]/(w+0.001);
-    const nb=[i-1,i+1,i-NX,i+NX];
-    for(let n=0;n<4;n++){const j=nb[n];
+    const mpi=mPig[i],pigConc=mpi/(w+0.001),hI=1-HINDRANCE*paperPhysics.tooth*tex[i],wCap=w*0.12,pCap=mpi*0.12;
+    for(let n=0;n<4;n++){const j=i+NB[n],wj=water[j];
       let diff;
-      if(water[j]<0.001){
-        const sigma=sigBase+SIGMA_PIN*pinTex[j]+SIGMA_GRAIN*tex[j];
-        if(w<sigma)continue;
+      if(wj<0.001){
+        if(w<sigBase+SIGMA_PIN*pinTex[j]+SIGMA_GRAIN*tex[j])continue;
         // Front node: capillary suction pulls into the dry cell. Loose fibre
         // (low tex) sucks harder, so the advancing edge frays along the grain.
-        diff=w+P0_FRONT*(1-tex[j]);
+        diff=w+P0_FRONT*paperPhysics.suction*(1-tex[j]);
       }else{
-        diff=w-water[j];
+        diff=w-wj;
       }
       if(diff<=0)continue;
-      const kPigJ=KPIG_DRY+(KPIG_WET-KPIG_DRY)*wetF[j]*(BLOOM_GAIN+NAPMOD.bloom);
-      const kDst=K_BASE+K_GRAIN*tex[j]+kPigJ*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
-      const kAvg=(kSrc+kDst)*0.5;
-      let flow=SPREAD_RATE*diff*(1-kAvg);flow=Math.min(flow,w*0.12);if(flow<=0)continue;
+      const kDst=K_BASE+K_GRAIN*tex[j]+(KPIG_DRY+KPD*wetF[j]*bloomK)*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
+      let flow=SPREAD_RATE*paperPhysics.spread*diff*(1-(kSrc+kDst)*0.5);if(flow>wCap)flow=wCap;if(flow<=0)continue;
       wDelta[i]-=flow;wDelta[j]+=flow;
       // The wetness class travels with the water, so a bloom stays a bloom as
       // it advances into dry paper instead of reverting at the front.
-      if(flow>0){const kk=Math.min(1,flow/(water[j]+flow+1e-9));wetF[j]=wetF[j]*(1-kk)+wetF[i]*kk}
-      let pigFlow=flow*pigConc*(1-HINDRANCE*tex[i]);pigFlow=Math.min(pigFlow,mPig[i]*0.12);
+      {const kk=Math.min(1,flow/(wj+flow+1e-9));wetF[j]=wetF[j]*(1-kk)+wetF[i]*kk}
+      let pigFlow=flow*pigConc*hI;if(pigFlow>pCap)pigFlow=pCap;
       if(pigFlow<=0.0001)continue;
       pDelta[i]-=pigFlow;pDelta[j]+=pigFlow;
       const tr=pigFlow*mR[i],tg=pigFlow*mG[i],tb=pigFlow*mB[i];
       pRDelta[i]-=tr;pGDelta[i]-=tg;pBDelta[i]-=tb;
       pRDelta[j]+=tr;pGDelta[j]+=tg;pBDelta[j]+=tb}
     // v7-ink: wet-on-wet pigment diffusion (see FEATHER).
-    if(FEATHER>0&&w>0.02&&mPig[i]>0.0005){
-      const ci=mPig[i]/(w+0.001),wfi=Math.min(1,wetF[i]*(BLOOM_GAIN+NAPMOD.bloom));
-      for(let n=0;n<4;n++){const j=nb[n],wj=water[j];if(wj<0.02)continue;
+    if(FK>0&&w>0.02&&mpi>0.0005){
+      const ci=pigConc,wfi=Math.min(1,wetF[i]*bloomK);
+      for(let n=0;n<4;n++){const j=i+NB[n],wj=water[j];if(wj<0.02)continue;
         const dc=ci-mPig[j]/(wj+0.001);if(dc<=0.0005)continue;
-        const wfj=Math.min(1,wetF[j]*(BLOOM_GAIN+NAPMOD.bloom));
-        const kd=FEATHER*FEATHER_RATE*(0.25+0.375*(wfi+wfj))*(1-HINDRANCE*tex[i]);
-        let pf=kd*dc*Math.min(w,wj);pf=Math.min(pf,mPig[i]*0.12);if(pf<=0.00005)continue;
+        const wfj=Math.min(1,wetF[j]*bloomK);
+        const kd=FK*(0.25+0.375*(wfi+wfj))*hI;
+        let pf=kd*dc*(w<wj?w:wj);if(pf>pCap)pf=pCap;if(pf<=0.00005)continue;
         pDelta[i]-=pf;pDelta[j]+=pf;
         const fr=pf*mR[i],fg=pf*mG[i],fb=pf*mB[i];
         pRDelta[i]-=fr;pGDelta[i]-=fg;pBDelta[i]-=fb;pRDelta[j]+=fr;pGDelta[j]+=fg;pBDelta[j]+=fb}}
-  }}
+  }}}}
 
-  for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
-    const i=y*NX+x;
+  // Pass 2 — apply the deltas (and clear them). Cells nothing flowed into or out
+  // of are skipped; for those the old code rewrote the same values.
+  for(let ty=0;ty<TY;ty++){const r0=RROW[ty],r1=RROW[ty+1];if(r0===r1)continue;
+    const ya=Math.max(1,ty*TS),yb=Math.min(NY-2,ty*TS+TS-1),tRow=ty*TX;
+    for(let y=ya;y<=yb;y++){const row=y*NX;for(let r=r0;r<r1;r++){const xa=Math.max(1,RX0[r]),xb=Math.min(NX-2,RX1[r]);
+      for(let x=xa;x<=xb;x++){
+    const i=row+x;
+    const wd=wDelta[i],pd=pDelta[i],prd=pRDelta[i],pgd=pGDelta[i],pbd=pBDelta[i];
+    if(wd===0&&pd===0&&prd===0&&pgd===0&&pbd===0){const op=mPig[i];if(op===0||op>0.000001)continue}
+    wDelta[i]=0;pDelta[i]=0;pRDelta[i]=0;pGDelta[i]=0;pBDelta[i]=0;
     const oldPig=mPig[i],oldR=oldPig*mR[i],oldG=oldPig*mG[i],oldB=oldPig*mB[i];
-    const newPig=Math.max(0,oldPig+pDelta[i]);
-    water[i]=Math.max(0,water[i]+wDelta[i]);
-    if(newPig>0.000001){const newR=Math.max(0,oldR+pRDelta[i]),newG=Math.max(0,oldG+pGDelta[i]),newB=Math.max(0,oldB+pBDelta[i]);
+    const newPig=Math.max(0,oldPig+pd);
+    water[i]=Math.max(0,water[i]+wd);
+    if(newPig>0.000001){const newR=Math.max(0,oldR+prd),newG=Math.max(0,oldG+pgd),newB=Math.max(0,oldB+pbd);
       mPig[i]=newPig;mR[i]=Math.min(ABS_MAX,Math.max(0,newR/newPig));mG[i]=Math.min(ABS_MAX,Math.max(0,newG/newPig));mB[i]=Math.min(ABS_MAX,Math.max(0,newB/newPig))
-    }else{mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0}}}
+    }else{mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0}
+    const c=MOB_K*(pd<0?-pd:pd)+VIS_W*(wd<0?-wd:wd),t=tRow+(x>>TS_SH);if(c>tileStep[t])tileStep[t]=c}}}}
 
-  let stillWet=false,newX0=NX,newY0=NY,newX1=0,newY1=0;
-  for(let y=sy0;y<=sy1;y++){for(let x=sx0;x<=sx1;x++){
-    const i=y*NX+x;const w=water[i];
+  // Pass 3 — evaporate, fix, lock; mark the tiles that stay wet.
+  let stillWet=false;
+  for(let ty=0;ty<TY;ty++){const r0=RROW[ty],r1=RROW[ty+1];if(r0===r1)continue;
+    const ya=Math.max(1,ty*TS),yb=Math.min(NY-2,ty*TS+TS-1),tRow=ty*TX;
+    for(let y=ya;y<=yb;y++){const row=y*NX,ly=y&TS_M,upT=ly===0&&ty>0,dnT=ly===TS_M&&ty<TY-1;
+      for(let r=r0;r<r1;r++){const xa=Math.max(1,RX0[r]),xb=Math.min(NX-2,RX1[r]);
+      for(let x=xa;x<=xb;x++){
+    const i=row+x;const w=water[i];
     if(w<0.001&&mPig[i]<0.001)continue;
+    const t=tRow+(x>>TS_SH);let c=0;
     if(w>0.001){
       stillWet=true;
-      if(x<newX0)newX0=x;if(y<newY0)newY0=y;if(x>newX1)newX1=x;if(y>newY1)newY1=y;
+      // own tile, plus the neighbour tile when this cell sits on the shared edge
+      tileNext[t]=1;
+      const lx=x&TS_M;if(lx===0){if(x>=TS)tileNext[t-1]=1}else if(lx===TS_M&&(x>>TS_SH)<TX-1)tileNext[t+1]=1;
+      if(upT)tileNext[t-TX]=1;else if(dnT)tileNext[t+TX]=1;
       let wetN=0;if(water[i-1]>0.01)wetN++;if(water[i+1]>0.01)wetN++;if(water[i-NX]>0.01)wetN++;if(water[i+NX]>0.01)wetN++;
       // Edge cells dry fastest, so pigment strands there — this is the dark rim
       // that reads as ink rather than watercolour. Kept strong on purpose.
-      const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT;
-      const bf=wetF[i]*(WET_GAIN+NAPMOD.wet);
-      const evapR=EVAP_DRY*Math.pow(EVAP_WET/EVAP_DRY,bf);
-      const fixR =FIX_DRY *Math.pow(FIX_WET /FIX_DRY ,bf);
+      const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT*paperPhysics.edge;
+      const bf=wetF[i]*wetK;
+      const evapR=EVAP_DRY*Math.exp(bf*LN_EVAP);
+      const fixR =FIX_DRY *Math.exp(bf*LN_FIX);
       // v6: slow relaxation of the wetness memory. Without it a fully wet cell
       // has an evaporation rate of 3.2e-4 forever and the canvas never truly
       // settles. This keeps the long v3 wet window but guarantees it ends.
       wetF[i]*=0.9994;
-      water[i]=Math.max(0,w-evapR*w*edgeFac);
-      const dry=1-water[i]/WATER_CAP;
-      const fix=fixR*dry*dry*absorb[i];
+      water[i]=Math.max(0,w-evapR*w*edgeFac);const wn=water[i];c=VIS_W*(w-wn);
+      const dry=1-wn/WATER_CAP;
+      const fix=fixR*dry*dry*absorb[i]*paperPhysics.fix;
       const pRoom=Math.max(0,PIGMENT_CAP-fPig[i]);
       const amount=Math.min(mPig[i]*fix,pRoom);
       if(amount>0.0001){
@@ -964,27 +1457,46 @@ function simulateStep(){
         const ew=existing/total,nw=amount/total;
         fR[i]=fR[i]*ew+mR[i]*nw;fG[i]=fG[i]*ew+mG[i]*nw;fB[i]=fB[i]*ew+mB[i]*nw;
         fPig[i]=total;
-        mPig[i]-=amount}}
+        mPig[i]-=amount;c+=VIS_FIX*amount}}
     if(water[i]<0.005&&mPig[i]>0.001){
-      const lockAmt=Math.min(mPig[i],Math.max(0,PIGMENT_CAP-fPig[i]));
+      const mp=mPig[i];
+      const lockAmt=Math.min(mp,Math.max(0,PIGMENT_CAP-fPig[i]));
       if(lockAmt>0){const ex=fPig[i],tot=ex+lockAmt;
         if(tot>0){
           const ew=ex/tot,nw=lockAmt/tot;
           fR[i]=fR[i]*ew+mR[i]*nw;fG[i]=fG[i]*ew+mG[i]*nw;fB[i]=fB[i]*ew+mB[i]*nw;
           fPig[i]=tot}}
-      mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0;water[i]=0;wetF[i]=0}}}
-  if(stillWet){dirtyX0=Math.max(0,newX0-2);dirtyY0=Math.max(0,newY0-2);dirtyX1=Math.min(NX-1,newX1+2);dirtyY1=Math.min(NY-1,newY1+2)}
-  else{hasWet=false;dirtyX0=NX;dirtyY0=NY;dirtyX1=0;dirtyY1=0}
+      const dP=lockAmt-MOB_K*mp;c+=(dP<0?-dP:dP)+VIS_W*water[i];
+      mPig[i]=0;mR[i]=0;mG[i]=0;mB[i]=0;water[i]=0;wetF[i]=0}
+    if(c>tileStep[t])tileStep[t]=c}}}}
+
+  // Redraw a simulated tile once its accumulated visible change reaches about one
+  // 8-bit level, while it keeps trickling (every REN_MAX_AGE steps), or as it
+  // leaves the sim. Deposits and splatter still mark their tiles directly.
+  for(let q=0;q<simTileCount;q++){const t=simTileIds[q];
+    const a=tileAcc[t]+tileStep[t];tileStep[t]=0;
+    const age=tileAge[t]+1;
+    if(a>=REN_EPS||(a>=REN_TRICKLE&&age>=REN_MAX_AGE)||(!tileNext[t]&&a>0)){tileRen[t]=1;renderPending=true;tileAcc[t]=0;tileAge[t]=0}
+    else{tileAcc[t]=a;tileAge[t]=age>60000?60000:age}}
+  // Tiles still holding water stay live; edge neighbours were marked above.
+  tileWet.set(tileNext);tileNext.fill(0);
+  if(!stillWet)hasWet=false;
 }
 
-// Dirty-rect renderer — only touched cells recomposite and upload.
+// Tile renderer — only flagged tiles recomposite; one upload per horizontal run.
 function render(){
-  if(fullRepaint){rX0=0;rY0=0;rX1=NX-1;rY1=NY-1;fullRepaint=false;renderPending=true}
+  if(fullRepaint){tileRen.fill(1);fullRepaint=false;renderPending=true}
   if(!renderPending)return;
-  const x0=Math.max(0,rX0),y0=Math.max(0,rY0),x1=Math.min(NX-1,rX1),y1=Math.min(NY-1,rY1);
-  rX0=NX;rY0=NY;rX1=-1;rY1=-1;renderPending=false;
-  if(x1<x0||y1<y0)return;
-  const px=imgData.data;
+  renderPending=false;
+  const nRuns=buildRuns(tileRen,renRuns,renTileIds);
+  // Reset only dirty tiles. A full-grid scan and fill here cost work even for a tiny brush mark.
+  for(let q=0;q<renTileCount;q++){const t=renTileIds[q];tileAcc[t]=0;tileAge[t]=0;tileRen[t]=0}
+  if(!nRuns)return;
+  const px=imgData.data,RX0=renRuns.x0,RX1=renRuns.x1,RROW=renRuns.row;
+  const DKM=DEN_K/DEN_MAX;
+  for(let ty=0;ty<TY;ty++){const r0=RROW[ty],r1=RROW[ty+1];if(r0===r1)continue;
+  const y0=ty*TS,y1=Math.min(NY-1,y0+TS-1);
+  for(let r=r0;r<r1;r++){const x0=RX0[r],x1=RX1[r];
   for(let y=y0;y<=y1;y++){
     const row=y*NX,s0=(row+x0)*4,s1=(row+x1+1)*4;
     px.set(paperPixels.subarray(s0,s1),s0);
@@ -998,141 +1510,16 @@ function render(){
       if(P>0.003){
         const inv=1/P;
         const aR=(fR[i]*fp+mR[i]*mw)*inv,aG=(fG[i]*fp+mG[i]*mw)*inv,aB=(fB[i]*fp+mB[i]*mw)*inv;
-        const D=DEN_MAX*(1-Math.exp(-P*DEN_K/DEN_MAX));
-        r=L2S_LUT[Math.min(L2S_N,(S2L_LUT[r]*Math.exp(-aR*D)*L2S_N)|0)];
-        g=L2S_LUT[Math.min(L2S_N,(S2L_LUT[g]*Math.exp(-aG*D)*L2S_N)|0)];
-        b=L2S_LUT[Math.min(L2S_N,(S2L_LUT[b]*Math.exp(-aB*D)*L2S_N)|0)];
+        const D=DEN_MAX*(1-expn(P*DKM));
+        r=L2S_LUT[Math.min(L2S_N,(S2L_LUT[r]*expn(aR*D)*L2S_N)|0)];
+        g=L2S_LUT[Math.min(L2S_N,(S2L_LUT[g]*expn(aG*D)*L2S_N)|0)];
+        b=L2S_LUT[Math.min(L2S_N,(S2L_LUT[b]*expn(aB*D)*L2S_N)|0)];
       }
       if(w>0.02){const sheen=Math.min(0.12,w*0.08);r=Math.min(255,r*(1+sheen)+sheen*6);g=Math.min(255,g*(1+sheen)+sheen*8);b=Math.min(255,b*(1+sheen)+sheen*14)}
       px[pi]=r|0;px[pi+1]=g|0;px[pi+2]=b|0}}
-  ctx.putImageData(imgData,0,0,x0,y0,x1-x0+1,y1-y0+1);
+  ctx.putImageData(imgData,0,0,x0,y0,x1-x0+1,y1-y0+1)}}
 }
 
-// ═══ TRAY UI ═══
-const tray=document.getElementById('tray');
-const fillInk=document.querySelector('#dipInk .fill'),fillWater=document.querySelector('#dipWater .fill');
-// Calligraphy gauges. Edit these two strings to change the characters; each
-// column drains from the top as its level falls.
-const KANJI_INK='紙に石を塗る',KANJI_WATER='紙に石を塗';
-const kInkEl=document.getElementById('kInk'),kWaterEl=document.getElementById('kWater');
-[[kInkEl,KANJI_INK],[kWaterEl,KANJI_WATER]].forEach(([el,str])=>{
-  const html=[...str].map(c=>'<span>'+c+'</span>').join('');
-  el.querySelector('.kg').innerHTML=html;el.querySelector('.kl').innerHTML=html});
-function setKanji(el,pct){el.style.setProperty('--e',(Math.min(100,Math.max(0,pct))*1.14).toFixed(1))}
-let _lastWp=-1,_lastPp=-1;
-function updateFills(){const wp=Math.round(brush.w/BRUSH_W_CAP*100),pp=Math.round(brush.p/BRUSH_P_CAP*100);
-  if(wp===_lastWp&&pp===_lastPp)return;_lastWp=wp;_lastPp=pp;
-  fillWater.style.height=wp+'%';fillInk.style.height=pp+'%';
-  setKanji(kWaterEl,wp);setKanji(kInkEl,pp);
-  refreshLiveChar()}
-// v7: the character sliders show what the brush is doing right now. The thumb
-// is still your setting (a ceiling for Chatter/Grain/Heel, a gain for Wet/Bloom);
-// the amber fill and the amber number are the live amount at the current load.
-// These are exactly the values addDeposit uses for the next stamp.
-const _live=[];
-function refreshLiveChar(){
-  if(!_live.length){[['sChat','lChat'],['sGrain','lGrain'],['sHeel','lHeel'],['sWet','lWet'],['sBloom','lBloom'],['sDrop','lDrop']].forEach(([s,l])=>{const el=document.getElementById(s),out=document.getElementById(l);if(el&&out)_live.push({el,out,id:s})});if(!_live.length)return}
-  const wFrac=brush.w/(brush.w+brush.p+1e-12),dryK=Math.pow(1-wFrac,DRY_CURVE),hk=heelLoadK();
-  for(const o of _live){const v=Number(o.el.value);let k;
-    switch(o.id){case'sChat':case'sGrain':k=dryK;break;case'sHeel':k=hk;break;case'sDrop':k=splDropK()/DROP_GAIN;break;default:k=wFrac}
-    const lv=v*k,pct=Math.max(0,Math.min(100,lv/Number(o.el.max)*100));
-    o.el.style.setProperty('--live',pct.toFixed(1)+'%');
-    o.out.textContent=lv>=10?Math.round(lv):lv.toFixed(1)}}
-
-let holding=null,tickLast=0,trayTimer=null;
-const RAMP_FILL=3.0,RAMP_DRAIN=0.06;
-function keepOpen(){clearTimeout(trayTimer)}
-function schedClose(ms=93500){clearTimeout(trayTimer);trayTimer=setTimeout(closeTray,ms)}
-function tickHold(now){if(!holding)return;const dt=Math.min(0.1,(now-tickLast)/1000);tickLast=now;switch(holding){case'ink':brush.p=Math.min(BRUSH_P_CAP,brush.p+RAMP_FILL*dt*BRUSH_P_CAP);break;case'water':brush.w=Math.min(BRUSH_W_CAP,brush.w+RAMP_FILL*dt*BRUSH_W_CAP);break;case'napInk':brush.p=Math.max(0,brush.p-RAMP_DRAIN*dt*BRUSH_P_CAP);break;case'napWater':brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break;case'napBoth':brush.p=Math.max(0,brush.p-RAMP_DRAIN*0.35*dt*BRUSH_P_CAP);brush.w=Math.max(0,brush.w-RAMP_DRAIN*dt*BRUSH_W_CAP);break}}
-function startHold(which){tickLast=performance.now();holding=which;keepOpen()}
-function stopHold(){holding=null;schedClose()}
-function bindHold(el,which){
-  const press=e=>{e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId)}catch(_){}startHold(which);el.classList.add('pressed')};
-  const release=e=>{if(e&&e.preventDefault)e.preventDefault();stopHold();el.classList.remove('pressed')};
-  el.addEventListener('pointerdown',press);el.addEventListener('pointerup',release);
-  el.addEventListener('pointercancel',release);el.addEventListener('lostpointercapture',release);
-  el._release=release}
-window.addEventListener('pointerup',()=>{if(holding)stopHold()},{passive:true});
-window.addEventListener('pointercancel',()=>{if(holding)stopHold()},{passive:true});
-bindHold(document.getElementById('dipInk'),'ink');
-bindHold(document.getElementById('dipWater'),'water');
-
-// ═══ NAPKIN ═══
-const napCvs=document.getElementById('napCanvas'),napCtx=napCvs.getContext('2d');const NAP_W=360,NAP_H=120;
-function initNapkin(){napCvs.width=NAP_W;napCvs.height=NAP_H;napCtx.fillStyle='#ece5d2';napCtx.fillRect(0,0,NAP_W,NAP_H);for(let i=0;i<NAP_W*NAP_H*0.015;i++){const x=hash11(i*1.7)*NAP_W,y=hash11(i*3.1)*NAP_H,g=218+hash11(i*5.3)*22;napCtx.fillStyle=`rgb(${g},${g-4},${g-10})`;napCtx.fillRect(x,y,hash11(i*7.1)*3+1,1)}
-  napCtx.strokeStyle='rgba(160,150,135,0.35)';napCtx.lineWidth=1;
-  const x1=Math.floor(NAP_W/3),x2=Math.floor(NAP_W*2/3);
-  napCtx.beginPath();napCtx.moveTo(x1+0.5,0);napCtx.lineTo(x1+0.5,NAP_H);napCtx.stroke();
-  napCtx.beginPath();napCtx.moveTo(x2+0.5,0);napCtx.lineTo(x2+0.5,NAP_H);napCtx.stroke()}
-function napDabAt(cx,cy,drainZone,dk=1){if(brush.w<0.5&&brush.p<0.5)return;const wFrac=brush.w/(brush.w+brush.p+1e-12),pigDensity=brush.p/BRUSH_P_CAP;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4));napCtx.fillStyle=col;napCtx.strokeStyle=col;
-  if(brushStyle==='point'){const pr=dabR*0.5;napCtx.globalAlpha=Math.max(0.06,alpha*0.8);napCtx.beginPath();napCtx.arc(cx,cy,pr,0,Math.PI*2);napCtx.fill()}
-  else if(brushStyle==='side'){napCtx.globalAlpha=Math.max(0.04,alpha*0.55);napCtx.save();napCtx.translate(cx,cy);napCtx.beginPath();napCtx.ellipse(0,0,dabR*1.4,dabR*0.5,0,0,Math.PI*2);napCtx.fill();napCtx.restore()}
-  else if(brushStyle==='rake'){const bristles=Math.max(3,Math.floor(dabR*0.8));const spacing=dabR*2/bristles;napCtx.globalAlpha=Math.max(0.05,alpha*0.65);for(let i=0;i<bristles;i++){const bx=cx+(i-bristles/2)*spacing;napCtx.beginPath();napCtx.arc(bx,cy,spacing*0.35,0,Math.PI*2);napCtx.fill()}}
-  else if(brushStyle==='smudge'){napCtx.globalAlpha=Math.max(0.04,alpha*0.3);napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.5,0,Math.PI*2);napCtx.fill();napCtx.globalAlpha=Math.max(0.02,alpha*0.1);napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.8,0,Math.PI*2);napCtx.fill()}
-  else{napCtx.globalAlpha=Math.max(0.04,alpha*0.6);napCtx.beginPath();napCtx.arc(cx,cy,dabR,0,Math.PI*2);napCtx.fill()}
-  if(wFrac>0.25){napCtx.globalAlpha=Math.max(0.02,alpha*0.10*wFrac);napCtx.beginPath();napCtx.arc(cx,cy,dabR*(1+wFrac*0.8),0,Math.PI*2);napCtx.fill()}
-  if(pigDensity>0.06&&brushStyle!=='smudge'){napCtx.globalAlpha=Math.max(0.01,alpha*0.15);napCtx.lineWidth=0.5;napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.2,0,Math.PI*2);napCtx.stroke()}
-  napCtx.globalAlpha=1;
-  if(drainZone==='napInk'||drainZone==='napBoth')brush.p=Math.max(0,brush.p-brush.p*0.008*dk);
-  if(drainZone==='napWater'||drainZone==='napBoth')brush.w=Math.max(0,brush.w-brush.w*0.008*dk)}
-function napClientToCanvas(cx,cy){const rect=napCvs.getBoundingClientRect();return[(cx-rect.left)/rect.width*NAP_W,(cy-rect.top)/rect.height*NAP_H]}
-setTimeout(initNapkin,300);let _napRz=null;window.addEventListener('resize',()=>{clearTimeout(_napRz);_napRz=setTimeout(initNapkin,250)},{passive:true});
-
-(function setupNapkin(){const nap=document.getElementById('napkin');let napHoldTimer=null,napHolding=false,napActive=false,napMoved=false,lastNapX=0,lastNapY=0,activeZone='napBoth',napLastT=0,napDirSign=0,napStopT=null;
-  function getZone(e){const rect=nap.getBoundingClientRect();const xFrac=(e.clientX-rect.left)/rect.width;return xFrac<0.33?'napInk':xFrac>0.66?'napWater':'napBoth'}
-  nap.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();nap.setPointerCapture(e.pointerId);napHolding=false;napActive=true;napMoved=false;activeZone=getZone(e);const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);lastNapX=cx;lastNapY=cy;napHoldTimer=setTimeout(()=>{if(!napMoved){napHolding=true;startHold(activeZone)}},300);napLastT=0;napDirSign=0;napDabAt(cx,cy,activeZone);updateFills();keepOpen()});
-  nap.addEventListener('pointermove',e=>{if(!napActive&&!napHolding)return;if(napHolding)return;e.preventDefault();clearTimeout(napHoldTimer);napMoved=true;const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);const dx=cx-lastNapX,dy=cy-lastNapY,dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)return;
-    const now=performance.now(),dtm=Math.max(8,now-(napLastT||now-16));napLastT=now;
-    const dk=Math.max(0.35,Math.min(1.8,1.6-(dist/dtm)*1.1));
-    const sgn=dx>0.5?1:dx<-0.5?-1:0;
-    if(sgn){if(napDirSign&&sgn!==napDirSign)napFx('scrub');napDirSign=sgn;napFx(sgn>0?'right':'left',Math.abs(dx))}
-    const steps=Math.max(1,Math.ceil(dist/3));for(let i=1;i<=steps;i++){const t=i/steps;napDabAt(lastNapX+dx*t,lastNapY+dy*t,activeZone,dk)}updateFills();lastNapX=cx;lastNapY=cy;
-    clearTimeout(napStopT);napStopT=setTimeout(()=>{if(napActive&&napMoved&&!napHolding){napDabAt(lastNapX,lastNapY,activeZone,5);updateFills()}},150)});
-  nap.addEventListener('pointerup',e=>{e.preventDefault();clearTimeout(napHoldTimer);clearTimeout(napStopT);napDirSign=0;if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false});
-  nap.addEventListener('pointercancel',e=>{clearTimeout(napHoldTimer);clearTimeout(napStopT);napDirSign=0;if(napHolding)stopHold();napHolding=false;napActive=false;napMoved=false})})();
-
-// ═══ PALETTE SWITCHER ═══
-let activePal='vivid';
-const palToggle=document.getElementById('palToggle');
-document.querySelectorAll('#swatchRow .swatch').forEach(sw=>{
-  sw.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
-    sw.closest('.palPage').querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
-    sw.classList.add('active');inkR=parseFloat(sw.dataset.r);inkG=parseFloat(sw.dataset.g);inkB=parseFloat(sw.dataset.b);schedClose()})});
-palToggle.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
-  const next=activePal==='vivid'?'earth':'vivid';
-  document.querySelectorAll('.palPage').forEach(p=>p.classList.toggle('active',p.dataset.pal===next));
-  activePal=next;palToggle.classList.toggle('flipped',next==='earth');
-  const newPage=document.querySelector('.palPage.active');
-  if(!newPage.querySelector('.swatch.active')){const first=newPage.querySelector('.swatch');first.classList.add('active');inkR=parseFloat(first.dataset.r);inkG=parseFloat(first.dataset.g);inkB=parseFloat(first.dataset.b)}
-  else{const act=newPage.querySelector('.swatch.active');inkR=parseFloat(act.dataset.r);inkG=parseFloat(act.dataset.g);inkB=parseFloat(act.dataset.b)}keepOpen()});
-
-document.querySelectorAll('#brushRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);document.querySelectorAll('#brushRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');refreshLiveChar();schedClose()})});
-document.querySelectorAll('#brushRow .bstyle').forEach(bs=>{bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();document.querySelectorAll('#brushRow .bstyle').forEach(s=>s.classList.remove('active'));bs.classList.add('active');brushStyle=bs.dataset.style;schedClose()})});
-
-function resetAll(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
-  hasWet=false;dirtyX0=NX;dirtyY0=NY;dirtyX1=0;dirtyY1=0;
-  splatParticles.length=0;partBox=null;lastOrient=null;
-  smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;
-  requestFullRepaint();updateFills();render();if(typeof initNapkin==='function')initNapkin()}
-document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
-// v7-ink: snapshot. Same pattern as the other tools: PNG into an <img> overlay, long-press to save on iOS.
-const snapWrap=document.getElementById('snapWrap'),snapImg=document.getElementById('snapImg');
-document.getElementById('snapBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
-  render();   // flush any pending paint so the PNG matches the screen
-  let url;try{url=canvas.toDataURL('image/png')}catch(err){alert('Snapshot failed: '+err.message);return}
-  snapImg.src=url;snapWrap.classList.add('open')});
-snapWrap.addEventListener('click',()=>{snapWrap.classList.remove('open');snapImg.removeAttribute('src')});
-
-// ═══ TRAY TAB ═══
-const trayTab=document.getElementById('trayTab');let trayOpen=false;
-function openTray(){tray.classList.add('visible');trayTab.textContent='▼ TRAY';trayOpen=true;schedClose(6000990)}
-function closeTray(){clearTimeout(trayTimer);tray.classList.remove('visible');trayTab.textContent='▲ TRAY';trayOpen=false;holding=null;initNapkin()}
-trayTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(trayOpen)closeTray();else openTray()});
-document.getElementById('grab').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeTray()});
-
-// ═══ DRAIN LOCK ═══
-let disperseOn=true;const disperseBtn=document.getElementById('disperseToggle');
-disperseBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();disperseOn=!disperseOn;disperseBtn.classList.toggle('off',!disperseOn);disperseBtn.title=disperseOn?'Brush drains normally':'Brush locked — infinite ink';keepOpen()});
 
 // ═══ SPLATTER (v7: SPLAT v3.2 physics, depositing into the ink sim) ═══
 // Ported from splat_v3: Rayleigh–Taylor droplet size, Weber-number breakup
@@ -1285,7 +1672,7 @@ function triggerKineticSplatter(px,py,angle,speed,accPx){
   const nDrops=Math.round(sclamp(reg.count*countScale*(0.75+shs(seed,0)*0.4)*loadCount*sizeCount,3,SPL_MAX_DROPS));
   const maxR=Math.min(NX,NY)*sclamp(0.045*dropK,0.010,0.14),maxSpread=Math.min(NX,NY)*0.72;
   const dirX=Math.cos(angle),dirY=Math.sin(angle);
-  const pigConc=Math.min(1,brush.p/BRUSH_P_CAP),watConc=Math.min(1,brush.w/BRUSH_W_CAP);
+  const pigConc=liveBrush?inkStrength():Math.min(1,brush.p/BRUSH_P_CAP),watConc=Math.min(1,brush.w/BRUSH_W_CAP);
   const cellPig=SPL_PIG*(0.15+0.85*pigConc);
   const cellWat=mix(SPL_WAT_DRY,SPL_WAT_WET,wFrac)*(0.5+0.5*watConc);
   const cr=inkR,cg=inkG,cb=inkB,SA=inkAbs(),car=SA[0],cag=SA[1],cab=SA[2];
@@ -1362,9 +1749,12 @@ function triggerKineticSplatter(px,py,angle,speed,accPx){
   lastSplat={dropK,l0,We,nDrops,maxR,load,pigConc,wFrac,kP,kW,sumP,brushP:brush.p,radius:brushRadius};
   if(disperseOn){
     // Ink that landed, plus the mist that leaves the paper on a violent flick.
-    brush.p=Math.max(0,(brush.p-sumP*kP)*(1-SPL_FLICK_LOSS));
-    brush.w=Math.max(0,(brush.w-sumW*kW)*(1-SPL_FLICK_LOSS))}
-  updateFills();
+    // v7.5b: a live flick spends the brush at the same reduced rate as a stroke.
+    const dp=liveBrush?INK_DRAIN:1,dw=liveBrush?WATER_DRAIN:1;
+    brush.p=Math.max(0,(brush.p-sumP*kP*dp)*(1-SPL_FLICK_LOSS*dp));
+    brush.w=Math.max(0,(brush.w-sumW*kW*dw)*(1-SPL_FLICK_LOSS*dw))}
+  statePending=true;
+  if(splatParticles.length)wakeAnimation();
 }
 
 let strokePts=[];
@@ -1378,37 +1768,16 @@ function maybeFlick(){if(strokePts.length<3)return;const n=strokePts.length;cons
     const acc=Math.max(0,v2-v1)/Math.max(1,dt*0.5);
     triggerKineticSplatter(last.x,last.y,ang,spd*2,acc)}}
 
-// ═══ DRAWING ═══
-let drawing=false,lastGX=0,lastGY=0,lastTime=0,strokeSeed=0;
-function getPressure(e){if(e.pressure>0&&e.pressure!==1)return e.pressure;if(e.width&&e.width>1)return Math.min(1,Math.max(0.08,(e.width-8)/42));return 0.5}
-// v7-ink: two sizes. FINE keeps the old small range; BROAD replaces the old mid and large (the old 50-75 range was the laggy one).
-const BRUSH_RANGES={3:[1,25],8:[22,55]};
-let brushRange=BRUSH_RANGES[3];
-brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);
-let lastContact=0;
-function getLiveRadius(e){const contact=Math.max(e.width||0,e.height||0);lastContact=contact;if(contact>20){const t=Math.min(1,Math.max(0,(contact-30)/130));return brushRange[0]+t*(brushRange[1]-brushRange[0])}return brushRange[0]+0.3*(brushRange[1]-brushRange[0])}
 
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);const[gx,gy]=clientToGrid(e.clientX,e.clientY);drawing=true;lastGX=gx;lastGY=gy;lastTime=performance.now();strokeSeed=performance.now()%1000;beginStroke();strokePts=[{x:gx,y:gy,t:e.timeStamp||performance.now()}];brushRadius=getLiveRadius(e);if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(gx,gy,getPressure(e))}else{addDeposit(gx,gy,getPressure(e),0,0)}});
-canvas.addEventListener('pointermove',e=>{if(!drawing)return;const[gx,gy]=clientToGrid(e.clientX,e.clientY);const now=performance.now();brushRadius=getLiveRadius(e);drawSegment(lastGX,lastGY,gx,gy,getPressure(e));strokePts.push({x:gx,y:gy,t:e.timeStamp||now});if(strokePts.length>12)strokePts.shift();lastGX=gx;lastGY=gy;lastTime=now});
-canvas.addEventListener('pointerup',e=>{if(drawing&&brushStyle!=='smudge')maybeFlick();drawing=false;lastOrient=null;strokePts=[];try{canvas.releasePointerCapture(e.pointerId)}catch(_){}});
-canvas.addEventListener('pointercancel',()=>{drawing=false;lastOrient=null});
-
-// ═══ JSON IMPORT ═══
-
-function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e){alert('JSON parse error: '+e.message);return}
+// v7.5: the page parses the JSON (so it can alert on errors) and sends the palettes.
+function importJsonLayer(data,palettes){
   function hexToRgb(hex){const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);if(!m)return null;return[parseInt(m[1],16)/255,parseInt(m[2],16)/255,parseInt(m[3],16)/255]}
 
-  const _palettes={};
-  document.querySelectorAll('.palPage').forEach(pg=>{
-    const n=pg.dataset.pal;_palettes[n]=[];
-    pg.querySelectorAll('.swatch').forEach(sw=>{
-      _palettes[n].push([parseFloat(sw.dataset.r),parseFloat(sw.dataset.g),parseFloat(sw.dataset.b)])
-    })
-  });
+  const _palettes=palettes||{};
   function resolveColor(c){
     if(!c||c.charAt(0)==='#')return hexToRgb(c||'#292420');
     const parts=c.split('.');if(parts.length!==2)return hexToRgb('#292420');
-    let p=parts[0].toLowerCase();if(p==='v')p='vivid';if(p==='e')p='earth';
+    let p=parts[0].toLowerCase();if(p==='v'||p==='vivid')p='ink';if(p==='e'||p==='earth')p='mineral';
     const idx=parseInt(parts[1],10);const pal=_palettes[p];
     if(!pal||idx<0||idx>=pal.length)return hexToRgb('#292420');
     return pal[idx]
@@ -1432,9 +1801,11 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     return out
   }
 
-  if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const A=absOf(ir/255,ig/255,ib/255);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+A[0]*nw;fG[idx]=fG[idx]*ew+A[1]*nw;fB[idx]=fB[idx]*ew+A[2]*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=A[0];fG[idx]=A[1];fB[idx]=A[2]}}requestFullRepaint();return}
+  if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const A=absOf(ir/255,ig/255,ib/255);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+A[0]*nw;fG[idx]=fG[idx]*ew+A[1]*nw;fB[idx]=fB[idx]*ew+A[2]*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=A[0];fG[idx]=A[1];fB[idx]=A[2]}}requestFullRepaint();statePending=true;host.post({t:'jsonDone',pixels:data.length});return}
 
   const _live=liveBrush;liveBrush=false;
+  // napkin shape belongs to the hand, not to loaded pieces
+  const _nap={P:NAP.P,S:NAP.S,F:NAP.F,Z:NAP.Z};NAP.P=NAP.S=NAP.F=NAP.Z=0;
   const _brushW=brush.w,_brushP=brush.p,_inkR=inkR,_inkG=inkG,_inkB=inkB,_brushRadius=brushRadius,_brushStyle=brushStyle,_strokeSeed=strokeSeed;
 
   if(data.paper&&data.paper.wetness>0){const wet=Math.min(0.6,data.paper.wetness);for(let cy=0;cy<NY;cy++)for(let cx=0;cx<NX;cx++){const idx=cy*NX+cx;water[idx]=Math.min(1,water[idx]+wet*(0.75+0.25*valueNoise(cx*1.3,cy*2.7)))}expandDirty(0,0,NX-1,NY-1);hasWet=true}
@@ -1487,73 +1858,674 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
     if(stroke.pause&&stroke.pause>0){const ticks=Math.min(2000,Math.round(stroke.pause));for(let t=0;t<ticks;t++)simulateStep()}
   }
 
-  brush.w=_brushW;brush.p=_brushP;inkR=_inkR;inkG=_inkG;inkB=_inkB;brushRadius=_brushRadius;brushStyle=_brushStyle;strokeSeed=_strokeSeed;liveBrush=_live;lastOrient=null;updateFills()}
+  brush.w=_brushW;brush.p=_brushP;inkR=_inkR;inkG=_inkG;inkB=_inkB;brushRadius=_brushRadius;brushStyle=_brushStyle;strokeSeed=_strokeSeed;liveBrush=_live;lastOrient=null;setNap(_nap);
+  statePending=true;wakeAnimation();host.post({t:'jsonDone',strokes:strokeCount})}
 
+// ═══ ANIMATION ═══
+let partBox=null;
+function animate(timestamp){
+  frameHandle=0;
+  if(hidden){lastFrameTime=0;simAccumulator=0;return}
+  frameExecuting=true;
+  const now=Number.isFinite(timestamp)?timestamp:performance.now();
+  if(!lastFrameTime)lastFrameTime=now-SIM_STEP_MS;
+  const elapsed=Math.max(0,Math.min(100,now-lastFrameTime));
+  lastFrameTime=now;
+  simAccumulator=Math.min(SIM_STEP_MS*SIM_CATCHUP,simAccumulator+elapsed);
+
+  while(simAccumulator+0.01>=SIM_STEP_MS){
+    const stepTime=now-simAccumulator+SIM_STEP_MS;
+    simulateStep();
+    tickHold(stepTime);
+    const nFly=splatParticles.length;
+    for(let i=splatParticles.length-1;i>=0;i--){
+      splatParticles[i].update();
+      if(splatParticles[i].settled)splatParticles.splice(i,1);
+    }
+    if(splatParticles.length!==nFly&&splatParticles.length===0)statePending=true;
+    simAccumulator-=SIM_STEP_MS;
+    // Broad wet regions are the expensive case: reduce solver frequency rather
+    // than let a large wash monopolize the phone. Deposits and final pixels stay full-res.
+    SIM_STEP_MS=simTileCount>140?50:1000/30;
+  }
+
+  // Particle marks are baked into the same canvas as the ink. Clear the last
+  // particle bounds before each repaint, then draw their current positions once.
+  if(renderPending||fullRepaint||partBox||splatParticles.length>0){
+    if(partBox)markRender(partBox[0],partBox[1],partBox[2],partBox[3]);
+    let nb=null;
+    if(splatParticles.length>0){
+      let a=NX,b=NY,c=-1,d=-1;
+      for(const p of splatParticles){const r=p.drawR*CELL+2,px=p.x*CELL,py=p.y*CELL;
+        if(px-r<a)a=px-r;if(py-r<b)b=py-r;if(px+r>c)c=px+r;if(py+r>d)d=py+r}
+      nb=[Math.max(0,a|0),Math.max(0,b|0),Math.min(NX-1,Math.ceil(c)),Math.min(NY-1,Math.ceil(d))];
+      markRender(nb[0],nb[1],nb[2],nb[3]);
+    }
+    partBox=nb;
+    render();
+    if(splatParticles.length>0){
+      for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alphaDraw;ctx.fillStyle='rgb('+Math.round(p.r*255)+','+Math.round(p.g*255)+','+Math.round(p.b*255)+')';ctx.beginPath();ctx.arc(px,py,p.drawR*CELL,0,Math.PI*2);ctx.fill()}
+      ctx.globalAlpha=1;
+    }
+  }
+  if(statePending)postState();
+  frameExecuting=false;
+  if(animationNeedsWork())wakeAnimation();
+  else{lastFrameTime=0;simAccumulator=0;}
+}
+
+// ═══ STATE → PAGE ═══
+// The page mirrors the brush from these messages (gauges, napkin dabs) and shows
+// the live values on the character sliders: exactly what the next stamp uses at
+// the current load, napkin shape included.
+function postState(){
+  statePending=false;
+  const wFrac=brush.w/(brush.w+brush.p+1e-12),dryK=Math.pow(1-wFrac,DRY_CURVE),calm=(1-NAP_CALM_P*NAP.P)*(1-NAP_CALM_F*NAP.F);
+  host.post({t:'state',w:brush.w,p:brush.p,cw:BRUSH_W_CAP,cp:BRUSH_P_CAP,r:brushRadius,inFlight:splatParticles.length,lastSplat,
+    paperId:PAPER_ID,paperName:paperPhysics.name,flick:flickEnabled,
+    live:{chat:Math.min(1,CHAT_MAX*dryK*calm+NAP_CHAT_S*NAP.S+NAP_CHAT_Z*NAP.Z)*100,
+      grain:Math.min(NAP_GRAIN_CAP,GRAIN_MAX*dryK*calm+NAP_GRAIN_S*NAP.S+NAP_GRAIN_Z*NAP.Z)*100,
+      heel:(HEEL+NAP_HEEL_F*NAP.F)*heelLoadK()*100,
+      wet:WET_GAIN*100*wFrac,bloom:BLOOM_GAIN*100*wFrac,
+      drop:splDropK()*100,
+      wabi:Math.min(NAP_WABI_CAP,WABI+NAP_WABI_Z*NAP.Z)*100}})}
+
+function resetEngine(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
+  wDelta.fill(0);pDelta.fill(0);pRDelta.fill(0);pGDelta.fill(0);pBDelta.fill(0);
+  hasWet=false;tileWet.fill(0);tileNext.fill(0);tileAcc.fill(0);tileStep.fill(0);tileAge.fill(0);
+  splatParticles.length=0;partBox=null;lastOrient=null;
+  smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;
+  requestFullRepaint();render();statePending=true;wakeAnimation()}
+
+// Snapshot: flush pending paint, then hand the page a PNG (Blob from a worker's
+// OffscreenCanvas, data URL from a normal canvas).
+function snapshot(){
+  render();
+  if(typeof canvas.convertToBlob==='function'){
+    canvas.convertToBlob({type:'image/png'}).then(blob=>host.post({t:'snap',blob}),err=>host.post({t:'snap',err:String(err&&err.message||err)}))}
+  else{try{host.post({t:'snap',url:canvas.toDataURL('image/png')})}catch(err){host.post({t:'snap',err:err.message})}}}
+
+// ═══ INPUT (grid coordinates, pressure and live radius come from the page) ═══
+function strokeDown(m){
+  if(hidden)return;
+  drawing=true;lastGX=m.x;lastGY=m.y;
+  strokeSeed=performance.now()%1000;beginStroke();
+  strokePts=[{x:m.x,y:m.y,t:m.ts}];
+  brushRadius=m.r;setNap(m.nap);lastPressure=m.pr;lastRoll=Number.isFinite(m.roll)?m.roll:0;
+  if(brushStyle==='smudge'){smudgeBuf.r=0;smudgeBuf.g=0;smudgeBuf.b=0;smudgeBuf.amt=0;smudgeDab(m.x,m.y,m.pr)}
+  else addDeposit(m.x,m.y,m.pr,0,0,undefined,lastRoll);
+  statePending=true;wakeAnimation()}
+function strokeMove(m){
+  if(!drawing)return;
+  brushRadius=m.r;setNap(m.nap);
+  const nextRoll=Number.isFinite(m.roll)?m.roll:lastRoll;
+  drawSegment(lastGX,lastGY,m.x,m.y,lastPressure,m.pr,lastRoll,nextRoll);
+  lastPressure=m.pr;lastRoll=nextRoll;
+  strokePts.push({x:m.x,y:m.y,t:m.ts});if(strokePts.length>12)strokePts.shift();
+  lastGX=m.x;lastGY=m.y;statePending=true;wakeAnimation()}
+function strokeUp(){if(drawing&&brushStyle!=='smudge'&&flickEnabled)maybeFlick();drawing=false;lastOrient=null;strokePts=[];lastPressure=0.5;lastRoll=0;statePending=true;wakeAnimation()}
+function strokeCancel(){drawing=false;lastOrient=null;strokePts=[];lastPressure=0.5;lastRoll=0}
+
+function setHidden(h){
+  hidden=!!h;
+  if(hidden){if(frameHandle)CAF(frameHandle);frameHandle=0;lastFrameTime=0;simAccumulator=0;drawing=false;strokePts=[];holding=null}
+  else if(animationNeedsWork())wakeAnimation()}
+
+const SETTERS={
+  chat:v=>{CHAT_MAX=v},grain:v=>{GRAIN_MAX=v},heel:v=>{HEEL=v},wet:v=>{WET_GAIN=v},bloom:v=>{BLOOM_GAIN=v},
+  tip:v=>{TIP_LOAD=v},feather:v=>{FEATHER=v},wabi:v=>{WABI=v},
+  drop:v=>{DROP_GAIN=v},spray:v=>{SPRAY=v},height:v=>{SPLAT_HEIGHT=v},flick:v=>{flickEnabled=!!v},
+  ink:v=>{inkR=v[0];inkG=v[1];inkB=v[2]},style:v=>{brushStyle=v},radius:v=>{brushRadius=v},drain:v=>{disperseOn=!!v}};
+
+function onMessage(m){
+  switch(m&&m.t){
+    case'down':strokeDown(m);break;
+    case'move':strokeMove(m);break;
+    case'moveBatch':if(Array.isArray(m.points))for(const p of m.points)strokeMove(p);break;
+    case'up':strokeUp();break;
+    case'cancel':strokeCancel();break;
+    case'set':for(const k in m.v){const f=SETTERS[k];if(f)f(m.v[k])}statePending=true;wakeAnimation();break;
+    case'nap':setNap(m.v);statePending=true;wakeAnimation();break;
+    case'hold':holding=m.which||null;tickLast=performance.now();statePending=true;wakeAnimation();break;
+    case'drain':{const keep=Math.max(0,Math.min(1,m.keep));
+      if(m.zone==='napInk'||m.zone==='napBoth')brush.p*=keep;
+      if(m.zone==='napWater'||m.zone==='napBoth')brush.w*=keep;
+      statePending=true;wakeAnimation();break}
+    case'paper':if(PAPER_PRESETS[m.id]&&m.id!==PAPER_ID){generatePaper(m.id);resetEngine()}break;
+    case'reset':resetEngine();break;
+    case'json':importJsonLayer(m.data,m.palettes);break;
+    case'snap':snapshot();break;
+    case'vis':setHidden(m.hidden);break;
+  }}
+
+render();postState();
+return{onMessage};
+}
+</script>
+
+<script>
+(()=>{
+'use strict';
+// ═══ v7.5 — PAGE SIDE ════════════════════════════════════════════════════
+// Everything heavy (wet-paper simulation, brush deposits, splatter, rendering,
+// JSON layers) lives in the engine script above. When the phone allows it, the
+// engine runs in a Web Worker and draws straight into the canvas through an
+// OffscreenCanvas, so the sim never blocks touch input, the tray or the napkin.
+// If a worker can't start here, the same engine runs on the page instead.
+// Add ?main to the URL to force the on-page engine (for comparing).
+// This script keeps the UI: tray, sliders, gauges, napkin, and turns touches
+// into stroke messages.
+function hash11(n){let s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+
+const canvas=document.getElementById('canvas');
+const W_PX=Math.floor(window.innerWidth),H_PX=Math.floor(window.innerHeight);
+const NX=W_PX,NY=H_PX;   // CELL = 1: one sim cell per CSS pixel
+canvas.width=W_PX;canvas.height=H_PX;
+const buildEl=document.getElementById('build');
+
+// Mirror of the engine's brush, refreshed by its state messages.
+const B={w:25000,p:4000,cw:50000,cp:40000,r:1,live:null,inFlight:0,lastSplat:null,paperId:'gasenshi',flick:false};
+let inkR=0.05,inkG=0.04,inkB=0.035,brushStyle='round',disperseOn=true;
+
+// ═══ ENGINE LINK ═══
+const ENGINE_SRC=document.getElementById('sumiEngine').textContent;
+const WORKER_BOOT=`
+let __sumi=null;
+self.onmessage=e=>{const m=e.data;
+  if(m&&m.t==='probe'){let ok=false;
+    try{const c=new OffscreenCanvas(8,8),x=c.getContext('2d',{alpha:false});
+      if(x){const d=x.createImageData(8,8);x.putImageData(d,0,0,0,0,4,4);ok=typeof c.convertToBlob==='function'}}catch(_){}
+    self.postMessage({t:'probe',ok});return}
+  if(m&&m.t==='init'){__sumi=SUMI_ENGINE({canvas:m.canvas,W:m.W,H:m.H,post:msg=>self.postMessage(msg)});return}
+  if(__sumi)__sumi.onMessage(m)};`;
+let eng=null;const queue=[];
+function send(m){if(eng)eng.post(m);else queue.push(m)}
+function attach(e,mode,why){eng=e;window.__sumiMode=mode;
+  if(buildEl)buildEl.textContent='SUMI_v9.2.1 · SUMI-E · '+(mode==='worker'?'worker':'main'+(why?' ('+why+')':''));
+  while(queue.length)eng.post(queue.shift())}
+function startOnPage(why){
+  const make=new Function(ENGINE_SRC+'\nreturn SUMI_ENGINE;')();
+  let inst=null;const early=[];
+  inst=make({canvas,W:W_PX,H:H_PX,post:m=>{if(inst)onEngine(m);else early.push(m)}});
+  early.forEach(onEngine);
+  attach({post:m=>inst.onMessage(m)},'main',why)}
+function startEngine(){
+  if(/[?&]main\b/.test(location.search))return startOnPage('forced');
+  if(typeof Worker!=='function'||typeof canvas.transferControlToOffscreen!=='function')return startOnPage('no offscreen');
+  let w;
+  try{w=new Worker(URL.createObjectURL(new Blob([ENGINE_SRC+'\n'+WORKER_BOOT],{type:'text/javascript'})))}
+  catch(err){return startOnPage('no worker')}
+  let settled=false;
+  const fallBack=why=>{if(settled)return;settled=true;clearTimeout(timer);try{w.terminate()}catch(_){}startOnPage(why)};
+  const timer=setTimeout(()=>fallBack('timeout'),2500);
+  w.onerror=ev=>{if(!settled){fallBack('error')}
+    else{console.error('SUMI engine:',ev.message);if(buildEl)buildEl.textContent+=' · err'}};
+  w.onmessage=ev=>{const m=ev.data;
+    if(settled){onEngine(m);return}
+    if(!m||m.t!=='probe')return;
+    if(!m.ok)return fallBack('no 2d offscreen');
+    let off;try{off=canvas.transferControlToOffscreen()}catch(err){return fallBack('transfer')}
+    settled=true;clearTimeout(timer);
+    w.postMessage({t:'init',canvas:off,W:W_PX,H:H_PX},[off]);
+    attach({post:msg=>w.postMessage(msg)},'worker')};
+  w.postMessage({t:'probe'});
+}
+function onEngine(m){
+  switch(m&&m.t){
+    case'state':{
+      B.w=m.w;B.p=m.p;B.cw=m.cw;B.cp=m.cp;B.r=m.r;B.live=m.live;B.inFlight=m.inFlight;B.lastSplat=m.lastSplat;B.paperId=m.paperId||B.paperId;B.flick=!!m.flick;
+      updateFills();refreshLive();maybeRedrawIcon();updatePaperTab();break}
+    case'snap':showSnap(m);break;
+  }}
+
+// ═══ TRAY UI ═══
+const tray=document.getElementById('tray');
+const fillInk=document.querySelector('#dipInk .fill'),fillWater=document.querySelector('#dipWater .fill');
+// Calligraphy gauges. Edit these two strings to change the characters; each
+// column drains from the top as its level falls.
+const KANJI_INK='紙に石を塗る',KANJI_WATER='紙に石を塗';
+const kInkEl=document.getElementById('kInk'),kWaterEl=document.getElementById('kWater');
+[[kInkEl,KANJI_INK],[kWaterEl,KANJI_WATER]].forEach(([el,str])=>{
+  const html=[...str].map(c=>'<span>'+c+'</span>').join('');
+  el.querySelector('.kg').innerHTML=html;el.querySelector('.kl').innerHTML=html});
+function setKanji(el,pct){el.style.setProperty('--e',(Math.min(100,Math.max(0,pct))*1.14).toFixed(1))}
+let _lastWp=-1,_lastPp=-1;
+function updateFills(){const wp=Math.round(B.w/B.cw*100),pp=Math.round(B.p/B.cp*100);
+  if(wp===_lastWp&&pp===_lastPp)return;_lastWp=wp;_lastPp=pp;
+  fillWater.style.height=wp+'%';fillInk.style.height=pp+'%';
+  setKanji(kWaterEl,wp);setKanji(kInkEl,pp)}
+// v7: the character sliders show what the brush is doing right now. The thumb
+// is still your setting (a ceiling for Chatter/Grain/Heel, a gain for Wet/Bloom);
+// the vermilion fill and number are the live amount at the current load.
+// v7.5: the live amount includes the napkin shape. When the napkin is moving a
+// value, its number turns water-blue.
+const LIVE=[['sChat','lChat','chat'],['sGrain','lGrain','grain'],['sHeel','lHeel','heel'],['sWet','lWet','wet'],
+  ['sBloom','lBloom','bloom'],['sDrop','lDrop','drop'],['sWabi','lWabi','wabi']].map(([s,l,k])=>({el:document.getElementById(s),out:document.getElementById(l),k,pct:-1,txt:''})).filter(o=>o.el&&o.out);
+function napTouches(k){const on=v=>v>0.02;
+  if(k==='chat'||k==='grain')return on(NAP.P)||on(NAP.S)||on(NAP.F)||on(NAP.Z);
+  if(k==='heel')return on(NAP.F);if(k==='wabi')return on(NAP.Z);return false}
+function refreshLive(){if(!B.live)return;
+  for(const o of LIVE){const lv=B.live[o.k];if(!Number.isFinite(lv))continue;
+    const pct=Math.round(clamp(lv/Number(o.el.max)*100,0,100)*10)/10;
+    if(pct!==o.pct){o.pct=pct;o.el.style.setProperty('--live',pct+'%')}
+    const txt=String(lv>=10?Math.round(lv):lv.toFixed(1));if(txt!==o.txt){o.txt=txt;o.out.textContent=txt}
+    o.out.classList.toggle('nap',napTouches(o.k))}}
+
+let holding=null,trayTimer=null;
+function keepOpen(){clearTimeout(trayTimer)}
+function schedClose(){clearTimeout(trayTimer)} // The tray is user-controlled; never auto-minimize it.
+function startHold(which){holding=which;send({t:'hold',which});keepOpen()}
+function stopHold(){holding=null;send({t:'hold',which:null});keepOpen()}
+function bindHold(el,which){
+  const press=e=>{e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId)}catch(_){}startHold(which);el.classList.add('pressed')};
+  const release=e=>{if(e&&e.preventDefault)e.preventDefault();if(holding)stopHold();el.classList.remove('pressed')};
+  el.addEventListener('pointerdown',press);el.addEventListener('pointerup',release);
+  el.addEventListener('pointercancel',release);el.addEventListener('lostpointercapture',release)}
+window.addEventListener('pointerup',()=>{if(holding)stopHold()},{passive:true});
+window.addEventListener('pointercancel',()=>{if(holding)stopHold()},{passive:true});
+bindHold(document.getElementById('dipInk'),'ink');
+bindHold(document.getElementById('dipWater'),'water');
+
+// ═══ NAPKIN — drains the brush and shapes it ═══
+// Zones stay as they were: left drains ink, middle both, right water. How you
+// work the brush on it sets its shape (see NAP and the gesture reader below).
+const napCvs=document.getElementById('napCanvas'),napCtx=napCvs.getContext('2d');const NAP_W=360,NAP_H=120;
+let napBasePixels=null;
+function initNapkin(){napCvs.width=NAP_W;napCvs.height=NAP_H;napCtx.fillStyle='#ece5d2';napCtx.fillRect(0,0,NAP_W,NAP_H);for(let i=0;i<NAP_W*NAP_H*0.015;i++){const x=hash11(i*1.7)*NAP_W,y=hash11(i*3.1)*NAP_H,g=218+hash11(i*5.3)*22;napCtx.fillStyle=`rgb(${g},${g-4},${g-10})`;napCtx.fillRect(x,y,hash11(i*7.1)*3+1,1)}
+  napCtx.strokeStyle='rgba(160,150,135,0.35)';napCtx.lineWidth=1;
+  const x1=Math.floor(NAP_W/3),x2=Math.floor(NAP_W*2/3);
+  napCtx.beginPath();napCtx.moveTo(x1+0.5,0);napCtx.lineTo(x1+0.5,NAP_H);napCtx.stroke();
+  napCtx.beginPath();napCtx.moveTo(x2+0.5,0);napCtx.lineTo(x2+0.5,NAP_H);napCtx.stroke();
+  napBasePixels=napCtx.getImageData(0,0,NAP_W,NAP_H)}
+// Each time the tray closes, stains relax partway toward the clean cloth texture.
+// The base texture is retained, so repeated closes fade pigment without bleaching the napkin.
+function fadeNapkinInk(amount=0.18){
+  if(!napBasePixels||!napCvs.width||!napCvs.height)return;
+  try{
+    const cur=napCtx.getImageData(0,0,NAP_W,NAP_H),a=cur.data,b=napBasePixels.data,k=Math.max(0,Math.min(.8,amount));
+    for(let i=0;i<a.length;i+=4){a[i]=a[i]+(b[i]-a[i])*k;a[i+1]=a[i+1]+(b[i+1]-a[i+1])*k;a[i+2]=a[i+2]+(b[i+2]-a[i+2])*k;a[i+3]=b[i+3]}
+    napCtx.putImageData(cur,0,0);
+  }catch(err){console.warn('Napkin fade skipped:',err)}
+}
+// One dab of the brush on the napkin: draws the mark and returns how much of
+// the drained load stays on the brush (multiplied up per move, sent once).
+function napDabAt(cx,cy,drainZone,dk=1){if(B.w<0.5&&B.p<0.5)return 1;const wFrac=B.w/(B.w+B.p+1e-12),pigDensity=B.p/B.cp;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4));napCtx.fillStyle=col;napCtx.strokeStyle=col;
+  if(brushStyle==='point'){const pr=dabR*0.5;napCtx.globalAlpha=Math.max(0.06,alpha*0.8);napCtx.beginPath();napCtx.arc(cx,cy,pr,0,Math.PI*2);napCtx.fill()}
+  else if(brushStyle==='side'){napCtx.globalAlpha=Math.max(0.04,alpha*0.55);napCtx.save();napCtx.translate(cx,cy);napCtx.beginPath();napCtx.ellipse(0,0,dabR*1.4,dabR*0.5,0,0,Math.PI*2);napCtx.fill();napCtx.restore()}
+  else if(brushStyle==='rake'){const bristles=Math.max(3,Math.floor(dabR*0.8));const spacing=dabR*2/bristles;napCtx.globalAlpha=Math.max(0.05,alpha*0.65);for(let i=0;i<bristles;i++){const bx=cx+(i-bristles/2)*spacing;napCtx.beginPath();napCtx.arc(bx,cy,spacing*0.35,0,Math.PI*2);napCtx.fill()}}
+  else if(brushStyle==='smudge'){napCtx.globalAlpha=Math.max(0.04,alpha*0.3);napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.5,0,Math.PI*2);napCtx.fill();napCtx.globalAlpha=Math.max(0.02,alpha*0.1);napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.8,0,Math.PI*2);napCtx.fill()}
+  else{napCtx.globalAlpha=Math.max(0.04,alpha*0.6);napCtx.beginPath();napCtx.arc(cx,cy,dabR,0,Math.PI*2);napCtx.fill()}
+  if(wFrac>0.25){napCtx.globalAlpha=Math.max(0.02,alpha*0.10*wFrac);napCtx.beginPath();napCtx.arc(cx,cy,dabR*(1+wFrac*0.8),0,Math.PI*2);napCtx.fill()}
+  if(pigDensity>0.06&&brushStyle!=='smudge'){napCtx.globalAlpha=Math.max(0.01,alpha*0.15);napCtx.lineWidth=0.5;napCtx.beginPath();napCtx.arc(cx,cy,dabR*1.2,0,Math.PI*2);napCtx.stroke()}
+  napCtx.globalAlpha=1;
+  const keep=1-0.008*dk;
+  if(drainZone==='napInk'||drainZone==='napBoth')B.p=Math.max(0,B.p*keep);
+  if(drainZone==='napWater'||drainZone==='napBoth')B.w=Math.max(0,B.w*keep);
+  return keep}
+function napClientToCanvas(cx,cy){const rect=napCvs.getBoundingClientRect();return[(cx-rect.left)/rect.width*NAP_W,(cy-rect.top)/rect.height*NAP_H]}
+setTimeout(initNapkin,300);let _napRz=null;window.addEventListener('resize',()=>{clearTimeout(_napRz);_napRz=setTimeout(initNapkin,200)},{passive:true});
+
+// ── Brush shape ──────────────────────────────────────────────────────────
+// Four charges, 0..1, that the engine applies on top of the sliders:
+//   P point — clean pull-downs: chatter, grain, dry skip and streaking calm down
+//   S splay — any push into the napkin (smush, pushing up, pressing): chatter, grain, split hairs
+//   F flat  — a one-way sideways drag: heel up, chatter and grain down
+//   Z scrub — a quick left-right zigzag: chatter, grain, wabi
+// Pushing raises the uncertain side, smooth clean strokes calm it. Opposites
+// cancel, like re-forming a real tip. v7.5b: only the napkin changes the shape;
+// painting leaves it alone (set NG.paintWear above 0 to let strokes wear it off).
+const NAP={P:0,S:0,F:0,Z:0};
+const NG={
+  revMin:5,          // CSS px of travel the other way before a turn counts as a reversal
+  window:650,        // ms a reversal stays recent (zigzag / smush need 2 of them)
+  axis:1.4,          // how much one axis must dominate the other to count as vertical / sideways
+  pointStart:10,     // a pull-down only starts pointing after this much clean travel
+  flatStart:25,      // a sideways drag only starts flattening after this much one-way travel
+  kPoint:1/150,      // charge per px — about three clean ~60px pull-downs for a full point
+  kSplay:1/120,kScrub:1/160,kFlat:1/140,
+  pushUp:0.35,       // pushing up against the hairs splays at this fraction of a smush
+  bumpSplay:0.04,bumpScrub:0.05,   // extra per reversal
+  pressRate:0.12,    // splay per second of a still press at normal finger contact
+  tap:0.03,          // a quick tap
+  smushBlot:1.8,     // pushing blots harder: drain multiplier while smushing / pressing
+  cancel:1.2,        // point and splay/scrub wipe each other out at this rate
+  flatBreak:0.5,splayBreaksFlat:0.6,scrubBreaksFlat:0.4,
+  paintWear:0,       // 0 = only the napkin shapes the brush. 1 = strokes wear the shape off over
+  wearWet:420,wearDry:210   // this many grid px of painting (to ~37%), faster on a dry brush
+};
+const c01=v=>v<0?0:v>1?1:v;
+function addPoint(a){if(!(a>0))return;NAP.P=c01(NAP.P+a);NAP.S=c01(NAP.S-a*NG.cancel);NAP.Z=c01(NAP.Z-a*NG.cancel);napChanged(true)}
+function addSplay(a){if(!(a>0))return;NAP.S=c01(NAP.S+a);NAP.P=c01(NAP.P-a*NG.cancel);NAP.F=c01(NAP.F-a*NG.splayBreaksFlat);napChanged(true)}
+function addScrub(a){if(!(a>0))return;NAP.Z=c01(NAP.Z+a);NAP.P=c01(NAP.P-a*NG.cancel);NAP.F=c01(NAP.F-a*NG.scrubBreaksFlat);napChanged(true)}
+function addFlat(a){if(!(a>0))return;NAP.F=c01(NAP.F+a);NAP.S=c01(NAP.S-a*NG.flatBreak);NAP.Z=c01(NAP.Z-a*NG.flatBreak);napChanged(true)}
+function napOut(){return{P:NAP.P,S:NAP.S,F:NAP.F,Z:NAP.Z}}
+let _napFrame=0,_napSend=false;
+function napChanged(tellEngine){if(tellEngine)_napSend=true;if(_napFrame)return;
+  _napFrame=requestAnimationFrame(()=>{_napFrame=0;if(_napSend){_napSend=false;send({t:'nap',v:napOut()})}drawBrushIcon();refreshLive()})}
+// Optional: painting wears the shape off (off by default, see NG.paintWear).
+function wearNap(d){if(!(NG.paintWear>0)||!(d>0)||!(NAP.P||NAP.S||NAP.F||NAP.Z))return;
+  const wf=B.w/(B.w+B.p+1e-12),L=NG.wearWet+(NG.wearDry-NG.wearWet)*(1-wf),k=Math.exp(-d*NG.paintWear/L);
+  for(const key in NAP){NAP[key]*=k;if(NAP[key]<0.004)NAP[key]=0}
+  napChanged(false)}
+
+// Gesture reader: per-axis runs and reversals, in CSS px.
+const AX={h:{dir:0,run:0,back:0,lat:0,revs:[]},v:{dir:0,run:0,back:0,lat:0,revs:[]}};
+function axReset(){for(const k in AX){const A=AX[k];A.dir=0;A.run=0;A.back=0;A.lat=0;A.revs.length=0}}
+// d = travel along this axis, lat = travel across it. Returns true on a reversal.
+function axStep(A,d,lat,now){
+  const s=d>0.3?1:d<-0.3?-1:0;
+  if(!s){A.lat+=lat;return false}
+  const m=Math.abs(d);
+  if(A.dir===0){A.dir=s;A.run=m;A.back=0;A.lat=lat;return false}
+  if(s===A.dir){A.run+=m+A.back;A.back=0;A.lat+=lat;return false}
+  A.back+=m;
+  if(A.back<NG.revMin)return false;
+  A.revs.push(now);if(A.revs.length>8)A.revs.shift();
+  A.dir=s;A.run=A.back;A.back=0;A.lat=0;return true}
+function recentRevs(A,now){let n=0;for(let i=A.revs.length-1;i>=0;i--){if(now-A.revs[i]<=NG.window)n++;else break}return n}
+// Returns the drain multiplier for this move (pushing blots harder).
+function readGesture(dx,dy,now){
+  const ax=Math.abs(dx),ay=Math.abs(dy);
+  const hTurn=axStep(AX.h,dx,ay,now),vTurn=axStep(AX.v,dy,ax,now);
+  const hRev=recentRevs(AX.h,now),vRev=recentRevs(AX.v,now);
+  if(ax>ay*NG.axis){
+    if(hRev>=2)addScrub(ax*NG.kScrub+(hTurn?NG.bumpScrub:0));
+    else if(AX.h.run>NG.flatStart)addFlat(ax*NG.kFlat*Math.max(0.3,1-1.5*AX.h.lat/Math.max(1,AX.h.run)));
+  }else if(ay>ax*NG.axis){
+    if(vRev>=2){addSplay(ay*NG.kSplay+(vTurn?NG.bumpSplay:0));return NG.smushBlot}
+    if(dy>0){if(AX.v.run>NG.pointStart)addPoint(ay*NG.kPoint*Math.max(0,1-1.5*AX.v.lat/Math.max(1,AX.v.run)))}
+    else addSplay(ay*NG.kSplay*NG.pushUp);
+  }
+  return 1}
+function contactK(e){const c=Math.max(e.width||0,e.height||0);return clamp((c-18)/30,0.4,1.6)}
+
+// Tiny brush on the napkin showing its current shape and load.
+const iconCvs=document.getElementById('napBrush'),iconCtx=iconCvs?iconCvs.getContext('2d'):null;
+const ICON_W=14,ICON_H=40,ICON_DPR=Math.min(3,window.devicePixelRatio||2);
+if(iconCvs){iconCvs.width=ICON_W*ICON_DPR;iconCvs.height=ICON_H*ICON_DPR}
+let _iconKey='';
+function maybeRedrawIcon(){const k=Math.round(B.w/B.cw*20)+','+Math.round(B.p/B.cp*20);if(k!==_iconKey){_iconKey=k;drawBrushIcon()}}
+function drawBrushIcon(){if(!iconCtx)return;const x=iconCtx;
+  x.setTransform(ICON_DPR,0,0,ICON_DPR,0,0);x.clearRect(0,0,ICON_W,ICON_H);
+  const cx=ICON_W/2,P=NAP.P,S=NAP.S,F=NAP.F,Z=NAP.Z;
+  const wl=clamp(B.w/B.cw,0,1),pl=clamp(B.p/B.cp,0,1);
+  x.fillStyle='rgba(31,28,24,.5)';x.fillRect(cx-1.1,0,2.2,14);          // handle
+  x.fillStyle='rgba(31,28,24,.78)';x.fillRect(cx-2.3,13,4.6,3);          // ferrule
+  const top=16,len=21;
+  const base=3.6*(1+0.45*F),belly=base*(1.1+0.3*S);
+  const tipHalf=Math.max(0.2,base*(0.22*(1-P)+0.95*S+0.55*F+0.3*Z));
+  const tipY=top+len*(1-0.12*S-0.15*F);
+  // water: pale blue body behind the hairs
+  if(wl>0.02){x.fillStyle=`rgba(63,106,143,${(0.10+0.32*wl).toFixed(3)})`;x.beginPath();x.moveTo(cx-base,top);
+    x.quadraticCurveTo(cx-belly-1,top+len*0.5,cx-tipHalf,tipY);x.lineTo(cx+tipHalf,tipY);
+    x.quadraticCurveTo(cx+belly+1,top+len*0.5,cx+base,top);x.closePath();x.fill()}
+  const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);
+  x.strokeStyle=`rgba(${r},${g},${b},${(0.3+0.65*pl).toFixed(3)})`;x.lineWidth=0.65;x.lineCap='round';
+  const n=9;
+  for(let i=0;i<n;i++){const t=i/(n-1)*2-1,j1=(hash11(i*3.7+1)-0.5)*2,j2=(hash11(i*5.1+2)-0.5)*2;
+    const bx=cx+t*base*0.85,qx=cx+t*belly,qy=top+len*0.48;
+    const tx=cx+t*tipHalf+j1*Z*2.2;
+    const ty=tipY-(Math.abs(t)*len*0.2*(1-S)*(1-F))+j2*(Z*2.5+S*1.5);
+    x.beginPath();x.moveTo(bx,top);x.quadraticCurveTo(qx,qy,tx,ty);x.stroke()}}
+
+(function setupNapkin(){const nap=document.getElementById('napkin');let napHoldTimer=null,napHolding=false,napActive=false,napMoved=false,lastNapX=0,lastNapY=0,lastCX=0,lastCY=0,activeZone='napBoth',napLastT=0,napStopT=null,pressK=1,pressRaf=0,pressLast=0;
+  function getZone(e){const rect=nap.getBoundingClientRect();const xFrac=(e.clientX-rect.left)/rect.width;return xFrac<0.33?'napInk':xFrac>0.66?'napWater':'napBoth'}
+  function sendDrain(keep){if(keep<1)send({t:'drain',zone:activeZone,keep})}
+  // A still press keeps pushing the hairs apart, faster with a flatter finger.
+  function pressTick(now){pressRaf=0;if(!napHolding)return;const dt=Math.min(0.1,(now-pressLast)/1000);pressLast=now;addSplay(dt*NG.pressRate*pressK);pressRaf=requestAnimationFrame(pressTick)}
+  nap.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#brushHandle'))return;e.preventDefault();e.stopPropagation();nap.setPointerCapture(e.pointerId);napHolding=false;napActive=true;napMoved=false;activeZone=getZone(e);pressK=contactK(e);axReset();const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);lastNapX=cx;lastNapY=cy;lastCX=e.clientX;lastCY=e.clientY;
+    napHoldTimer=setTimeout(()=>{if(!napMoved){napHolding=true;startHold(activeZone);pressLast=performance.now();pressRaf=requestAnimationFrame(pressTick)}},300);
+    napLastT=0;sendDrain(napDabAt(cx,cy,activeZone));updateFills();keepOpen()});
+  nap.addEventListener('pointermove',e=>{if(!napActive||napHolding)return;e.preventDefault();pressK=contactK(e);
+    const cdx=e.clientX-lastCX,cdy=e.clientY-lastCY;
+    const[cx,cy]=napClientToCanvas(e.clientX,e.clientY);const dx=cx-lastNapX,dy=cy-lastNapY,dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)return;
+    clearTimeout(napHoldTimer);napMoved=true;
+    const now=performance.now(),dtm=Math.max(8,now-(napLastT||now-16));napLastT=now;
+    const blot=readGesture(cdx,cdy,now);lastCX=e.clientX;lastCY=e.clientY;
+    const dk=Math.max(0.35,Math.min(1.8,1.6-(dist/dtm)*1.1))*blot;
+    const steps=Math.max(1,Math.ceil(dist/3));let keep=1;for(let i=1;i<=steps;i++){const t=i/steps;keep*=napDabAt(lastNapX+dx*t,lastNapY+dy*t,activeZone,dk)}
+    sendDrain(keep);updateFills();lastNapX=cx;lastNapY=cy;
+    clearTimeout(napStopT);napStopT=setTimeout(()=>{if(napActive&&napMoved&&!napHolding){sendDrain(napDabAt(lastNapX,lastNapY,activeZone,5));updateFills()}},150)});
+  function end(e,isUp){if(e&&e.preventDefault)e.preventDefault();clearTimeout(napHoldTimer);clearTimeout(napStopT);
+    if(isUp&&napActive&&!napMoved&&!napHolding)addSplay(NG.tap*pressK);
+    if(napHolding)stopHold();if(pressRaf){cancelAnimationFrame(pressRaf);pressRaf=0}
+    napHolding=false;napActive=false;napMoved=false}
+  nap.addEventListener('pointerup',e=>end(e,true));
+  nap.addEventListener('pointercancel',e=>end(e,false))})();
+
+// ═══ PALETTE SWITCHER ═══
+let activePal='ink';
+const palToggle=document.getElementById('palToggle');
+function setInk(el){inkR=parseFloat(el.dataset.r);inkG=parseFloat(el.dataset.g);inkB=parseFloat(el.dataset.b);send({t:'set',v:{ink:[inkR,inkG,inkB]}});drawBrushIcon()}
+document.querySelectorAll('#swatchRow .swatch').forEach(sw=>{
+  sw.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
+    sw.closest('.palPage').querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+    sw.classList.add('active');setInk(sw);schedClose()})});
+palToggle.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
+  const next=activePal==='ink'?'mineral':'ink';
+  document.querySelectorAll('.palPage').forEach(p=>p.classList.toggle('active',p.dataset.pal===next));
+  activePal=next;palToggle.classList.toggle('flipped',next==='mineral');
+  const newPage=document.querySelector('.palPage.active');
+  if(!newPage.querySelector('.swatch.active')){const first=newPage.querySelector('.swatch');first.classList.add('active');setInk(first)}
+  else setInk(newPage.querySelector('.swatch.active'));keepOpen()});
+
+// ═══ BRUSH SIZE / STYLE ═══
+// v7-ink: two sizes. FINE keeps the old small range; BROAD replaces the old mid and large (the old 50-75 range was the laggy one).
+const BRUSH_RANGES={3:[1,25],8:[22,55]};
+let brushRange=BRUSH_RANGES[3];
+let brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);
+let lastContact=0;
+document.querySelectorAll('#sizeRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);send({t:'set',v:{radius:brushRadius}});document.querySelectorAll('#sizeRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');schedClose()})});
+document.querySelectorAll('#brushRow .bstyle').forEach(bs=>{bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectBrushStyle(bs.dataset.style,true)})});
+
+function resetAll(){send({t:'reset'});initNapkin()}
+document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
+document.getElementById('resetBtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();resetAll()}});
+const resetQuick=document.getElementById('resetQuick');
+resetQuick.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
+resetQuick.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();resetAll()}});
+// v7-ink: snapshot. Same pattern as the other tools: PNG into an <img> overlay, long-press to save on iOS.
+const snapWrap=document.getElementById('snapWrap'),snapImg=document.getElementById('snapImg');
+document.getElementById('snapBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();send({t:'snap'})});
+function showSnap(m){
+  if(m.err){alert('Snapshot failed: '+m.err);return}
+  const open=url=>{snapImg.src=url;snapWrap.classList.add('open')};
+  if(m.url){open(m.url);return}
+  if(m.blob){const fr=new FileReader();fr.onload=()=>open(fr.result);fr.onerror=()=>alert('Snapshot failed: could not read the image');fr.readAsDataURL(m.blob)}}
+snapWrap.addEventListener('click',()=>{snapWrap.classList.remove('open');snapImg.removeAttribute('src')});
+
+// ═══ MATERIAL-FIRST TRAY · one invariant material layout ═══
+const trayTab=document.getElementById('trayTab');
+let trayMode='closed'; // closed | full; material geometry is invariant
+const brushOptions=document.getElementById('brushOptions');
+const settingsPanel=document.getElementById('settingsPanel');
+const settingsBtn=document.getElementById('settingsBtn');
+function closeBrushOptions(){brushOptions.classList.remove('open');document.getElementById('charRow').classList.remove('open');document.getElementById('charToggle').classList.remove('on')}
+function closeSettings(){settingsPanel.classList.remove('open');settingsBtn.classList.remove('on');tray.classList.remove('settings-open')}
+function setTrayMode(m){
+  const previous=trayMode;
+  trayMode=m==='full'?'full':'closed';
+  const visible=trayMode==='full';
+  tray.classList.toggle('visible',visible);
+  trayTab.textContent=visible?'⌄':'⌃';
+  trayTab.classList.toggle('on',visible);
+  if(!visible){
+    clearTimeout(trayTimer);if(holding)stopHold();
+    closeBrushOptions();closeSettings();
+    if(previous!=='closed')fadeNapkinInk(0.18);
+  }else keepOpen();
+}
+function openTray(){setTrayMode('full')}
+function openMaterialTray(){openTray()}
+function openNapkinOnly(){openTray()}
+function closeTray(){setTrayMode('closed')}
+trayTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setTrayMode(trayMode==='full'?'closed':'full')});
+trayTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setTrayMode(trayMode==='full'?'closed':'full')}});
+document.getElementById('grab').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeTray()});
+function openBrushOptions(){openTray();closeSettings();brushOptions.classList.add('open')}
+function toggleSettings(){if(trayMode!=='full')openTray();closeBrushOptions();const on=!settingsPanel.classList.contains('open');settingsPanel.classList.toggle('open',on);settingsBtn.classList.toggle('on',on);tray.classList.toggle('settings-open',on)}
+settingsBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleSettings()});
+settingsBtn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleSettings()}});
+document.getElementById('settingsClose').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeSettings()});
+document.getElementById('brushOptionsClose').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeBrushOptions()});
+
+// A quick touch advances the brush form. A deliberate hold opens its full controls.
+const BRUSH_STYLES=['round','point','side','rake','smudge'];
+const BRUSH_SYMBOLS={round:'丸',point:'尖',side:'平',rake:'裂',smudge:'滲'};
+function showBrushFlash(style){const el=document.getElementById('brushFlash');el.textContent=BRUSH_SYMBOLS[style]||'丸';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(el._hide);el._hide=setTimeout(()=>el.classList.remove('show'),1050)}
+function selectBrushStyle(style,flash){if(!BRUSH_STYLES.includes(style))return;brushStyle=style;
+  document.querySelectorAll('#brushRow .bstyle').forEach(s=>s.classList.toggle('active',s.dataset.style===style));
+  send({t:'set',v:{style}});drawBrushIcon();if(flash)showBrushFlash(style)}
+function cycleBrushStyle(){const i=BRUSH_STYLES.indexOf(brushStyle);selectBrushStyle(BRUSH_STYLES[(i+1)%BRUSH_STYLES.length],true)}
+(function bindBrushHandle(){const el=document.getElementById('brushHandle');let timer=0,longFired=false,startX=0,startY=0,pid=null;
+  el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();longFired=false;startX=e.clientX;startY=e.clientY;pid=e.pointerId;
+    try{el.setPointerCapture(pid)}catch(_){}el.classList.add('pressed');
+    timer=setTimeout(()=>{longFired=true;openBrushOptions();el.classList.remove('pressed')},480)});
+  el.addEventListener('pointermove',e=>{if(pid!==e.pointerId)return;if(Math.hypot(e.clientX-startX,e.clientY-startY)>12){clearTimeout(timer);timer=0;el.classList.remove('pressed')}});
+  const end=e=>{if(e&&e.stopPropagation)e.stopPropagation();clearTimeout(timer);if(!longFired&&timer){cycleBrushStyle()}el.classList.remove('pressed');pid=null};
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',e=>{e.stopPropagation();clearTimeout(timer);el.classList.remove('pressed');pid=null});el.addEventListener('lostpointercapture',()=>{clearTimeout(timer);el.classList.remove('pressed');pid=null});
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cycleBrushStyle()}})
+})();
+
+// ═══ BOOK-BASED PRACTICE GUIDE ═══
+const STUDIES=[
+  {title:'Condition the brush',body:'The brush carries two separate loads: pigment and water. Hold 墨 to replenish pigment or 水 to replenish water. The cloth has three working lanes: the left lane removes pigment, the middle removes both loads together, and the right lane removes water. Removing pigment leaves a paler wash; removing water concentrates the remaining ink. The cloth keeps its marks as you work.',prompt:'Try a loaded brush on the cloth. Pull through the left lane for a lighter wash, or the right lane for denser black. A straight downward pull reforms the point; a sideways pull flattens it; a zigzag frays it; pressing or pushing splays the hairs. Tap the brush to cycle its form, or hold it for the full options.'},
+  {title:'The first line',body:'Begin with a vertical, controlled brush and learn the difference between the tip and the body of the bristles. A narrow line comes from the tip; a broader mark comes when more of the brush meets the paper. Pressure, speed, and the amount of liquid each change the line.',prompt:'Choose TIP for a fine line, then BODY or FLAT for a wider one. Draw one deliberate stroke with a clear beginning and a lifted ending. Do not trace over it to repair it.'},
+  {title:'Orchid: one breath',body:'The orchid exercise is a curved leaf drawn in a swift, continuous motion. Alternate pressure and speed so the leaf swells and narrows. The next leaves cross the first ones; those crossings create a counterbalance and open spaces within the plant.',prompt:'Choose BODY or TIP. Draw one long curve, changing pressure as it travels. Add two or three crossing curves, then stop before the base becomes tangled. Let the paper remain visible between leaves.'},
+  {title:'Bamboo: growth and restraint',body:'A bamboo stem is built from decisive segments. Press the brush body into the paper, move with the direction of growth, and release pressure at the end. Each segment has a beginning and an ending. Nodes are firm, distinct accents; branches are drier and lighter; leaves are quick sweeping marks.',prompt:'Choose FLAT for a broad stem, TIP for a node, then FRAY for dry branch texture. Give each segment its own start and finish. Vary the tone and leave space around the leaves.'},
+  {title:'Plum: strength beside delicacy',body:'The plum branch is strong, bent, and irregular. Use an angled, loaded brush for the larger branches. Twigs use a drier tip and a quicker, even pull. Blossoms should not overwhelm the branch: their softer forms gain force from the contrast. The book also shows how rotating the brush handle changes petal shape.',prompt:'Start with one broad, bending branch. Add a few finer twigs with a lighter brush load. Reserve small open areas for blossoms before adding them. With a stylus that reports barrel rotation, twist it while using FLAT to turn the brush footprint during a stroke.'},
+  {title:'Landscape: let the white work',body:'In a landscape, depth can be carried by differences in scale, tone, and placement rather than by outlining everything. Nearby forms are stronger; distant forms become smaller and lighter. Snow is the untouched paper. Reflections repeat and soften the shore and its forms.',prompt:'Paint only a few dark forms, then look at the untouched paper as part of the scene. Try a second, lighter distance. For snow or water, protect the blank areas instead of filling them.'},
+  {title:'Color: a supporting voice',body:'Ink remains the principal material. Color should not sit on top as a separate opaque layer; it should share the spatial quality of the ink and enhance it. Some subjects begin with a light color wash, while strong landscape structures may be painted in ink first and colored after the paper has dried.',prompt:'Switch to the mineral palette only when the subject needs it. Keep the wash restrained, let ink carry the structure, and avoid using color to explain every form.'}
+];
+let studyIndex=0;
+const studyPanel=document.getElementById('studyPanel'),studyTab=document.getElementById('studyTab');
+const studyKicker=document.getElementById('studyKicker'),studyTitle=document.getElementById('studyTitle'),studyBody=document.getElementById('studyBody'),studyPrompt=document.getElementById('studyPrompt');
+const studyPrev=document.getElementById('studyPrev'),studyNext=document.getElementById('studyNext');
+function renderStudy(){const q=STUDIES[studyIndex];studyKicker.textContent='PRACTICE · '+String(studyIndex+1).padStart(2,'0')+' / '+String(STUDIES.length).padStart(2,'0');
+  studyTitle.textContent=q.title;studyBody.textContent=q.body;studyPrompt.textContent=q.prompt;
+  studyPrev.disabled=studyIndex===0;studyNext.textContent=studyIndex===STUDIES.length-1?'CLOSE':'NEXT';}
+function openStudy(){closeSettings();renderStudy();studyPanel.classList.add('open');studyPanel.setAttribute('aria-hidden','false');studyTab.classList.add('on');}
+function closeStudy(){studyPanel.classList.remove('open');studyPanel.setAttribute('aria-hidden','true');studyTab.classList.remove('on');}
+studyTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();openStudy()});
+document.getElementById('studyClose').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeStudy()});
+studyPanel.addEventListener('pointerdown',e=>{if(e.target===studyPanel)closeStudy()});
+studyPrev.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();studyIndex=Math.max(0,studyIndex-1);renderStudy()});
+studyNext.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(studyIndex===STUDIES.length-1)closeStudy();else{studyIndex++;renderStudy()}});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&studyPanel.classList.contains('open'))closeStudy()});
+
+// Paper choice changes the simulated sheet itself. A new substrate means a new sheet.
+const PAPER_ORDER=['gasenshi','kozo','torinoko'];
+const PAPER_LABELS={gasenshi:'GASEN-SHI',kozo:'KOZO / MA-SHI',torinoko:'TORINOKO'};
+const paperTab=document.getElementById('paperTab');
+function updatePaperTab(){const id=B.paperId||'gasenshi';paperTab.textContent='紙';paperTab.dataset.paper=id;paperTab.title='Paper: '+(PAPER_LABELS[id]||'GASEN-SHI')+' · tap to change';}
+function cyclePaper(){const current=PAPER_ORDER.indexOf(B.paperId||'gasenshi'),next=PAPER_ORDER[(current+1+PAPER_ORDER.length)%PAPER_ORDER.length];
+  if(!confirm('Change the paper to '+PAPER_LABELS[next]+'? This creates a new sheet and clears the current painting.'))return;
+  paperTab.textContent='紙';paperTab.title='Paper: '+PAPER_LABELS[next]+' · tap to change';B.paperId=next;send({t:'paper',id:next});keepOpen();}
+paperTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();cyclePaper()});
+paperTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cyclePaper()}});
+updatePaperTab();
+
+// ═══ DRAIN LOCK / OPTIONAL SPLATTER ═══
+const disperseBtn=document.getElementById('disperseToggle');
+const flickBtn=document.getElementById('flickToggle');
+flickBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();flickBtn.classList.toggle('on');const on=flickBtn.classList.contains('on');flickBtn.setAttribute('aria-pressed',String(on));flickBtn.title=on?'Experimental kinetic splatter enabled':'Experimental splatter off';send({t:'set',v:{flick:on}});keepOpen()});
+disperseBtn.classList.toggle('on',disperseOn);disperseBtn.setAttribute('aria-pressed',String(disperseOn));
+disperseBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();disperseOn=!disperseOn;disperseBtn.classList.toggle('off',!disperseOn);disperseBtn.classList.toggle('on',disperseOn);disperseBtn.setAttribute('aria-pressed',String(disperseOn));disperseBtn.title=disperseOn?'Brush drains normally':'Brush locked — infinite ink';send({t:'set',v:{drain:disperseOn}});keepOpen()});
+
+// ═══ DRAWING ═══
+let drawing=false,lastGX=0,lastGY=0;
+function clientToGrid(cx,cy){
+  const r=canvas.getBoundingClientRect();
+  // object-fit:contain keeps the original paper proportions if iOS changes the
+  // viewport height or the phone rotates. Map touches to the fitted paper, not
+  // the surrounding letterbox area.
+  const scale=Math.min(r.width/W_PX,r.height/H_PX);
+  const drawW=W_PX*scale,drawH=H_PX*scale;
+  const left=r.left+(r.width-drawW)*0.5,top=r.top+(r.height-drawH)*0.5;
+  return[(cx-left)/drawW*NX,(cy-top)/drawH*NY];
+}
+function getPressure(e){if(e.pressure>0&&e.pressure!==1)return e.pressure;if(e.width&&e.width>1)return Math.min(1,Math.max(0.08,(e.width-8)/42));return 0.5}
+function getLiveRadius(e){const contact=Math.max(e.width||0,e.height||0);lastContact=contact;if(contact>20){const t=Math.min(1,Math.max(0,(contact-30)/130));return brushRange[0]+t*(brushRange[1]-brushRange[0])}return brushRange[0]+0.3*(brushRange[1]-brushRange[0])}
+function getBrushRoll(e){return Number.isFinite(e.twist)?e.twist*Math.PI/180:0}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();const[gx,gy]=clientToGrid(e.clientX,e.clientY);if(gx<0||gy<0||gx>=NX||gy>=NY)return;canvas.setPointerCapture(e.pointerId);drawing=true;lastGX=gx;lastGY=gy;brushRadius=getLiveRadius(e);
+  send({t:'down',x:gx,y:gy,pr:getPressure(e),r:brushRadius,roll:getBrushRoll(e),ts:e.timeStamp||performance.now(),nap:napOut()})});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;let samples=[e];
+  try{if(typeof e.getCoalescedEvents==='function'){const co=e.getCoalescedEvents();if(co&&co.length)samples=co}}catch(_){}
+  const points=[];
+  for(const pe of samples){const[gx0,gy0]=clientToGrid(pe.clientX,pe.clientY);const gx=Math.max(0,Math.min(NX-1,gx0)),gy=Math.max(0,Math.min(NY-1,gy0));
+    const r=getLiveRadius(pe),pr=getPressure(pe);if(brushStyle!=='smudge')wearNap(Math.hypot(gx-lastGX,gy-lastGY));
+    points.push({x:gx,y:gy,pr,r,roll:getBrushRoll(pe),ts:pe.timeStamp||performance.now(),nap:napOut()});lastGX=gx;lastGY=gy;brushRadius=r;
+  }
+  if(points.length===1)send({t:'move',...points[0]});else if(points.length>1)send({t:'moveBatch',points});
+});
+canvas.addEventListener('pointerup',e=>{if(drawing)send({t:'up'});drawing=false;try{canvas.releasePointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointercancel',()=>{if(drawing)send({t:'cancel'});drawing=false});
+canvas.addEventListener('lostpointercapture',()=>{if(drawing)send({t:'cancel'});drawing=false});
+
+// ═══ JSON IMPORT ═══
+function palettesFromDom(){const out={};
+  document.querySelectorAll('.palPage').forEach(pg=>{const n=pg.dataset.pal;out[n]=[];
+    pg.querySelectorAll('.swatch').forEach(sw=>out[n].push([parseFloat(sw.dataset.r),parseFloat(sw.dataset.g),parseFloat(sw.dataset.b)]))});
+  return out}
+function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e){alert('JSON parse error: '+e.message);return}
+  send({t:'json',data,palettes:palettesFromDom()})}
 (function buildJsonUI(){const btn=document.getElementById('jsonBtn');const fileIn=document.createElement('input');fileIn.type='file';fileIn.accept='.json,application/json';fileIn.style.display='none';fileIn.addEventListener('change',()=>{const f=fileIn.files[0];if(!f)return;const reader=new FileReader();reader.onload=e=>importJsonLayer(e.target.result);reader.readAsText(f);fileIn.value=''});let pressT=null,longFired=false;
  btn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();longFired=false;keepOpen();
    clearTimeout(pressT);pressT=setTimeout(()=>{longFired=true;const txt=prompt('Paste JSON layer:');if(txt)importJsonLayer(txt)},600)});
  btn.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();clearTimeout(pressT);if(!longFired)fileIn.click();keepOpen()});
  btn.addEventListener('pointercancel',()=>clearTimeout(pressT));document.body.appendChild(fileIn)})();
 
-// ═══ ANIMATION ═══
-let partBox=null;
-function animate(){
-  const now=performance.now();
-  simulateStep();tickHold(now);
-  for(let i=splatParticles.length-1;i>=0;i--){splatParticles[i].update();if(splatParticles[i].settled)splatParticles.splice(i,1)}
-  if(partBox)markRender(partBox[0],partBox[1],partBox[2],partBox[3]);
-  let nb=null;
-  if(splatParticles.length>0){let a=NX,b=NY,c=-1,d=-1;
-    for(const p of splatParticles){const r=p.drawR*CELL+2,px=p.x*CELL,py=p.y*CELL;
-      if(px-r<a)a=px-r;if(py-r<b)b=py-r;if(px+r>c)c=px+r;if(py+r>d)d=py+r}
-    nb=[Math.max(0,a|0),Math.max(0,b|0),Math.min(NX-1,Math.ceil(c)),Math.min(NY-1,Math.ceil(d))];
-    markRender(nb[0],nb[1],nb[2],nb[3])}
-  partBox=nb;
-  render();
-  if(splatParticles.length>0){
-    for(const p of splatParticles){const px=p.x*CELL,py=p.y*CELL;ctx.globalAlpha=p.alphaDraw;ctx.fillStyle='rgb('+Math.round(p.r*255)+','+Math.round(p.g*255)+','+Math.round(p.b*255)+')';ctx.beginPath();ctx.arc(px,py,p.drawR*CELL,0,Math.PI*2);ctx.fill()}
-    ctx.globalAlpha=1}
-  updateFills();requestAnimationFrame(animate)}
-updateFills();render();requestAnimationFrame(animate);setTimeout(openTray,99400);
-if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
-window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
 // ═══ v5 CHARACTER CONTROLS ═══
 (function bindCharacter(){
   const row=document.getElementById('charRow'),tog=document.getElementById('charToggle');
   tog.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
-    row.classList.toggle('open');tog.classList.toggle('on',row.classList.contains('open'));keepOpen()});
-  function link(id,vid,fn){
+    row.classList.toggle('open');tog.classList.toggle('on',row.classList.contains('open'));tog.setAttribute('aria-pressed',String(row.classList.contains('open')));keepOpen()});
+  function link(id,vid,key,scale){
     const el=document.getElementById(id),out=document.getElementById(vid);
-    const apply=()=>{const v=Number(el.value);out.textContent=v;fn(v)};
-    el.addEventListener('input',()=>{apply();refreshLiveChar()});
+    if(!el||!out)return;
+    const apply=()=>{const v=Number(el.value);out.textContent=v;send({t:'set',v:{[key]:v/scale}})};
+    el.addEventListener('input',apply);
     el.addEventListener('pointerdown',e=>{e.stopPropagation();keepOpen()});
     el.addEventListener('pointerup',()=>schedClose(9986000));
     apply();
   }
   // Chatter / Grain are ceilings reached at full dryness.
-  link('sChat','vChat',v=>{CHAT_MAX=v/100});
-  link('sGrain','vGrain',v=>{GRAIN_MAX=v/100});
-  // Heel is flat — no wetness coupling.
-  link('sHeel','vHeel',v=>{HEEL=v/100});
+  link('sChat','vChat','chat',100);
+  link('sGrain','vGrain','grain',100);
+  // Heel rides the brush load (see heelLoadK in the engine).
+  link('sHeel','vHeel','heel',100);
   // Wet / Bloom are coupling gains: how far a fully wet brush travels toward v3.
-  link('sWet','vWet',v=>{WET_GAIN=v/100});
-  link('sBloom','vBloom',v=>{BLOOM_GAIN=v/100});
+  link('sWet','vWet','wet',100);
+  link('sBloom','vBloom','bloom',100);
   // v7-ink: Tip is bokashi strength, 0 = off.
-  link('sTip','vTip',v=>{TIP_LOAD=v/100});
+  link('sTip','vTip','tip',100);
   // v7-ink: Feather is wet-on-wet pigment diffusion, 0 = off.
-  link('sFeather','vFeather',v=>{FEATHER=v/100});
+  link('sFeather','vFeather','feather',100);
   // v7-ink: Wabi is brush irregularity, 0 = the old tidy v7 behaviour.
-  link('sWabi','vWabi',v=>{WABI=v/100});
+  link('sWabi','vWabi','wabi',100);
   // v7 splash: Spray scales flick energy into the breakup physics, Height is
   // SPLAT's drop height (fall impact → rounder stains and crown satellites).
-  link('sDrop','vDrop',v=>{DROP_GAIN=v/100});
-  link('sSpray','vSpray',v=>{SPRAY=v/100});
-  link('sHeight','vHeight',v=>{SPLAT_HEIGHT=v});
-  refreshLiveChar();
+  link('sDrop','vDrop','drop',100);
+  link('sSpray','vSpray','spray',100);
+  link('sHeight','vHeight','height',1);
 })();
 
-window.SUMI={state:()=>({water:brush.w/BRUSH_W_CAP,ink:brush.p/BRUSH_P_CAP,tray:trayOpen,contact:lastContact,radius:brushRadius,style:brushStyle,chatMax:CHAT_MAX,grainMax:GRAIN_MAX,heel:HEEL,heelLive:HEEL*heelLoadK(),wetGain:WET_GAIN,bloomGain:BLOOM_GAIN,spray:SPRAY,height:SPLAT_HEIGHT,inFlight:splatParticles.length,lastSplat,
-  dryness:1-brush.w/(brush.w+brush.p+1e-12)})};
+// Initial brush settings for the engine (queued until it is up).
+{const act=document.querySelector('.palPage.active .swatch.active');if(act){inkR=parseFloat(act.dataset.r);inkG=parseFloat(act.dataset.g);inkB=parseFloat(act.dataset.b)}}
+send({t:'set',v:{ink:[inkR,inkG,inkB],style:brushStyle,radius:brushRadius,drain:disperseOn,flick:false}});
+startEngine();
+drawBrushIcon();
+// Start with the canvas unobstructed. Open the tray only when the user asks.
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){drawing=false;holding=null}
+  send({t:'vis',hidden:document.hidden})});
+if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
+window.resetAll=resetAll;window.openTray=openTray;window.openMaterialTray=openMaterialTray;window.openNapkinOnly=openNapkinOnly;window.closeTray=closeTray;
+window.SUMI={state:()=>({water:B.w/B.cw,ink:B.p/B.cp,tray:trayMode!=='closed',trayMode,brushOptions:brushOptions.classList.contains('open'),settings:settingsPanel.classList.contains('open'),contact:lastContact,radius:brushRadius,style:brushStyle,
+  live:B.live,nap:napOut(),inFlight:B.inFlight,lastSplat:B.lastSplat,paper:B.paperId,flick:B.flick,engine:window.__sumiMode||'starting',
+  dryness:1-B.w/(B.w+B.p+1e-12)})};
 })();
 </script>
 
