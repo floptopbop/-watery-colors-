@@ -3,633 +3,266 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-<title>SUMI v9.2.6 — Material-First Tray</title>
+<title>SUMI v9.2.1 — Material-first Sumi-e Studio</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100dvh;background:#070b12;overflow:hidden;
-  user-select:none;-webkit-user-select:none;touch-action:none;
-  font-family:'Share Tech Mono','IBM Plex Mono',monospace}
-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-#build{position:fixed;top:6px;left:8px;font-size:9px;letter-spacing:0.12em;
-  color:rgba(87,242,161,0.35);z-index:20;pointer-events:none}
-#bstate{position:fixed;top:8px;right:10px;display:flex;gap:5px;z-index:20;pointer-events:none}
-.bbar{width:6px;height:42px;border-radius:3px;background:rgba(255,255,255,0.06);
-  overflow:hidden;position:relative}
-.bbar .fill{position:absolute;left:0;right:0;bottom:0;border-radius:3px;
-  transition:height 0.15s}
-#barW .fill{background:rgba(120,180,220,0.55)}
-#barP .fill{background:rgba(200,180,160,0.55)}
-.bbar-label{font-size:7px;color:rgba(255,255,255,0.2);text-align:center;margin-top:2px}
-#trayTab{position:absolute;top:-26px;left:50%;transform:translateX(-50%);
-  z-index:11;padding:5px 20px 6px;
-  background:rgba(7,11,18,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-radius:10px 10px 0 0;border:1px solid rgba(87,242,161,0.15);border-bottom:none;
-  color:rgba(87,242,161,0.5);font-size:12px;letter-spacing:0.15em;
-  font-family:'IBM Plex Mono','Share Tech Mono',monospace;
-  touch-action:none;cursor:pointer}
-#tray{position:fixed;left:0;right:0;bottom:0;
-  padding:11px 14px calc(18px + env(safe-area-inset-bottom));
-  background:rgba(7,11,18,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-top:1px solid rgba(87,242,161,0.08);
-  display:flex;flex-direction:column;gap:9px;
-  transform:translateY(100%);
-  transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);
-  z-index:10;touch-action:none}
-#tray.visible{transform:translateY(0)}
-#disperseToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(87,242,161,0.3);font-size:10px;color:rgba(87,242,161,0.5);
-  transition:transform 0.16s,border-color 0.16s,background 0.16s;touch-action:none;cursor:pointer}
-#disperseToggle.off{border-color:rgba(216,100,80,0.4);color:rgba(216,100,80,0.6);background:rgba(120,50,40,0.12)}
-#grab{position:absolute;top:5px;left:50%;transform:translateX(-50%);
-  width:36px;height:3px;border-radius:2px;background:rgba(87,242,161,0.18)}
-#swatchRow{display:flex;gap:7px;overflow-x:auto;padding:2px 0 1px;align-items:center;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none}
-#swatchRow::-webkit-scrollbar{display:none}
-.swatch{width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  border:2px solid rgba(255,255,255,0.12);
-  transition:transform 0.16s,border-color 0.16s}
-.swatch.active{border-color:rgba(87,242,161,0.7);transform:scale(1.18)}
-.rowDiv{width:1px;align-self:stretch;margin:2px 5px;background:rgba(170,170,170,0.08);flex-shrink:0}
-.size{width:30px;height:30px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,0.1);transition:transform 0.16s,border-color 0.16s;touch-action:none}
-.size i{display:block;border-radius:50%;background:rgba(236,229,210,0.4)}
-.size.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1)}
-.size.active i{background:rgba(236,229,210,0.7)}
-#jsonBtn,#snapBtn{width:30px;height:30px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(87,242,161,0.35);background:rgba(7,11,18,0.4);
-  color:rgba(87,242,161,0.6);font-size:15px;line-height:1;
-  transition:transform 0.16s;touch-action:none}
-#jsonBtn:active,#snapBtn:active{transform:scale(0.88);border-color:rgba(87,242,161,0.7)}
-#resetBtn{width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(216,100,80,0.35);background:rgba(120,50,40,0.12);
-  color:rgba(236,229,210,0.5);font-size:15px;line-height:1;
-  transition:transform 0.16s;touch-action:none}
-#resetBtn:active{transform:scale(0.88);background:rgba(120,50,40,0.3)}
-.bstyle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
-  transition:transform 0.16s,border-color 0.16s;touch-action:none}
-.bstyle.active{border-color:rgba(87,242,161,0.6);transform:scale(1.1);color:rgba(236,229,210,0.85)}
-#brushRow{display:flex;gap:8px;justify-content:center;align-items:center;padding:0 4px;flex-wrap:nowrap}
-#brushModes{display:flex;flex:1 1 auto;min-width:0;gap:clamp(3px,1vw,6px);align-items:center}
-#brushTools{display:flex;flex:0 0 auto;gap:clamp(3px,1vw,6px);align-items:center}
-#brushModes .bstyle{flex:1 1 0;min-width:0}
-#brushTools .size{flex:0 0 30px}
-#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle{flex:0 0 30px;min-width:30px}
-@media(max-width:360px){#brushRow{gap:4px;padding:0}#brushTools{gap:3px}#brushTools .size{flex-basis:27px;width:27px;height:27px}#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle{flex-basis:27px;min-width:27px;width:27px;height:27px}#brushModes{gap:3px}}
-#charRow{display:none;gap:18px;align-items:center;padding:2px 2px 0;overflow-x:auto;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none}
-#charRow.open{display:flex}
-#charRow::-webkit-scrollbar{display:none}
-.chr{display:flex;flex-direction:column;gap:2px;flex:1 0 82px;min-width:82px}
-.chr label{display:flex;justify-content:space-between;align-items:baseline;
-  font-size:10px;letter-spacing:0.08em;color:#e8f3ec;text-transform:uppercase;font-weight:600}
-.chr label b{font-weight:700;color:#7dfcb4;font-size:11px}
-/* v7: live value riding the brush state. Thumb = your ceiling/gain, amber fill = what the brush is doing right now. */
-.chr label{white-space:nowrap;gap:3px}
-.chr{flex:1 0 104px;min-width:104px}
-.chr label .lv{font-weight:700;color:#ffd27a;font-size:11px;margin-left:auto}
-.chr label .lv::after{content:'/';color:rgba(236,234,210,.55);margin-left:2px}
-.chr.nolive label .lv{display:none}
-.chrDiv{width:1px;align-self:stretch;margin:2px 2px;background:rgba(236,234,210,.18);flex-shrink:0}
-.chr input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;
-  background:transparent;touch-action:none;margin:0}
-.chr input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;
-  background:linear-gradient(90deg,#ffd27a 0,#ffd27a var(--live,0%),rgba(236,234,210,0.22) var(--live,0%))}
-.chr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
-  width:20px;height:20px;border-radius:50%;background:#7dfcb4;margin-top:-8px;
-  border:2px solid #0b1012;box-shadow:0 1px 5px rgba(0,0,0,.6)}
-.chr input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:linear-gradient(90deg,#ffd27a 0,#ffd27a var(--live,0%),rgba(236,234,210,0.22) var(--live,0%))}
-.chr input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
-  background:#7dfcb4;border:2px solid #0b1012}
-#charToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
-  transition:transform 0.16s,border-color 0.16s;touch-action:none;cursor:pointer}
-#charToggle.on{border-color:#7dfcb4;color:#7dfcb4;transform:scale(1.1)}
-#tiltToggle{width:30px;height:30px;border-radius:5px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,0.1);font-size:13px;color:rgba(236,229,210,0.45);
-  transition:transform 0.16s,border-color 0.16s;touch-action:none;cursor:pointer}
-#tiltToggle.on{border-color:#ffd27a;color:#ffd27a;transform:scale(1.1)}
-#tiltToggle.waiting{border-color:rgba(255,210,122,0.35);color:rgba(255,210,122,0.5)}
-/* Tilt permission gate. iOS only hands out motion access from inside a real
-   click on a real button, so it gets its own screen at boot like SPLAT's. */
-#permGate{position:fixed;inset:0;z-index:80;background:rgba(18,20,20,0.97);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;text-align:center}
-#permGate .g{font-size:30px;color:#7dfcb4;letter-spacing:.06em}
-#permGate p{color:#ece6d2;font-size:14px;line-height:2.7;max-width:300px;margin:0}
-#permGate button{font-family:inherit;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
-  padding:14px 30px;border-radius:5px;cursor:pointer;background:transparent;border:2px solid #7dfcb4;color:#7dfcb4}
-#permGate button.skip{border-color:rgba(236,230,210,0.3);color:rgba(236,230,210,0.6);font-size:12px;padding:10px 22px}
-#permStatus{font-size:12px;color:#ffd27a;min-height:16px;margin:0}
-#dipRow{display:flex;gap:8px;height:64px}
-.dip,#napkin{flex:1;border-radius:6px;position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.52rem;letter-spacing:0.12em;text-transform:uppercase;
-  touch-action:none;-webkit-user-select:none;cursor:pointer}
-.dip .fill{position:absolute;left:0;bottom:0;right:0;height:0%;transition:none}
-.dip span,#napkin .napLabel{position:relative;z-index:2;pointer-events:none}
-#dipInk{background:#141210;color:rgba(236,229,210,0.6)}
-#dipInk .fill{background:rgba(236,229,210,0.12)}
-#dipWater{background:#1a3048;color:rgba(180,210,240,0.6)}
-#dipWater .fill{background:rgba(120,180,220,0.2)}
-#napkin{background:rgba(236,229,210,0.12);color:rgba(236,229,210,0.4);flex:1.4}
-#napCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:6px;pointer-events:none;z-index:0}
-.napZones{position:absolute;inset:0;display:flex;z-index:4;pointer-events:none}
-.napZone{flex:1}
-.napZone.mid{border-left:1px solid rgba(236,229,210,0.18);border-right:1px solid rgba(236,229,210,0.18)}
-#napkin .napLabel{font-size:0.46rem;opacity:1;color:rgba(160,150,135,0.4);letter-spacing:0.15em;z-index:5;
-  position:absolute;bottom:3px;left:50%;transform:translateX(-50%);white-space:nowrap}
-#paletteWrap{display:flex;gap:7px;position:relative}
-.palPage{display:none;gap:7px}
-.palPage.active{display:flex}
-#palToggle{width:22px;height:26px;border-radius:4px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border:1px solid rgba(87,242,161,0.2);
-  color:rgba(87,242,161,0.45);font-size:16px;line-height:1;
-  touch-action:none;cursor:pointer;transition:transform 0.2s}
-#palToggle.flipped{transform:scaleX(-1)}
-
-/* ===== ENHANCEMENT LAYER — PRESENTATION ONLY ===== */
-:root{
-  --sumi-ink:#10171a;
-  --sumi-ink-soft:#1b2527;
-  --sumi-paper:#ecead2;
-  --sumi-green:#91b9a1;
-  --sumi-green-dim:rgba(145,185,161,.42);
-  --sumi-line:rgba(236,234,210,.11);
-  --sumi-glass:rgba(10,16,18,.78);
-  --sumi-shadow:0 18px 50px rgba(0,0,0,.42);
+* { margin: 0px; padding: 0px; box-sizing: border-box; }
+html, body { width: 100%; height: 100dvh; background: rgb(7, 11, 18); overflow: hidden; user-select: none; touch-action: none; font-family: "Share Tech Mono", "IBM Plex Mono", monospace; }
+canvas { position: absolute; inset: 0px; width: 100%; height: 100%; touch-action: none; }
+#bstate { position: fixed; top: 8px; right: 10px; display: flex; gap: 5px; z-index: 20; pointer-events: none; }
+#trayTab { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); z-index: 11; padding: 5px 20px 6px; background: rgba(7, 11, 18, 0.88); backdrop-filter: blur(18px); border-radius: 10px 10px 0px 0px; border-width: 1px 1px medium; border-style: solid solid none; border-color: rgba(87, 242, 161, 0.15) rgba(87, 242, 161, 0.15) currentcolor; border-image: none; color: rgba(87, 242, 161, 0.5); font-size: 12px; letter-spacing: 0.15em; font-family: "IBM Plex Mono", "Share Tech Mono", monospace; touch-action: none; cursor: pointer; }
+#tray { position: fixed; left: 0px; right: 0px; bottom: 0px; padding: 11px 14px calc(18px + env(safe-area-inset-bottom)); background: rgba(7, 11, 18, 0.88); backdrop-filter: blur(18px); border-top: 1px solid rgba(87, 242, 161, 0.08); display: flex; flex-direction: column; gap: 9px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10; touch-action: none; }
+#tray.visible { transform: translateY(0px); }
+#swatchRow::-webkit-scrollbar { display: none; }
+#jsonBtn:active, #snapBtn:active { transform: scale(0.88); border-color: rgba(87, 242, 161, 0.7); }
+#resetBtn:active { transform: scale(0.88); background: rgba(120, 50, 40, 0.3); }
+.bstyle { width: 30px; height: 30px; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.1); font-size: 13px; color: rgba(236, 229, 210, 0.45); transition: transform 0.16s, border-color 0.16s; touch-action: none; }
+#charRow { display: none; gap: 18px; align-items: center; padding: 2px 2px 0px; overflow-x: auto; scrollbar-width: none; }
+#charRow::-webkit-scrollbar { display: none; }
+.chr { display: flex; flex-direction: column; gap: 2px; flex: 1 0 82px; min-width: 82px; }
+.chr label { display: flex; justify-content: space-between; align-items: baseline; font-size: 10px; letter-spacing: 0.08em; color: rgb(232, 243, 236); text-transform: uppercase; font-weight: 600; }
+.chr label b { font-weight: 700; color: rgb(125, 252, 180); font-size: 11px; }
+.chr label { white-space: nowrap; gap: 3px; }
+.chr label .lv { font-weight: 700; color: rgb(255, 210, 122); font-size: 11px; margin-left: auto; }
+.chr label .lv::after { content: "/"; color: rgba(236, 234, 210, 0.55); margin-left: 2px; }
+.chr.nolive label .lv { display: none; }
+.chrDiv { width: 1px; align-self: stretch; margin: 2px; background: rgba(236, 234, 210, 0.18); flex-shrink: 0; }
+.chr input[type="range"] { appearance: none; width: 100%; height: 22px; background: transparent; touch-action: none; margin: 0px; }
+.chr input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius: 3px; background: linear-gradient(90deg,#ffd27a 0,#ffd27a var(--live,0%),rgba(236,234,210,0.22) var(--live,0%)); }
+.chr input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: rgb(125, 252, 180); margin-top: -8px; border: 2px solid rgb(11, 16, 18); box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 5px; }
+.dip, #napkin { flex: 1 1 0%; border-radius: 6px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.52rem; letter-spacing: 0.12em; text-transform: uppercase; touch-action: none; user-select: none; cursor: pointer; }
+.dip .fill { position: absolute; left: 0px; bottom: 0px; right: 0px; height: 0%; transition: none; }
+.dip span, #napkin .napLabel { position: relative; z-index: 2; pointer-events: none; }
+#napCanvas { position: absolute; inset: 0px; width: 100%; height: 100%; border-radius: 6px; pointer-events: none; z-index: 0; }
+.napZones { position: absolute; inset: 0px; display: flex; z-index: 4; pointer-events: none; }
+.napZone.mid { border-left: 1px solid rgba(236, 229, 210, 0.18); border-right: 1px solid rgba(236, 229, 210, 0.18); }
+#napkin .napLabel { font-size: 0.46rem; opacity: 1; color: rgba(160, 150, 135, 0.4); letter-spacing: 0.15em; z-index: 5; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+#paletteWrap { display: flex; gap: 7px; position: relative; }
+.palPage { display: none; gap: 7px; }
+#palToggle { width: 22px; height: 26px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(87, 242, 161, 0.2); color: rgba(87, 242, 161, 0.45); font-size: 16px; line-height: 1; touch-action: none; cursor: pointer; transition: transform 0.2s; }
+#palToggle.flipped { transform: scaleX(-1); }
+#canvas { position: fixed; inset: 0px; touch-action: none; object-fit: contain; object-position: 50% 50%; }
+#trayTab:active { transform: translateY(1px) scale(0.985); }
+button, .btn, [role="button"] { -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
-html,body{
-  background:
-    radial-gradient(ellipse at 50% 0%,rgba(117,150,134,.055),transparent 42%),
-    linear-gradient(180deg,#0b1012,#11191b 68%,#0a0f11);
+:root { --washi: #ecead2; --washi-deep: #e4e0c6; --sumi: #1f1c18; --sumi-2: rgba(31,28,24,.72); --sumi-3: rgba(31,28,24,.45); --sumi-line: rgba(31,28,24,.16); --shu: #b8402c; --shu-soft: rgba(184,64,44,.14); --serif: "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Iowan Old Style",Georgia,serif; --fibre: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .32  0 0 0 0 .25  0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23f)'/></svg>"); }
+#bstate { filter: none; }
+#permGate button:active { transform: translateY(1px); }
+#tray { background: var(--fibre),
+    linear-gradient(180deg,rgba(236,234,210,0) 0,rgba(236,234,210,.88) 16px,rgba(236,234,210,.97) 34px,var(--washi) 100%); backdrop-filter: none; border-top-width: medium; border-top-style: none; border-top-color: currentcolor; box-shadow: none; padding: 14px 12px calc(14px + env(safe-area-inset-bottom)); gap: 10px; }
+#trayTab { background: radial-gradient(60% 75% at 50% 70%, rgba(236, 234, 210, 0.95) 35%, rgba(236, 234, 210, 0) 100%); backdrop-filter: none; box-shadow: none; color: var(--sumi-2); font-family: var(--serif); font-size: 13px; letter-spacing: 0.3em; padding: 6px 22px 4px; top: -28px; border-width: medium !important; border-style: none !important; border-color: currentcolor !important; border-image: none !important; }
+#paletteWrap, .palPage { gap: 4px; }
+#snapWrap { position: fixed; inset: 0px; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(20, 18, 15, 0.84); touch-action: auto; }
+#snapWrap.open { display: flex; }
+#snapImg { display: block; max-width: 94vw; max-height: 80vh; border: 1px solid rgba(236, 229, 210, 0.25); user-select: auto; touch-action: auto; }
+#snapHint { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(236, 229, 210, 0.6); }
+#resetBtn:active { background: var(--shu-soft); }
+#jsonBtn:active, #snapBtn:active { background: rgba(31, 28, 24, 0.06); }
+.bstyle, #disperseToggle, #charToggle, #tiltToggle, .size { flex: 0 1 30px; min-width: 24px; width: auto; height: 30px; border: 1.5px solid var(--sumi-line); background: transparent; color: var(--sumi-2); font-family: var(--serif); font-size: 16px; border-radius: 3px; }
+.size.active { border-color: var(--sumi); transform: none; }
+.chr label { color: var(--sumi); font-family: var(--serif); font-size: 11px; letter-spacing: 0.1em; font-weight: 600; }
+.chr label b { color: var(--sumi); font-size: 12px; }
+.chr label .lv { color: var(--shu); font-size: 12px; }
+.chr label .lv::after { color: var(--sumi-3); }
+.chrDiv { background: var(--sumi-line); }
+.chr input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%)); }
+.chr input[type="range"]::-webkit-slider-thumb { background: var(--sumi); border: 2px solid var(--washi); box-shadow: rgba(31, 28, 24, 0.35) 0px 1px 3px; }
+.dip, #napkin { border-radius: 3px; font-family: var(--serif); font-size: 0.72rem; letter-spacing: 0.2em; }
+#dipInk .fill { background: rgba(236, 234, 210, 0.14); }
+#dipWater .fill { background: rgba(241, 239, 223, 0.22); }
+#napkin { background: transparent; color: var(--sumi-2); box-shadow: inset 0 0 0 1px var(--sumi-line); }
+.napZone.mid { border-color: rgba(31, 28, 24, 0.1); }
+#bstate { gap: 7px; align-items: flex-start; }
+.kcol { position: relative; display: flex; flex-direction: column; align-items: center; font-family: var(--serif); font-size: 15px; line-height: 1.1; font-weight: 600; --e: 0; }
+.kcol .kg span, .kcol .kl span { display: block; text-align: center; }
+.kcol .kg { opacity: 0.1; }
+.kcol .kl { position: absolute; inset: 0px; mask-image: linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%)); }
+#kInk { color: var(--sumi); }
+#kWater { color: rgb(63, 106, 143); }
+#napTab { background: radial-gradient(60% 75% at 50% 70%, rgba(236, 234, 210, 0.95) 35%, rgba(236, 234, 210, 0) 100%); color: var(--sumi-2); font-family: var(--serif); font-size: 13px; letter-spacing: 0.3em; padding: 6px 22px 4px; touch-action: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#tabRow #trayTab:active, #tabRow #napTab:active { transform: translateY(1px); }
+#tray.napOnly #swatchRow, #tray.napOnly #brushRow, #tray.napOnly #charRow { display: none !important; }
+#napBrush { position: absolute; inset: 50% 5px auto auto; width: 14px; height: 40px; margin-top: -20px; z-index: 5; pointer-events: none; }
+#tabRow #paperTab:active, #tabRow #studyTab:active { transform: translateY(1px); }
+#studyPanel { position: fixed; inset: 0px; z-index: 90; display: none; align-items: center; justify-content: center; padding: calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom)); background: rgba(24, 22, 18, 0.48); touch-action: pan-y; }
+#studyPanel.open { display: flex; }
+.study-card { width: min(94vw, 430px); max-height: 78dvh; overflow-y: auto; padding: 20px 19px 16px; background: var(--washi); color: var(--sumi); border: 1px solid rgba(31, 28, 24, 0.22); box-shadow: rgba(20, 18, 15, 0.25) 0px 16px 50px; font-family: var(--serif); touch-action: pan-y; }
+.study-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--sumi-line); padding-bottom: 9px; }
+#studyKicker { font-size: 10px; letter-spacing: 0.18em; color: var(--shu); }
+#studyClose { width: 30px; height: 30px; border: 0px; background: transparent; color: var(--sumi); font: 28px/1 var(--serif); cursor: pointer; }
+#studyTitle { font: 500 24px/1.2 var(--serif); margin: 15px 0px 11px; letter-spacing: 0.015em; }
+#studyBody { font: 15px/1.7 var(--serif); color: var(--sumi-2); white-space: pre-line; }
+#studyPrompt { margin-top: 14px; padding: 12px 13px; border-left: 2px solid var(--shu); background: rgba(31, 28, 24, 0.043); font: 14px/1.65 var(--serif); color: var(--sumi); }
+.study-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.study-nav button { min-height: 36px; padding: 7px 14px; border: 1px solid var(--sumi-line); background: transparent; color: var(--sumi); font: 11px/1 var(--serif); letter-spacing: 0.12em; cursor: pointer; }
+.study-nav button:disabled { opacity: 0.3; }
+.study-nav button:last-child { background: var(--sumi); color: var(--washi); border-color: var(--sumi); }
+.study-source { margin-top: 13px; font: 11px/1.5 var(--serif); color: var(--sumi-3); }
+#trayScroll::-webkit-scrollbar { display: none; }
+#tabRow #trayTab, #tabRow #napTab, #tabRow #paperTab, #tabRow #studyTab { min-width: 0px; width: 100%; min-height: 30px; display: flex; align-items: center; justify-content: center; padding: 5px 2px 4px; font-size: clamp(9px, 2.55vw, 11px); line-height: 1.1; letter-spacing: 0.045em; text-align: center; white-space: nowrap; overflow: hidden; }
+#swatchRow::-webkit-scrollbar { display: none; }
+.palPage.active { display: flex; width: 100%; min-width: 0px; align-items: center; justify-content: space-between; gap: clamp(2px, 0.8vw, 4px); }
+#brushRow { display: flex; flex: 0 0 auto; flex-direction: column; width: 100%; min-width: 0px; gap: 6px; padding: 0px; align-items: stretch; }
+#brushModes { display: grid; grid-template-columns: repeat(5, minmax(0px, 1fr)); gap: 5px; width: 100%; min-width: 0px; }
+#brushRow .bstyle { display: flex; width: 100%; min-width: 0px; min-height: 34px; height: 34px; flex: initial; align-items: center; justify-content: center; padding: 0px 2px; border: 1px solid var(--sumi-line); border-radius: 3px; font-family: var(--serif); font-size: clamp(10px, 2.8vw, 12px); line-height: 1; letter-spacing: 0px; white-space: nowrap; overflow: hidden; }
+#brushRow .bstyle[data-style="smudge"] { font-size: clamp(9px, 2.45vw, 11px) !important; }
+#charRow::-webkit-scrollbar { display: none; }
+#dipRow .dip span { font-size: clamp(9px, 2.8vw, 11px); letter-spacing: 0.14em; }
+@media (max-width: 360px) {
+  #brushRow .bstyle[data-style="smudge"] { font-size: 8px !important; }
 }
-body{
-  padding-top:env(safe-area-inset-top);
-  padding-bottom:env(safe-area-inset-bottom);
+@media (max-height: 700px) {
+  #studyPanel .study-card { max-height: 82dvh; }
 }
-#canvas{position:fixed;inset:0;touch-action:none;object-fit:contain;object-position:50% 50%}
-#fxCanvas{position:fixed;inset:0;z-index:7;pointer-events:none}
-#build{letter-spacing:.16em !important;text-shadow:0 1px 16px rgba(0,0,0,.7);opacity:.82}
-#bstate{filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))}
-#liveStatus{
-  position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:12;
-  display:flex;align-items:center;gap:7px;padding:7px 9px;
-  border:1px solid var(--sumi-line);border-radius:10px;
-  background:rgba(9,14,16,.56);
-  backdrop-filter:blur(12px) saturate(.82);-webkit-backdrop-filter:blur(12px) saturate(.82);
-  box-shadow:0 8px 26px rgba(0,0,0,.22);
-  font:600 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.11em;color:rgba(236,234,210,.55);pointer-events:none;
-  transition:opacity .25s ease,transform .25s ease;
+#brushTools #flickToggle.on { background: var(--shu); border-color: var(--shu); color: var(--washi); }
+#dipInk, #dipWater { box-shadow: none; border: 1px solid rgba(49, 45, 38, 0.08); }
+#trayScroll { display: flex; flex: 0 0 auto; flex-flow: wrap; place-content: center; align-items: center; width: 100%; min-width: 0px; max-height: none; gap: 14px 11.5px; overflow: visible; touch-action: pan-y; }
+#brushRow .bstyle, #brushTools #disperseToggle, #brushTools #charToggle, #brushTools #flickToggle, #brushTools .size { display: flex; flex: 0 0 27px; width: 27px; min-width: 27px; height: 29px; min-height: 29px; align-items: center; justify-content: center; padding: 0px; border: 1px solid rgba(49, 45, 38, 0.18); border-radius: 3px; background: transparent; color: rgba(31, 28, 24, 0.48); font-family: var(--serif); font-size: 16px; line-height: 1; letter-spacing: 0px; box-shadow: none; transform: none; white-space: nowrap; }
+#brushRow .bstyle.active, #brushTools #charToggle.on, #brushTools #disperseToggle.on { background: var(--sumi); border-color: var(--sumi); color: var(--washi); }
+#swatchRow .swatch { flex: 0 0 clamp(13px, 4.1vw, 16px); width: clamp(13px, 4.1vw, 16px); height: clamp(13px, 4.1vw, 16px); border: 1px solid rgba(31, 28, 24, 0.22); box-shadow: none; opacity: 0.78; }
+#swatchRow .swatch.active { opacity: 1; transform: none; border-color: var(--sumi); box-shadow: 0 0 0 1px var(--washi),0 0 0 2px var(--shu); }
+#palToggle.flipped { background: var(--sumi); border-color: var(--sumi); color: var(--washi); }
+#resetBtn, #snapBtn, #jsonBtn { flex: 0 0 20px; width: 20px; min-width: 20px; height: 21px; border: 1px solid rgba(31, 28, 24, 0.18); border-radius: 3px; font-size: 13px; color: rgba(31, 28, 24, 0.55); }
+#resetBtn:active, #snapBtn:active, #jsonBtn:active, #dipInk.pressed, #dipWater.pressed, #napkin:active { background: rgba(31, 28, 24, 0.1); border-color: rgba(31, 28, 24, 0.42); }
+#dipInk, #dipWater, #napkin { flex: 0 0 23px; width: 23px; min-width: 23px; height: 23px; min-height: 23px; border-radius: 3px; box-shadow: rgba(31, 28, 24, 0.08) 0px 0px 0px 1px inset; font-size: 12px; letter-spacing: 0px; }
+#napkin .napLabel { font-size: 13px; bottom: 50%; transform: translate(-50%, 50%); color: rgba(31, 28, 24, 0.58); }
+#tray #charRow { display: none; flex: 0 0 100%; width: 100%; max-width: 100%; min-width: 0px; gap: 12px; padding: 4px 1px 3px; overflow: auto hidden; touch-action: pan-x; }
+#tabRow { grid-template-columns: repeat(4, minmax(0px, 1fr)); gap: 4px; top: -28px; }
+#tabRow #trayTab, #tabRow #napTab, #tabRow #paperTab, #tabRow #studyTab { min-height: 25px; padding: 4px 2px 3px; border: 1px solid transparent; border-radius: 2px; font-size: 15px; line-height: 1; letter-spacing: 0px; color: rgba(31, 28, 24, 0.46); opacity: 1; background: transparent; }
+#tabRow #paperTab:active { background: rgba(31, 28, 24, 0.08); color: var(--sumi); }
+@media (max-width: 360px) {
+  #resetBtn, #snapBtn, #jsonBtn { flex-basis: 19px; width: 19px; min-width: 19px; height: 20px; }
 }
-#liveStatus span:first-child{color:var(--sumi-green)}
-#liveStatus.pressed{transform:translateY(1px)}
-#tray{
-  box-shadow:var(--sumi-shadow),0 -1px 0 rgba(236,234,210,.055) inset;
-  background:linear-gradient(180deg,rgba(23,31,33,.93),rgba(9,14,16,.96));
-  border-top:1px solid rgba(236,234,210,.12);
+#tray { padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); gap: 0px; max-width: 100%; background: linear-gradient(180deg,rgba(236,234,210,.985),var(--washi)); box-shadow: rgba(31, 28, 24, 0.1) 0px -10px 34px; transform: translateY(100%); transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+#tabRow #resetBtn:active { background: var(--shu-soft); }
+#trayScroll { display: flex; flex: 0 1 auto; flex-direction: column; align-items: stretch; justify-content: flex-end; width: 100%; min-width: 0px; max-height: 62dvh; gap: 9px; overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: none; }
+#trayScroll::-webkit-scrollbar { display: none; }
+#dipRow { display: flex; flex: 0 0 auto; width: 100%; height: 124px; min-width: 0px; gap: 8px; align-items: stretch; }
+#dipInk, #dipWater { display: flex; position: relative; flex: 0 0 42px; width: 42px; min-width: 42px; height: 124px; min-height: 124px; align-items: center; justify-content: center; border-radius: 3px; overflow: hidden; font-family: var(--serif); font-size: 22px; letter-spacing: 0px; box-shadow: rgba(31, 28, 24, 0.08) 0px 0px 0px 1px inset; touch-action: none; -webkit-tap-highlight-color: transparent; }
+#dipInk { background: rgb(48, 45, 41); color: rgba(236, 234, 210, 0.9); }
+#dipWater { background: rgb(113, 131, 138); color: rgba(245, 244, 230, 0.96); }
+#dipInk.pressed, #dipWater.pressed { filter: brightness(1.16); box-shadow: rgba(236, 234, 210, 0.32) 0px 0px 0px 2px inset; }
+#dipInk .fill, #dipWater .fill { opacity: 0.65; pointer-events: none; }
+#napkin { position: relative; display: flex; flex: 1 1 auto; width: auto; min-width: 0px; height: 124px; min-height: 124px; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px; background: rgba(236, 234, 210, 0.36); box-shadow: rgba(31, 28, 24, 0.13) 0px 0px 0px 1px inset; touch-action: none; cursor: crosshair; }
+#napCanvas { position: absolute; inset: 0px; width: 100%; height: 100%; border-radius: 3px; pointer-events: none; opacity: 0.9; }
+.napZone { flex: 1 1 0%; min-width: 0px; }
+#napkin .napLabel { position: absolute; left: 50%; top: 7px; transform: translateX(-50%); z-index: 5; color: rgba(31, 28, 24, 0.25); font: 10px/1 var(--serif); letter-spacing: 0.22em; pointer-events: none; }
+.napZone { position: relative; }
+.napZone::after { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); font: 10px/1 var(--serif); color: rgba(31, 28, 24, 0.24); pointer-events: none; }
+.napZone:first-child::after { content: "墨"; }
+.napZone.mid::after { content: "調"; }
+.napZone:last-child::after { content: "水"; }
+#brushHandle { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); z-index: 8; display: flex; align-items: center; justify-content: center; width: 42px; height: 76px; border-radius: 22px; background: rgba(236, 234, 210, 0.42); border: 1px solid rgba(31, 28, 24, 0.12); box-shadow: rgba(31, 28, 24, 0.06) 0px 2px 9px; touch-action: manipulation; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#brushHandle:active, #brushHandle.pressed { background: rgba(31, 28, 24, 0.08); border-color: rgba(31, 28, 24, 0.38); }
+#napBrush { position: relative; display: block; right: auto; top: auto; width: 22px; height: 62px; margin: 0px; z-index: 1; pointer-events: none; }
+#brushFlash { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 7; color: rgba(31, 28, 24, 0.82); font: 34px/1 var(--serif); pointer-events: none; opacity: 0; text-shadow: rgba(236, 234, 210, 0.8) 0px 1px 8px; }
+@keyframes brushFlashLife { 
+  0% { opacity: 0; filter: blur(2px); transform: translate(-50%, -46%) scale(0.94); }
+  18% { opacity: 0.92; filter: blur(0px); transform: translate(-50%, -50%) scale(1); }
+  76% { opacity: 0.92; }
+  100% { opacity: 0; filter: blur(1px); transform: translate(-50%, -54%) scale(1.02); }
 }
-#trayTab{box-shadow:0 28px 24px rgba(0,0,0,.35);border-color:rgba(236,234,210,.13) !important}
-#trayTab:active{transform:translateY(1px) scale(.985)}
-button,.btn,[role="button"]{-webkit-tap-highlight-color:transparent}
-#grab{opacity:.65;transition:opacity .2s ease,transform .2s ease}
-#tray.open #grab{opacity:.9}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}
+#brushOptions, #settingsPanel { display: none; flex: 0 0 auto; width: 100%; min-width: 0px; padding: 8px 9px 9px; border: 1px solid rgba(31, 28, 24, 0.13); border-radius: 3px; background: rgba(236, 234, 210, 0.96); box-shadow: rgba(31, 28, 24, 0.07) 0px 6px 22px; }
+.panelHead { display: flex; align-items: center; justify-content: space-between; min-height: 24px; color: var(--sumi-2); font: 11px/1 var(--serif); letter-spacing: 0.15em; }
+.panelHead button { width: 28px; height: 26px; border: 0px; background: transparent; color: var(--sumi-2); font: 23px/1 var(--serif); }
+#brushRow .bstyle { display: flex; align-items: center; justify-content: center; width: 100%; min-width: 0px; height: 36px; min-height: 36px; padding: 0px 2px; border: 1px solid rgba(31, 28, 24, 0.17); border-radius: 3px; background: transparent; color: rgba(31, 28, 24, 0.6); font: 18px/1 var(--serif); white-space: nowrap; }
+#brushTools { display: grid; grid-template-columns: repeat(3, minmax(0px, 1fr)) 40px 40px; gap: 6px; width: 100%; min-width: 0px; align-items: center; }
+#charRow::-webkit-scrollbar { display: none; }
+#settingsActions #paperTab, #settingsActions #studyTab, #settingsActions #snapBtn, #settingsActions #jsonBtn { display: flex; align-items: center; justify-content: center; flex: 1 1 0px; min-width: 0px; height: 34px; border: 1px solid rgba(31, 28, 24, 0.16); border-radius: 3px; background: transparent; color: var(--sumi-2); font: 17px/1 var(--serif); touch-action: manipulation; }
+#settingsActions #paperTab:active, #settingsActions #studyTab:active, #settingsActions #snapBtn:active, #settingsActions #jsonBtn:active { background: rgba(31, 28, 24, 0.08); }
+#swatchRow .swatch { flex: 0 0 clamp(17px, 5vw, 22px); width: clamp(17px, 5vw, 22px); height: clamp(17px, 5vw, 22px); border: 1px solid rgba(31, 28, 24, 0.2); opacity: 0.82; }
+#palToggle { flex: 0 0 26px; width: 26px; height: 26px; border: 1px solid rgba(31, 28, 24, 0.17); color: var(--sumi-2); border-radius: 3px; }
+@media (max-width: 360px) {
+  #brushTools { grid-template-columns: repeat(3, minmax(0px, 1fr)) 36px 36px; }
 }
-
-/* ===== READABILITY PASS ===== */
-#build{
-  top:calc(6px + env(safe-area-inset-top));font-size:9px;
-  letter-spacing:.14em !important;color:rgba(145,185,161,.30);opacity:1;
-}
-#bstate{top:calc(8px + env(safe-area-inset-top))}
-.bbar-label{font-size:8px;color:rgba(236,234,210,.28)}
-.bbar{background:rgba(255,255,255,.07)}
-#barW .fill{background:rgba(120,180,220,.60)}
-#barP .fill{background:rgba(200,180,160,.60)}
-/* Diagnostics readout — hidden. Add ?debug to the URL if you want it back. */
-#liveStatus{
-  display:none;top:calc(26px + env(safe-area-inset-top));right:auto;left:8px;
-  padding:6px 10px;font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.08em;color:rgba(236,234,210,.88);background:rgba(9,14,16,.62);
-}
-#liveStatus.on{display:flex}
-#liveStatus span:first-child{color:#9fd3b4}
-.dip,#napkin{font-size:.62rem;letter-spacing:.10em}
-#dipInk{color:rgba(236,229,210,.85)}
-#dipWater{color:rgba(190,220,250,.9)}
-#napkin .napLabel{font-size:.56rem;color:rgba(120,112,100,.75)}
-.bstyle{font-size:15px;color:rgba(236,229,210,.65)}
-.bstyle.active{color:#fff}
-#trayTab{font-size:11px;color:rgba(145,185,161,.85)}
-#jsonBtn,#snapBtn,#resetBtn{color:rgba(236,229,210,.9)}
-
-/* ===== SUMI-E AESTHETIC PASS (v7.4) — presentation only ===================
-   Everything below overrides the dark/terminal styling above. The tray and
-   the opening screen now sit on the same cream paper as the canvas, ink is
-   the only "UI colour", and a single vermilion — the seal-stamp red — marks
-   what's active. No green anywhere. */
-:root{
-  --washi:#ecead2;              /* the canvas paper (PAP_R/G/B) */
-  --washi-deep:#e4e0c6;
-  --sumi:#1f1c18;               /* ink */
-  --sumi-2:rgba(31,28,24,.72);
-  --sumi-3:rgba(31,28,24,.45);
-  --sumi-line:rgba(31,28,24,.16);
-  --shu:#b8402c;                /* vermilion seal red */
-  --shu-soft:rgba(184,64,44,.14);
-  --serif:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Iowan Old Style",Georgia,serif;
-  /* Faint fibre texture so the tray reads as the same sheet, not a flat panel. */
-  --fibre:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .32  0 0 0 0 .25  0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23f)'/></svg>");
-}
-html,body{background:var(--washi)}
-
-/* ── top-left build tag and brush meters ── */
-#build{color:rgba(31,28,24,.22)!important;text-shadow:none;font-family:var(--serif);letter-spacing:.22em!important}
-.bbar{background:rgba(31,28,24,.08)}
-.bbar-label{color:rgba(31,28,24,.4)}
-#bstate{filter:none}
-
-/* ── opening screen: a sheet of paper with a seal ── */
-#permGate{background:var(--washi);background-image:var(--fibre);gap:18px}
-#permGate .g{font-family:var(--serif);color:var(--sumi);font-size:26px;letter-spacing:.32em;
-  display:flex;flex-direction:column;align-items:center;gap:14px}
-#permGate .g .kan{font-size:64px;letter-spacing:0;line-height:1;opacity:.9}
-#permGate .g .seal{display:inline-block;width:30px;height:30px;line-height:30px;font-size:14px;
-  letter-spacing:0;color:var(--washi);background:var(--shu);border-radius:3px;
-  transform:rotate(-4deg);margin-top:-6px;opacity:.9}
-#permGate p{font-family:var(--serif);color:var(--sumi-2);font-size:15px;line-height:1.75;max-width:290px}
-#permGate button{font-family:var(--serif);font-size:15px;letter-spacing:.14em;text-transform:none;
-  background:var(--sumi);color:var(--washi);border:none;border-radius:2px;padding:14px 34px;
-  box-shadow:0 1px 0 rgba(0,0,0,.08)}
-#permGate button:active{transform:translateY(1px)}
-#permGate button.skip{background:transparent;color:var(--sumi-2);
-  border:none;border-bottom:1px solid var(--sumi-line);border-radius:0;padding:8px 6px;font-size:14px}
-#permStatus{font-family:var(--serif);color:var(--shu);font-size:13px}
-
-/* ── tray: fades up out of the paper ── */
-#tray{
-  background:
-    var(--fibre),
-    linear-gradient(180deg,rgba(236,234,210,0) 0,rgba(236,234,210,.88) 16px,rgba(236,234,210,.97) 34px,var(--washi) 100%);
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  border-top:none;box-shadow:none;
-  padding:14px 12px calc(14px + env(safe-area-inset-bottom));gap:10px;
-}
-#grab{background:var(--sumi-line);opacity:1}
-#trayTab{
-  /* A soft pool of paper behind the word, not a box — it has to read over
-     painted ink when the tray is closed. */
-  background:radial-gradient(ellipse 60% 75% at 50% 70%,rgba(236,234,210,.95) 35%,rgba(236,234,210,0) 100%);
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  border:none!important;box-shadow:none;
-  color:var(--sumi-2);font-family:var(--serif);font-size:13px;letter-spacing:.3em;
-  padding:6px 22px 4px;top:-28px;
+.napZone::after { bottom: 5px; font-size: 9px; }
+#brushOptions, #settingsPanel { padding: 6px 7px 7px; gap: 5px; border-radius: 2px; box-shadow: none; }
+.panelHead { min-height: 19px; font-size: 10px; letter-spacing: 0.17em; }
+.panelHead button { width: 23px; height: 21px; font-size: 19px; }
+#swatchRow .swatch.active { opacity: 1; transform: scale(1.08); box-shadow: 0 0 0 1px var(--washi),0 0 0 2px var(--shu); }
+#palToggle { flex: 0 0 23px; width: 23px; height: 23px; min-height: 23px; border-radius: 2px; }
+#charRow { gap: 8px; padding: 3px 0px; max-height: 76px; }
+#tray.settings-open #brushOptions { display: none !important; }
+#tray.settings-open #dipRow { display: none !important; }
+#tray { padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); box-shadow: rgba(31, 28, 24, 0.07) 0px -4px 14px; }
+#brushOptions .panelHead { display: none !important; }
+#brushRow { display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; min-width: 0px; gap: 4px; padding: 0px; }
+#brushModes { display: flex; flex: 1 1 auto; min-width: 0px; align-items: center; justify-content: space-between; gap: 3px; }
+#brushRow .bstyle { flex: 1 1 0px; width: auto; min-width: 0px; height: 23px; min-height: 23px; padding: 0px; font-size: 14px; line-height: 1; border-radius: 2px; border: 1px solid rgba(49, 45, 38, 0.15); box-shadow: none; }
+#charRow.open { gap: 6px; padding: 3px 0px; max-height: 58px; display: flex !important; }
+#charRow .chr { flex: 0 0 88px; min-width: 88px; }
+#dipRow { height: 48px; min-height: 48px; gap: 4px; margin-top: 1px; }
+#dipInk, #dipWater { flex: 0 0 25px; width: 25px; min-width: 25px; height: 48px; min-height: 48px; border-radius: 2px; font-size: 14px; box-shadow: none; }
+#napkin { flex: 1 1 auto; min-width: 0px; height: 48px; min-height: 48px; border-radius: 2px; }
+#napkin .napLabel { top: 3px; font-size: 8px; letter-spacing: 0.08em; }
+.napZone::after { bottom: 3px; font-size: 8px; }
+#brushHandle { right: 4px; width: 25px; height: 42px; }
+#napBrush { width: 13px; height: 34px; }
+#settingsActions { display: flex; align-items: center; gap: 4px; }
+#settingsActions #paperTab, #settingsActions #studyTab, #settingsActions #snapBtn, #settingsActions #jsonBtn { flex: 1 1 0px; height: 25px; min-height: 25px; padding: 0px; font-size: 13px; border-radius: 2px; }
+#tray { padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); }
+#trayScroll { max-height: 40dvh; gap: 5px; overflow: hidden auto; }
+#tabRow { position: absolute; top: -34px; left: 0px; right: 0px; transform: none; display: flex; width: 100%; height: 30px; gap: 5px; align-items: center; justify-content: center; pointer-events: auto; white-space: nowrap; z-index: 12; }
+#tabRow #trayTab, #tabRow #napTab { position: relative; top: auto; left: auto; right: auto; transform: none; display: flex; align-items: center; justify-content: center; height: 30px; min-height: 30px; padding: 0px; border: 1px solid rgba(31, 28, 24, 0.2); border-radius: 4px; background: rgba(236, 234, 210, 0.97); color: var(--sumi-2); box-shadow: rgba(31, 28, 24, 0.09) 0px 3px 12px; font: 17px/1 var(--serif); letter-spacing: 0px; touch-action: manipulation; pointer-events: auto; }
+#tabRow #trayTab { width: 54px; min-width: 54px; font-size: 20px; }
+#tabRow #napTab { width: 37px; min-width: 37px; font-size: 16px; }
+#tabRow #trayTab.on, #tabRow #napTab.on { background: var(--sumi); border-color: var(--sumi); color: var(--washi); }
+#tabRow #trayTab:active, #tabRow #napTab:active { transform: translateY(1px); }
+#tabRow #resetQuick { position: absolute; top: 0px; right: 7px; display: flex; align-items: center; justify-content: center; width: 29px; height: 29px; min-width: 29px; min-height: 29px; padding: 0px; border: 1px solid rgba(184, 64, 44, 0.32); border-radius: 50%; background: rgba(236, 234, 210, 0.96); color: var(--shu); font: 19px/1 var(--serif); pointer-events: auto; touch-action: manipulation; }
+#tray.visible:not(.napOnly):not(.settings-open) #tabRow #resetQuick { display: none; }
+#tray #brushOptions { display: flex; flex-direction: column; gap: 4px; padding: 0px; margin: 0px; border: 0px; border-radius: 0px; background: transparent; box-shadow: none; }
+#brushRow .bstyle { flex: 1 1 0px; width: auto; min-width: 0px; height: 29px; min-height: 29px; padding: 0px 1px; border-radius: 3px; font-size: 15px; line-height: 1; }
+#brushTools { display: flex; flex: 0 0 auto; width: auto; min-width: 0px; align-items: center; justify-content: flex-end; gap: 3px; padding: 0px; }
+#brushTools #disperseToggle, #brushTools #charToggle, #brushTools #flickToggle, #brushTools #settingsBtn, #brushTools #resetBtn { display: flex; flex: 0 0 25px; width: 25px; min-width: 25px; height: 27px; min-height: 27px; align-items: center; justify-content: center; padding: 0px; border: 1px solid var(--sumi-line); border-radius: 3px; background: transparent; color: var(--sumi-2); font: 14px/1 var(--serif); touch-action: manipulation; cursor: pointer; }
+#brushTools #settingsBtn { font-size: 13px; }
+#brushTools #resetBtn { color: var(--shu); border-color: rgba(184, 64, 44, 0.35); font-size: 19px; }
+#brushTools #settingsBtn.on { background: var(--sumi); border-color: var(--sumi); color: var(--washi); }
+#brushTools #disperseToggle.off { background: transparent; border-color: var(--sumi-line); color: var(--shu); }
+#swatchRow { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-start; gap: 6px; width: 100%; min-width: 0px; min-height: 29px; padding: 0px; overflow: hidden; }
+#sizeRow { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-start; gap: 3px; padding-left: 1px; }
+#sizeRow .size { display: flex; flex: 0 0 27px; width: 27px; min-width: 27px; height: 27px; min-height: 27px; align-items: center; justify-content: center; border: 1px solid rgba(31, 28, 24, 0.2); border-radius: 50%; background: transparent; touch-action: manipulation; }
+#sizeRow .size.active { border: 2px solid var(--sumi); background: rgba(31, 28, 24, 0.05); }
+#sizeRow .size i { display: block; max-width: 14px; max-height: 14px; border-radius: 50%; background: rgba(31, 28, 24, 0.55); }
+#sizeRow .size.active i { background: var(--sumi); }
+#paletteWrap { display: flex; flex: 1 1 auto; min-width: 0px; overflow: hidden; gap: 3px; }
+#paletteWrap .palPage.active { display: flex; flex: 1 1 auto; min-width: 0px; align-items: center; justify-content: space-between; gap: clamp(2px, 0.55vw, 4px); }
+#swatchRow .swatch { flex: 0 0 clamp(14px, 4.6vw, 18px); width: clamp(14px, 4.6vw, 18px); height: clamp(14px, 4.6vw, 18px); min-width: 0px; min-height: 0px; border-radius: 50%; opacity: 0.86; }
+#palToggle { flex: 0 0 21px; width: 21px; min-width: 21px; height: 23px; min-height: 23px; padding: 0px; font-size: 15px; }
+#tray #charRow.open { display: flex; gap: 6px; padding: 3px 0px; max-height: 58px; }
+#tray #settingsPanel .panelHead { display: flex !important; min-height: 22px; }
+#tray #settingsPanel.open { display: flex; flex-direction: column; gap: 5px; padding: 0px; border: 0px; border-radius: 0px; background: transparent; box-shadow: none; }
+#tray #settingsPanel .panelHead button { width: 26px; height: 24px; }
+@media (max-width: 360px) {
+  #tray { padding-left: 7px; padding-right: 7px; }
+  #brushRow { gap: 3px; }
+  #brushRow .bstyle { height: 27px; min-height: 27px; font-size: 14px; }
+  #brushTools { gap: 2px; }
+  #brushTools #disperseToggle, #brushTools #charToggle, #brushTools #flickToggle, #brushTools #settingsBtn, #brushTools #resetBtn { flex-basis: 23px; width: 23px; min-width: 23px; height: 25px; min-height: 25px; }
+  #swatchRow { gap: 4px; }
+  #sizeRow { gap: 2px; }
+  #sizeRow .size { flex-basis: 24px; width: 24px; min-width: 24px; height: 25px; min-height: 25px; }
+  #swatchRow .swatch { flex-basis: clamp(13px, 4.3vw, 16px); width: clamp(13px, 4.3vw, 16px); height: clamp(13px, 4.3vw, 16px); }
+  #palToggle { flex-basis: 19px; width: 19px; min-width: 19px; height: 21px; min-height: 21px; }
 }
 
-/* ── swatches: condensed so the row fits a 375–414pt phone ── */
-#swatchRow{gap:4px;justify-content:space-between;overflow-x:auto;padding:4px 5px 3px}
-#paletteWrap,.palPage{gap:4px}
-/* Scales with the screen so the whole row always fits without scrolling. */
-.swatch{width:clamp(20px,5.6vw,24px);height:clamp(20px,5.6vw,24px);border:1.5px solid rgba(31,28,24,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-.swatch.active{border-color:var(--sumi);transform:scale(1.14);box-shadow:0 0 0 2px var(--washi),0 0 0 3.5px var(--shu)}
-#palToggle{border:1px solid var(--sumi-line);color:var(--sumi-2);width:20px;height:24px}
-.rowDiv{background:var(--sumi-line);margin:3px 3px}
-#resetBtn,#jsonBtn,#snapBtn{width:26px;height:26px;background:transparent;border:1.5px solid var(--sumi-line);color:var(--sumi);font-size:14px}
-/* snapshot overlay: long-press the image to save (iOS), tap anywhere to close */
-#snapWrap{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(20,18,15,.84);touch-action:auto}
-#snapWrap.open{display:flex}
-#snapImg{display:block;max-width:94vw;max-height:80vh;border:1px solid rgba(236,229,210,.25);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;touch-action:auto}
-#snapHint{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,229,210,.6)}
-#resetBtn{border-color:rgba(184,64,44,.45);color:var(--shu)}
-#resetBtn:active{background:var(--shu-soft)}
-#jsonBtn:active,#snapBtn:active{background:rgba(31,28,24,.06)}
-
-/* ── brush row: tiles shrink together instead of spilling off the edge ── */
-#brushRow{gap:4px;justify-content:space-between;padding:0}
-.bstyle,#disperseToggle,#charToggle,#tiltToggle,.size{
-  flex:0 1 30px;min-width:24px;width:auto;height:30px;
-  border:1.5px solid var(--sumi-line);background:transparent;
-  color:var(--sumi-2);font-family:var(--serif);font-size:16px;border-radius:3px}
-.bstyle[data-style="smudge"]{font-size:14px!important}
-.bstyle.active{background:var(--sumi);color:var(--washi);border-color:var(--sumi);transform:none}
-#disperseToggle{color:var(--sumi);border-color:rgba(31,28,24,.35)}
-#disperseToggle.off{color:var(--shu);border-color:rgba(184,64,44,.5);background:var(--shu-soft)}
-#charToggle.on{background:var(--sumi);color:var(--washi);border-color:var(--sumi);transform:none}
-#tiltToggle.on{background:var(--shu);color:var(--washi);border-color:var(--shu);transform:none}
-#tiltToggle.waiting{border-color:rgba(184,64,44,.45);color:var(--shu);background:var(--shu-soft)}
-.size{border-radius:50%;flex-basis:30px}
-.size i{background:rgba(31,28,24,.45)}
-.size.active{border-color:var(--sumi);transform:none}
-.size.active i{background:var(--sumi)}
-
-/* ── character sliders: ink thumb, vermilion live fill ── */
-#charRow{gap:16px}
-.chr label{color:var(--sumi);font-family:var(--serif);font-size:11px;letter-spacing:.1em;font-weight:600}
-.chr label b{color:var(--sumi);font-size:12px}
-.chr label .lv{color:var(--shu);font-size:12px}
-.chr label .lv::after{color:var(--sumi-3)}
-.chrDiv{background:var(--sumi-line)}
-.chr input[type=range]::-webkit-slider-runnable-track{
-  background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
-.chr input[type=range]::-moz-range-track{
-  background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
-.chr input[type=range]::-webkit-slider-thumb{background:var(--sumi);border:2px solid var(--washi);box-shadow:0 1px 3px rgba(31,28,24,.35)}
-.chr input[type=range]::-moz-range-thumb{background:var(--sumi);border:2px solid var(--washi)}
-
-/* ── ink stone, napkin, water: objects on the desk ── */
-#dipRow{height:58px;gap:7px}
-.dip,#napkin{border-radius:3px;font-family:var(--serif);font-size:.72rem;letter-spacing:.2em}
-#dipInk{background:#302d29;color:rgba(236,234,210,.92);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
-#dipInk .fill{background:rgba(236,234,210,.14)}
-#dipWater{background:#69777c;color:#f1efdf;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
-#dipWater .fill{background:rgba(241,239,223,.22)}
-#napkin{background:transparent;color:var(--sumi-2);box-shadow:inset 0 0 0 1px var(--sumi-line)}
-#napkin .napLabel{color:rgba(31,28,24,.55);font-family:var(--serif);font-size:.64rem}
-.napZone.mid{border-color:rgba(31,28,24,.1)}
-
-/* ── v7-ink: brush gauges as columns of calligraphy ──────────────────────────
-   Each column is the same characters twice: a faint ghost that marks the empty
-   column, and a solid copy masked from the bottom up to the brush's level. As
-   the brush runs out the characters fade away from the top down. --e is the
-   mask edge in %, set from JS (level * 1.14 so 0 shows nothing, 100 shows all).
-   Water is blue, ink is black; no labels. */
-#bstate{gap:7px;align-items:flex-start}
-.kcol{position:relative;display:flex;flex-direction:column;align-items:center;
-  font-family:var(--serif);font-size:15px;line-height:1.1;font-weight:600;--e:0}
-.kcol .kg span,.kcol .kl span{display:block;text-align:center}
-.kcol .kg{opacity:.10}
-.kcol .kl{position:absolute;left:0;right:0;top:0;bottom:0;
-  -webkit-mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%));
-          mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%))}
-#kInk{color:var(--sumi)}
-#kWater{color:#3f6a8f}
-
-/* ── v7.5: tray tabs — full tray, napkin only, or closed ── */
-#tabRow{position:absolute;top:-28px;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:11;white-space:nowrap}
-/* tiny brush on the napkin: its shape (point / splay / flat / scrub) and load */
-#napBrush{position:absolute;left:auto;right:5px;top:50%;bottom:auto;width:14px;height:40px;margin-top:-20px;z-index:5;pointer-events:none}
-/* a live value the napkin is currently moving reads water-blue */
-.chr label .lv.nap{color:#3f6a8f}
-
-/* ===== SUMI-E MATERIAL + STUDY LAYER ===== */
-#tabRow #paperTab,#tabRow #studyTab{
-  position:relative;top:auto;left:auto;transform:none;display:flex;align-items:center;justify-content:center;
-  padding:6px 10px 4px;border:0;background:radial-gradient(ellipse 65% 80% at 50% 70%,rgba(236,234,210,.95) 35%,rgba(236,234,210,0) 100%);
-  color:var(--sumi-2);font-family:var(--serif);font-size:11px;letter-spacing:.13em;cursor:pointer;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;white-space:nowrap
-}
-#tabRow #paperTab{color:var(--shu);letter-spacing:.08em}
-#tabRow #studyTab{color:var(--sumi-2)}
-#tabRow #paperTab:active,#tabRow #studyTab:active{transform:translateY(1px)}
-#flickToggle{flex:0 1 38px;min-width:34px;width:auto;height:30px;border:1.5px solid rgba(184,64,44,.32);
-  background:transparent;color:rgba(184,64,44,.62);border-radius:3px;font:600 9px/1 var(--serif);letter-spacing:.03em;
-  display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer}
-#flickToggle.on{background:var(--shu);border-color:var(--shu);color:var(--washi)}
-#studyPanel{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
-  padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
-  background:rgba(24,22,18,.48);touch-action:pan-y}
-#studyPanel.open{display:flex}
-.study-card{width:min(94vw,430px);max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:20px 19px 16px;background:var(--washi);color:var(--sumi);border:1px solid rgba(31,28,24,.22);
-  box-shadow:0 16px 50px rgba(20,18,15,.25);font-family:var(--serif);touch-action:pan-y}
-.study-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--sumi-line);padding-bottom:9px}
-#studyKicker{font-size:10px;letter-spacing:.18em;color:var(--shu)}
-#studyClose{width:30px;height:30px;border:0;background:transparent;color:var(--sumi);font:28px/1 var(--serif);cursor:pointer}
-#studyTitle{font:500 24px/1.2 var(--serif);margin:15px 0 11px;letter-spacing:.015em}
-#studyBody{font:15px/1.7 var(--serif);color:var(--sumi-2);white-space:pre-line}
-#studyPrompt{margin-top:14px;padding:12px 13px;border-left:2px solid var(--shu);background:rgba(31,28,24,.045);
-  font:14px/1.65 var(--serif);color:var(--sumi)}
-.study-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
-.study-nav button{min-height:36px;padding:7px 14px;border:1px solid var(--sumi-line);background:transparent;color:var(--sumi);
-  font:11px/1 var(--serif);letter-spacing:.12em;cursor:pointer}
-.study-nav button:disabled{opacity:.3}
-.study-nav button:last-child{background:var(--sumi);color:var(--washi);border-color:var(--sumi)}
-.study-source{margin-top:13px;font:11px/1.5 var(--serif);color:var(--sumi-3)}
-
-
-
-/* ===== SUMI v9.2.4 · consolidated mobile/material tray ====================
-   One material station, one set of dimensions. No alternate napkin-only modes.
-   The original painting engine, brush input and study tools are unchanged. */
-#tray{
-  width:100%;max-width:100%;max-height:100dvh;overflow:visible;
-  padding:7px 8px calc(7px + env(safe-area-inset-bottom));gap:0;
-  background:linear-gradient(180deg,rgba(236,234,210,.985),var(--washi));
-  box-shadow:0 -4px 14px rgba(31,28,24,.07);
-  transform:translateY(100%);
-  transition:transform .32s cubic-bezier(.2,.8,.2,1);
-}
-#tray.visible{transform:translateY(0)}
-#tabRow{
-  position:absolute;top:-36px;left:0;right:0;width:auto;height:36px;
-  display:block;transform:none;pointer-events:none;z-index:12;
-}
-#tabRow #trayTab{
-  position:absolute;left:50%;top:0;transform:translateX(-50%);
-  display:flex;align-items:center;justify-content:center;
-  width:76px;min-width:76px;height:36px;min-height:36px;padding:0;
-  border:1px solid rgba(49,45,38,.18);border-bottom:0;
-  border-radius:13px 13px 0 0;background:rgba(236,234,210,.98);
-  box-shadow:0 -3px 10px rgba(31,28,24,.07);
-  color:rgba(49,45,38,.78);font:20px/1 sans-serif;letter-spacing:0;
-  pointer-events:auto;touch-action:manipulation;cursor:pointer;
-}
-#tabRow #trayTab.on{background:transparent;border:0;color:var(--sumi)}
-#tabRow #resetQuick{
-  position:absolute;right:5px;top:-8px;display:flex;align-items:center;justify-content:center;
-  width:22px;height:22px;min-width:22px;min-height:22px;padding:0;
-  border:1px solid rgba(184,64,44,.25);border-radius:50%;
-  background:rgba(236,234,210,.94);color:var(--shu);font:16px/1 var(--serif);
-  pointer-events:auto;touch-action:manipulation;
-}
-#tray.visible #resetQuick{display:none}
-#grab{display:none}
-#trayScroll{
-  display:flex;flex:0 1 auto;flex-direction:column;align-items:stretch;justify-content:flex-end;
-  width:100%;min-width:0;max-height:40dvh;gap:5px;
-  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:none;
-}
-#trayScroll::-webkit-scrollbar{display:none}
-
-/* Brush and palette controls */
-#brushOptions,#settingsPanel{
-  display:none;flex:0 0 auto;width:100%;min-width:0;
-  padding:0;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;
-}
-#tray #brushOptions{display:flex;flex-direction:column;gap:4px}
-#tray #brushOptions .panelHead{display:none!important}
-#brushOptions.open,#settingsPanel.open{display:flex;flex-direction:column;gap:5px}
-#brushRow{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:4px;width:100%;min-width:0;padding:0}
-#brushModes{display:flex;flex:1 1 auto;min-width:0;align-items:center;justify-content:space-between;gap:3px}
-/* Keep the entire brush-style / utility row out of the everyday tray.
-   The row is removed from layout, not merely emptied; a long-press on the
-   brush handle reveals it with the advanced brush controls. */
-#brushRow{display:none!important}
-#brushOptions.open #brushRow{display:flex!important}
-#brushModes{display:none!important}
-#brushOptions.open #brushModes{display:flex!important;flex:1 1 auto;min-width:0}
-#brushRow .bstyle{
-  display:flex;flex:1 1 0;align-items:center;justify-content:center;
-  width:auto;min-width:0;height:27px;min-height:27px;padding:0 1px;
-  border:1px solid rgba(49,45,38,.15);border-radius:3px;
-  background:transparent;color:rgba(31,28,24,.56);
-  font:14px/1 var(--serif);white-space:nowrap;box-shadow:none;
-}
-#brushRow .bstyle.active{background:var(--sumi);border-color:var(--sumi);color:var(--washi)}
-#brushTools{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:3px;width:auto;min-width:0;padding:0}
-#brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle,
-#brushTools #settingsBtn,#brushTools #resetBtn{
-  display:flex;flex:0 0 24px;align-items:center;justify-content:center;
-  width:24px;min-width:24px;height:26px;min-height:26px;padding:0;
-  border:1px solid var(--sumi-line);border-radius:3px;background:transparent;
-  color:var(--sumi-2);font:13px/1 var(--serif);touch-action:manipulation;cursor:pointer;
-}
-#brushTools #settingsBtn{font-size:12px}
-#brushTools #resetBtn{color:var(--shu);border-color:rgba(184,64,44,.35);font-size:17px}
-#brushTools #settingsBtn.on,#brushTools #disperseToggle.on,#brushTools #charToggle.on{
-  background:var(--sumi);border-color:var(--sumi);color:var(--washi)
-}
-#brushTools #disperseToggle.off{background:transparent;border-color:var(--sumi-line);color:var(--shu)}
-#brushTools #flickToggle{color:var(--sumi-3);border-color:rgba(49,45,38,.15)}
-#brushTools #flickToggle.on{background:var(--shu);border-color:var(--shu);color:var(--washi)}
-#swatchRow{
-  display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;
-  gap:5px;width:100%;min-width:0;min-height:25px;padding:0;overflow:hidden;
-}
-#sizeRow{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;gap:3px;padding-left:1px}
-#sizeRow .size{
-  display:flex;flex:0 0 25px;align-items:center;justify-content:center;
-  width:25px;min-width:25px;height:25px;min-height:25px;
-  border:1px solid rgba(31,28,24,.2);border-radius:50%;background:transparent;
-  touch-action:manipulation;
-}
-#sizeRow .size.active{border:2px solid var(--sumi);background:rgba(31,28,24,.05)}
-#sizeRow .size i{display:block;max-width:13px;max-height:13px;border-radius:50%;background:rgba(31,28,24,.5)}
-#sizeRow .size.active i{background:var(--sumi)}
-#paletteWrap{display:flex;flex:1 1 auto;min-width:0;overflow:hidden;gap:3px}
-#paletteWrap .palPage.active{display:flex;flex:1 1 auto;min-width:0;align-items:center;justify-content:space-between;gap:clamp(2px,.55vw,4px)}
-#paletteWrap .palPage:not(.active){display:none}
-#swatchRow .swatch{
-  display:block;flex:0 0 clamp(14px,4.6vw,18px);width:clamp(14px,4.6vw,18px);
-  height:clamp(14px,4.6vw,18px);min-width:0;min-height:0;border-radius:50%;
-  border:1px solid rgba(31,28,24,.2);opacity:.86;
-}
-#swatchRow .swatch.active{opacity:1;transform:scale(1.08);box-shadow:0 0 0 1px var(--washi),0 0 0 2px var(--shu)}
-#palToggle{display:flex;flex:0 0 21px;align-items:center;justify-content:center;width:21px;min-width:21px;height:23px;min-height:23px;padding:0;border:1px solid rgba(31,28,24,.18);border-radius:3px;color:var(--sumi-2);font-size:15px}
-#palToggle.flipped{background:var(--sumi);border-color:var(--sumi);color:var(--washi)}
-#charRow{display:none;flex:0 0 auto;width:100%;min-width:0;max-width:100%;gap:8px;padding:3px 0;max-height:58px;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-#charRow.open{display:flex}
-#charRow::-webkit-scrollbar{display:none}
-#charRow .chr{flex:0 0 92px;min-width:92px}
-#charRow .chr label{color:var(--sumi);font-family:var(--serif);font-size:10px;letter-spacing:.08em}
-#charRow .chr label b{color:var(--sumi);font-size:11px}
-#charRow .chr label .lv{color:var(--shu);font-size:11px}
-#charRow .chr input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
-#charRow .chr input[type=range]::-moz-range-track{background:linear-gradient(90deg,var(--shu) 0,var(--shu) var(--live,0%),rgba(31,28,24,.14) var(--live,0%))}
-#charRow .chr input[type=range]::-webkit-slider-thumb{background:var(--sumi);border:2px solid var(--washi)}
-#charRow .chr input[type=range]::-moz-range-thumb{background:var(--sumi);border:2px solid var(--washi)}
-
-/* The material wells and napkin have one permanent geometry in every view. */
-#dipRow{
-  display:flex;flex:0 0 62px;align-items:stretch;gap:5px;
-  width:100%;min-width:0;height:62px;min-height:62px;margin-top:1px;
-}
-#dipInk,#dipWater{
-  display:flex;position:relative;flex:1 1 0;align-items:center;justify-content:center;
-  width:auto;min-width:0;height:62px;min-height:62px;overflow:hidden;border-radius:3px;
-  font:20px/1 var(--serif);letter-spacing:0;touch-action:none;-webkit-tap-highlight-color:transparent;
-  box-shadow:inset 0 0 0 1px rgba(31,28,24,.08);
-}
-#dipInk{background:#302d29;color:rgba(236,234,210,.90)}
-#dipWater{background:#71838a;color:rgba(245,244,230,.96)}
-#dipInk.pressed,#dipWater.pressed{filter:brightness(1.12);box-shadow:inset 0 0 0 2px rgba(236,234,210,.32)}
-#dipInk .fill,#dipWater .fill{opacity:.65;pointer-events:none}
-#dipInk span,#dipWater span{position:relative;z-index:2;font-size:19px;pointer-events:none}
-#napkin{
-  position:relative;display:flex;flex:1.4 1 0;align-items:center;justify-content:center;
-  width:auto;min-width:0;height:62px;min-height:62px;overflow:hidden;border-radius:3px;
-  background:rgba(236,234,210,.36);box-shadow:inset 0 0 0 1px rgba(31,28,24,.13);
-  touch-action:none;cursor:crosshair;
-}
-#napCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:3px;pointer-events:none;opacity:.9}
-.napZones{position:absolute;inset:0;display:flex;z-index:4;pointer-events:none}
-.napZone{position:relative;flex:1;min-width:0}
-.napZone.mid{border-left:1px solid rgba(31,28,24,.095);border-right:1px solid rgba(31,28,24,.095)}
-#napkin .napLabel{position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:5;color:rgba(31,28,24,.48);font:9px/1 var(--serif);letter-spacing:.15em;pointer-events:none}
-.napZone::after{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);font:9px/1 var(--serif);color:rgba(31,28,24,.30);pointer-events:none}
-.napZone:first-child::after{content:'墨'}
-.napZone.mid::after{content:'調'}
-.napZone:last-child::after{content:'水'}
-#brushHandle{
-  position:absolute;right:6px;top:50%;transform:translateY(-50%);z-index:8;
-  display:flex;align-items:center;justify-content:center;width:34px;height:48px;margin:0;
-  border-radius:20px;background:rgba(236,234,210,.42);border:1px solid rgba(31,28,24,.12);
-  box-shadow:0 2px 9px rgba(31,28,24,.06);touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;
-}
-#brushHandle:active,#brushHandle.pressed{background:rgba(31,28,24,.08);border-color:rgba(31,28,24,.38)}
-#napBrush{position:relative;display:block;width:16px;height:40px;margin:0;z-index:1;pointer-events:none}
-#brushFlash{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;color:rgba(31,28,24,.82);font:30px/1 var(--serif);pointer-events:none;opacity:0;text-shadow:0 1px 8px rgba(236,234,210,.8)}
-#brushFlash.show{animation:brushFlashLife 1s ease both}
-@keyframes brushFlashLife{0%{opacity:0;filter:blur(2px);transform:translate(-50%,-46%) scale(.94)}18%{opacity:.92;filter:blur(0);transform:translate(-50%,-50%) scale(1)}76%{opacity:.92}100%{opacity:0;filter:blur(1px);transform:translate(-50%,-54%) scale(1.02)}}
-
-/* Settings are a separate panel; they do not resize the material station. */
-#settingsPanel.open{display:flex;flex-direction:column;gap:4px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
-#settingsPanel .panelHead{display:none!important}
-#settingsActions{display:flex;align-items:center;gap:4px}
-#settingsActions #paperTab,#settingsActions #studyTab,#settingsActions #snapBtn,#settingsActions #jsonBtn{
-  display:flex;flex:1 1 0;align-items:center;justify-content:center;min-width:0;height:26px;min-height:26px;padding:0;
-  border:1px solid rgba(31,28,24,.16);border-radius:2px;background:transparent;color:var(--sumi-2);
-  font:14px/1 var(--serif);touch-action:manipulation;
-}
-#settingsActions #paperTab:active,#settingsActions #studyTab:active,#settingsActions #snapBtn:active,#settingsActions #jsonBtn:active{background:rgba(31,28,24,.08)}
-#tray.settings-open #brushOptions{display:none!important}
-#tray.settings-open #dipRow{display:none!important}
-#tray #settingsPanel .panelHead{display:none!important}
-#liveStatus{display:none!important}
-#build{color:rgba(31,28,24,.22)!important;text-shadow:none;font-family:var(--serif);letter-spacing:.22em!important}
-#bstate{filter:none;gap:7px;align-items:flex-start}
-.kcol{position:relative;display:flex;flex-direction:column;align-items:center;font-family:var(--serif);font-size:15px;line-height:1.1;font-weight:600;--e:0}
-.kcol .kg span,.kcol .kl span{display:block;text-align:center}
-.kcol .kg{opacity:.10}
-.kcol .kl{position:absolute;left:0;right:0;top:0;bottom:0;-webkit-mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%));mask-image:linear-gradient(to top,#000 calc(var(--e)*1% - 14%),transparent calc(var(--e)*1%))}
-#kInk{color:var(--sumi)}#kWater{color:#3f6a8f}
-
-
-@media(max-width:360px){
-  #tray{padding-left:7px;padding-right:7px}
-  #trayScroll{gap:4px;max-height:44dvh}
-  #brushRow{gap:3px}
-  #brushRow .bstyle{height:25px;min-height:25px;font-size:12px}
-  #brushTools{gap:2px}
-  #brushTools #disperseToggle,#brushTools #charToggle,#brushTools #flickToggle,#brushTools #settingsBtn,#brushTools #resetBtn{flex-basis:22px;width:22px;min-width:22px;height:24px;min-height:24px}
-  #sizeRow{gap:2px}
-  #sizeRow .size{flex-basis:23px;width:23px;min-width:23px;height:23px;min-height:23px}
-  #swatchRow{gap:3px}
-  #swatchRow .swatch{flex-basis:13px;width:13px;height:13px}
-  #palToggle{flex-basis:19px;width:19px;min-width:19px;height:21px;min-height:21px}
-  #dipRow{gap:4px;height:62px;min-height:62px;flex-basis:62px}
-  #dipInk,#dipWater,#napkin{height:62px;min-height:62px}
-  #brushHandle{right:4px;width:30px;height:45px}
-  #napBrush{width:14px;height:36px}
-}
-@media(max-height:700px){#trayScroll{max-height:38dvh}}
-
+/* napkin row: one fixed size in every tray mode and on every screen */
+#tray #dipRow{height:96px;min-height:96px;flex:0 0 96px;gap:4px}
+#tray #dipInk,#tray #dipWater{flex:0 0 36px;width:36px;min-width:36px;height:96px;min-height:96px}
+#tray #napkin{flex:1 1 auto;width:auto;min-width:0;height:96px;min-height:96px}
+#tray #napkin .napLabel{top:3px;bottom:auto;font-size:8px}
+.napZone.mid{border-color:rgba(120,112,100,.32)}
+/* napkin-only: just the cloth row, palette and brush options folded away */
+#tray.napOnly #brushOptions{display:none}
+/* wipe-on-close slider lives in settings */
+#settingsWipe{padding:6px 2px 2px}
+#settingsWipe .chr{width:100%}
+#build{display:none}
+body.debug #build{display:block}
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<canvas id="fxCanvas" aria-hidden="true"></canvas>
 <div id="snapWrap"><img id="snapImg" alt="SUMI snapshot"><div id="snapHint">Long-press image to save · tap to close</div></div>
 <div id="studyPanel" aria-hidden="true">
   <section class="study-card" role="dialog" aria-modal="true" aria-labelledby="studyTitle">
@@ -641,8 +274,7 @@ html,body{background:var(--washi)}
     <p class="study-source">Based on Naomi Okamoto, <i>Japanese Ink Painting: The Art of Sumi-e</i>.</p>
   </section>
 </div>
-<div id="build">SUMI_v9.2.4 · SUMI-E · MATERIAL STUDY</div>
-<div id="liveStatus" aria-hidden="true"><span id="liveMode">READY</span><span id="liveLoad">INK —</span><span id="liveWater">WATER —</span><span id="liveTouch">C —</span></div>
+<div id="build">SUMI_v9.5 · SUMI-E · MATERIAL STUDY</div>
 <div id="bstate" aria-hidden="true">
   <div class="kcol" id="kWater"><div class="kg"></div><div class="kl"></div></div>
   <div class="kcol" id="kInk"><div class="kg"></div><div class="kl"></div></div>
@@ -650,9 +282,9 @@ html,body{background:var(--washi)}
 <div id="tray">
   <div id="tabRow">
     <div id="trayTab" role="button" tabindex="0" aria-label="Open or close painting tray">⌃</div>
+    <div id="napTab" role="button" tabindex="0" aria-label="Open napkin and palette only" title="Napkin and palette only">布</div>
     <div id="resetQuick" role="button" tabindex="0" aria-label="Reset painting" title="Reset painting">↶</div>
   </div>
-  <div id="grab"></div>
   <div id="trayScroll">
     <section id="brushOptions" aria-label="Brush and color options">
       <div class="panelHead"><span>筆 · BRUSH</span><button id="brushOptionsClose" type="button" aria-label="Close brush options">×</button></div>
@@ -727,6 +359,7 @@ html,body{background:var(--washi)}
         <div id="snapBtn" role="button" tabindex="0" title="Snapshot">▣</div>
         <div id="jsonBtn" role="button" tabindex="0" title="Load JSON">⊕</div>
       </div>
+      <div id="settingsWipe"><div class="chr nolive"><label>Napkin wipe on close <span class="lv"></span><b id="vWipe">15</b></label><input type="range" id="sWipe" min="0" max="60" step="1" value="15"></div></div>
 
     </section>
 
@@ -774,11 +407,11 @@ function hashLattice(ix,iy){
 function valueNoise(x,y){const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy),a=hashLattice(ix,iy),b=hashLattice(ix+1,iy),c=hashLattice(ix,iy+1),d=hashLattice(ix+1,iy+1);return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy}
 
 const CELL=1;
-const WATER_CAP=1.0,PIGMENT_CAP=3.00;
+const WATER_CAP=1.0,PIGMENT_CAP=6.00;
 // v4: water deposit raised ~45x. The old 0.0000004 meant strokes were pigment with
 // no vehicle — nothing for the transport step to move, so every pinhole stayed a
 // pinhole. Ink still outweighs water heavily; this is a wetted brush, not a wash.
-const BRUSH_RAD=1.0,BRUSH_W_CAP=50000,BRUSH_P_CAP=40000,DEP_W=0.000018,DEP_P=0.00012;
+const BRUSH_RAD=1.0,BRUSH_W_CAP=50000,BRUSH_P_CAP=40000,DEP_W=0.000025,DEP_P=0.0001;
 // Paper is part of the instrument: each surface changes tooth, fibre density,
 // capillary movement, edge drying and pigment fixation. These are tuned digital
 // analogues of the book's material descriptions, not laboratory measurements.
@@ -814,7 +447,7 @@ const ABS_FLOOR=0.002,ABS_MAX=7.0;
 // Density curve: D = DEN_MAX·(1−exp(−P·DEN_K/DEN_MAX)). DEN_K matches the old
 // renderer's darkness for thin washes; DEN_MAX lets stacked glazes keep
 // deepening without every overlap going straight to black.
-const DEN_K=1.6,DEN_MAX=2.4,MOB_K=2.2/(DEN_K+DEN_MAX);
+const DEN_K=1.6,DEN_MAX=2.4,MOB_K=2.8/(DEN_K+DEN_MAX);
 // Tinting-strength cap: an ink's strongest channel is scaled down to ABS_CAP,
 // hue unchanged. Carbon black is ~5x more absorbing than the colours; without
 // this, one density curve can't give both sumi greys and full-strength colour.
@@ -887,7 +520,11 @@ let WABI=0.22;
 //  - BROAD brushes space their stamps by stamp width instead of a fixed 1.5px, with ink per stamp scaled to match.
 let liveBrush=true,dabK=1;
 const FINE_A_REF=6,FINE_BOOST_MAX=6,FINE_DROP_LO=1.2,FINE_DROP_HI=5.0,DAB_STEP_K=0.8,DAB_STEP_MAX=8;
-let vTabBuf=new Float32Array(4096);const laneTab=new Float32Array(128);
+let vTabBuf=new Float32Array(4096),bTabBuf=new Float32Array(1536);const laneTab=new Float32Array(128);
+// Naturalness of dry-brush streaks and width. SWELL_AMT: size of the width swell.
+// BR_IRREG: how far streak positions wander across the brush (radians of the stripe phase).
+// LANE_DRIFT: how much each skipped lane fades in and out along the stroke.
+const SWELL_AMT=1.0,BR_IRREG=2.6,LANE_DRIFT=0.5;
 
 // ═══ v5 CHARACTER ENGINE ═══════════════════════════════════════════════════
 // Nothing below changes the brush STRUCTURE — the ellipse geometry, styleGain,
@@ -969,6 +606,9 @@ const NEIGHBOUR_OFFSETS=new Int32Array([-1,1,-NX,NX]);
 const water=new Float32Array(N),mPig=new Float32Array(N),mR=new Float32Array(N),mG=new Float32Array(N),mB=new Float32Array(N);
 const fPig=new Float32Array(N),fR=new Float32Array(N),fG=new Float32Array(N),fB=new Float32Array(N);
 const tex=new Float32Array(N),absorb=new Float32Array(N),pinTex=new Float32Array(N);
+// Per-pixel noise that depends only on the pixel and the stroke seed. Stamps overlap by
+// 10x or more, so each value is computed once per stroke instead of once per stamp.
+const cSeed=new Float64Array(N).fill(-1),cEdge=new Float64Array(N),cBris=new Float64Array(N);
 // v6: per-cell memory of the brush wetness that deposited here. Drives the
 // evaporation / fixing / capillary-threshold / pigment-damming behaviour.
 const wetF=new Float32Array(N);
@@ -1138,8 +778,12 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     default:{a=baseRad*(0.5+pressure*0.85);b=a*(0.80+pressure*0.30)}}
   // v5: the loaded-hair swell is coherent along the stroke now, not a fresh
   // random number every 1.5px. The brush breathes instead of buzzing.
-  const swell=valueNoise(sD*0.075+strokeSeed*0.41,strokeSeed*0.17);
-  const catchJitter=1.0+0.8*(1+0.9*CHAT)*(swell-0.5);
+  // Three octaves at unrelated spacings (long drift, medium belly, fine tremor) so the
+  // width has no repeating rhythm. A single octave beat as wide-narrow-wide-narrow.
+  const swell=valueNoise(sD*0.020+strokeSeed*0.41,strokeSeed*0.17)*0.52
+    +valueNoise(sD*0.052+strokeSeed*0.67+31.7,strokeSeed*0.29+7.1)*0.30
+    +valueNoise(sD*0.133+strokeSeed*0.23+63.3,strokeSeed*0.53+19.3)*0.18;
+  const catchJitter=1.0+SWELL_AMT*(1+0.9*CHAT)*(swell-0.5);
   const squash=valueNoise(sD*0.130+strokeSeed*0.83,strokeSeed*0.26);
   a*=catchJitter;b*=catchJitter*(1+0.15*(1+1.4*CHAT)*(squash-0.5));
   // v7-ink: fineK is 0 for tiny stamps and 1 from about a=5 up; 1 always for JSON import.
@@ -1218,10 +862,25 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
       vTab[o+1]=(valueNoise(sD*0.012+ss*0.21,vr*0.04+1.7)-0.5)*5;
       vTab[o+2]=(valueNoise(vr*0.05+ss*0.43,sD*0.01+9.1)-0.5)*3;
       vTab[o+3]=valueNoise(vr*0.045+ss*0.19,sD*0.012+5.3)}
+  }
+  // Skip lanes: each lane's strength drifts along the stroke, so streaks fade in and out
+  // instead of running rigidly from start to finish.
+  if(wb>0||doSkip){const ss=strokeSeed;
     laneOff=Math.ceil(3*bb*laneScale)+4;laneN=Math.min(laneTab.length,laneOff*2+1);
     for(let L=0;L<laneN;L++){const ln=L-laneOff;
-      laneTab[L]=hash21(ln*7.13+ss,ln*3.71-ss*0.7)+wb*(valueNoise(ln*3.1+ss*0.7,sD*0.022)-0.5)*0.9}
-  }
+      laneTab[L]=hash21(ln*7.13+ss,ln*3.71-ss*0.7)+wb*(valueNoise(ln*3.1+ss*0.7,sD*0.022)-0.5)*0.9
+        +LANE_DRIFT*(valueNoise(ln*1.9+ss*0.7+5.5,sD*0.05+ss*0.31)-0.5)}}
+  // Bristle streaks: irregular spacing, strength and a second incommensurate stripe, per
+  // across-brush position, evolving along the stroke. Replaces one perfect cosine.
+  let bOff=0,bN=0;
+  if(bristleFreq>0){const ss=strokeSeed;
+    bOff=Math.ceil(3*bb)+2;bN=bOff*4+1;
+    if(bN*3>bTabBuf.length)bTabBuf=new Float32Array(bN*6);
+    for(let k=0;k<bN;k++){const vr=k*0.5-bOff,o=k*3;
+      bTabBuf[o]=(valueNoise(vr*0.085+ss*0.53,sD*0.021+ss*0.29)-0.5)*2*BR_IRREG;
+      bTabBuf[o+1]=valueNoise(vr*0.05+ss*0.91,sD*0.013+3.3)*6.2832;
+      bTabBuf[o+2]=Math.min(1.25,0.45+0.95*valueNoise(vr*0.07+ss*0.77,sD*0.034+ss*0.19+11.1))}}
+  const bTab=bTabBuf;
   const tipEff=TIP_LOAD*(0.35+0.65*wFrac),tipOn=tipEff>0.001;
   let totalWt=0,totalPg=0,ns=0;
   let bx0=x0-searchX,by0=y0-searchY,bx1=x0+searchX,by1=y0+searchY;
@@ -1231,6 +890,7 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     const fx=px-gx,fy=py-gy,vRaw=-fx*sinT+fy*cosT;
     const u=(fx*cosT+fy*sinT)/aa,v=vRaw/bb;
     const norm=u*u+v*v;if(norm>9)continue;
+    const ci=rowOff+px;if(cSeed[ci]!==strokeSeed){cSeed[ci]=strokeSeed;cEdge[ci]=NaN;cBris[ci]=NaN}
     let wt=Math.exp(-0.5*norm);
     let tabI=0;
     if(wb>0){tabI=((vRaw+vOff)*2+0.5)|0;if(tabI<0)tabI=0;else if(tabI>=vTabN)tabI=vTabN-1;tabI*=4}
@@ -1242,7 +902,9 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     // v5: warp is coherent noise at fibre scale, not per-pixel white noise —
     // white noise decorrelates the lanes and cancels the streaking it is
     // supposed to bend.
-    if(bristleFreq>0){const bristleWarp=(valueNoise(px*0.14+strokeSeed*0.6,py*0.14)-0.5)*2.4*warpAmp*(1+wb*1.2);wt*=Math.max(0.12,bristleBase+bristleAmp*Math.cos(vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp+(wb>0?vTab[tabI+1]*wb:0)))}
+    if(bristleFreq>0){let bn=cBris[ci];if(bn!==bn){bn=valueNoise(px*0.14+strokeSeed*0.6,py*0.14);cBris[ci]=bn}const bristleWarp=(bn-0.5)*2.4*warpAmp*(1+wb*1.2);let bi=((vRaw+bOff)*2+0.5)|0;if(bi<0)bi=0;else if(bi>=bN)bi=bN-1;bi*=3;
+      const ph=vRaw*bristleFreq*Math.PI+bristlePhase+bristleWarp+(wb>0?vTab[tabI+1]*wb:0)+bTab[bi];
+      wt*=Math.max(0.12,Math.min(1.1,bristleBase+bristleAmp*bTab[bi+2]*(Math.cos(ph)*0.74+Math.cos(ph*1.618+bTab[bi+1])*0.26)))}
     const idx=rowOff+px;
     wt*=gBase+gMul*tex[idx];
     if(wb>0)wt*=1+wb*1.4*(vTab[tabI+3]-0.5);
@@ -1251,9 +913,9 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     if(doSkip){let laneNoise;
       if(wb>0){const lane=Math.round(vRaw*laneScale+vTab[tabI+2]*wb),li=lane+laneOff;
         laneNoise=(li>=0&&li<laneN)?laneTab[li]:hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7)}
-      else{const lane=Math.round(vRaw*laneScale);laneNoise=hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7)}
+      else{const lane=Math.round(vRaw*laneScale),li=lane+laneOff;laneNoise=(li>=0&&li<laneN)?laneTab[li]:hash21(lane*7.13+strokeSeed,lane*3.71-strokeSeed*0.7)}
       if(laneNoise<skipThresh)wt*=mix(0.08,0.16,wb);else if(laneNoise<skipSoft)wt*=0.35}
-    if(norm>1.0){const edgeJitter=1+hash21(px*9.1+strokeSeed,py*4.3)*0.8*dryness*mix(1,0.5,wb);wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
+    if(norm>1.0){let eh=cEdge[ci];if(eh!==eh){eh=hash21(px*9.1+strokeSeed,py*4.3);cEdge[ci]=eh}const edgeJitter=1+eh*0.8*dryness*mix(1,0.5,wb);wt*=Math.pow(Math.max(0,1-norm/(9*edgeJitter)),edgeSteep)}
     if(wt<0.005)continue;
     if(ns>=sIdx.length)growSamples(ns+1);
     // across-stroke coordinate: v for every style except the flat side brush, whose long axis is the across axis
@@ -1348,6 +1010,7 @@ function simulateStep(){
   const bloomK=BLOOM_GAIN,wetK=WET_GAIN;
   const KPD=KPIG_WET-KPIG_DRY,SGD=SIG_WET-SIG_DRY,FK=FEATHER*FEATHER_RATE;
   const NB=NEIGHBOUR_OFFSETS;
+  const pp=paperPhysics,HT=HINDRANCE*pp.tooth,PFS=P0_FRONT*pp.suction,SRS=SPREAD_RATE*pp.spread,P_EDGE=pp.edge,P_FIX=pp.fix;
   // Pass 1 — transport. Iteration stays row-major over the active cells, same
   // order as before, so the in-place wetF blend behaves the same. The deltas are
   // always zero here: pass 2 clears each one as it reads it (v7.5 — the old
@@ -1362,20 +1025,20 @@ function simulateStep(){
     const kPigI=KPIG_DRY+KPD*bfI;
     const sigBase=SIG_DRY+SGD*bfI;
     const kSrc=K_BASE+K_GRAIN*tex[i]+kPigI*Math.min(1,fPig[i]/PIGMENT_CAP)+K_PIN*pinTex[i];
-    const mpi=mPig[i],pigConc=mpi/(w+0.001),hI=1-HINDRANCE*paperPhysics.tooth*tex[i],wCap=w*0.12,pCap=mpi*0.12;
+    const mpi=mPig[i],pigConc=mpi/(w+0.001),hI=1-HT*tex[i],wCap=w*0.12,pCap=mpi*0.12;
     for(let n=0;n<4;n++){const j=i+NB[n],wj=water[j];
       let diff;
       if(wj<0.001){
         if(w<sigBase+SIGMA_PIN*pinTex[j]+SIGMA_GRAIN*tex[j])continue;
         // Front node: capillary suction pulls into the dry cell. Loose fibre
         // (low tex) sucks harder, so the advancing edge frays along the grain.
-        diff=w+P0_FRONT*paperPhysics.suction*(1-tex[j]);
+        diff=w+PFS*(1-tex[j]);
       }else{
         diff=w-wj;
       }
       if(diff<=0)continue;
       const kDst=K_BASE+K_GRAIN*tex[j]+(KPIG_DRY+KPD*wetF[j]*bloomK)*Math.min(1,fPig[j]/PIGMENT_CAP)+K_PIN*pinTex[j];
-      let flow=SPREAD_RATE*paperPhysics.spread*diff*(1-(kSrc+kDst)*0.5);if(flow>wCap)flow=wCap;if(flow<=0)continue;
+      let flow=SRS*diff*(1-(kSrc+kDst)*0.5);if(flow>wCap)flow=wCap;if(flow<=0)continue;
       wDelta[i]-=flow;wDelta[j]+=flow;
       // The wetness class travels with the water, so a bloom stays a bloom as
       // it advances into dry paper instead of reverting at the front.
@@ -1436,7 +1099,7 @@ function simulateStep(){
       let wetN=0;if(water[i-1]>0.01)wetN++;if(water[i+1]>0.01)wetN++;if(water[i-NX]>0.01)wetN++;if(water[i+NX]>0.01)wetN++;
       // Edge cells dry fastest, so pigment strands there — this is the dark rim
       // that reads as ink rather than watercolour. Kept strong on purpose.
-      const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT*paperPhysics.edge;
+      const edgeFac=1+(4-wetN)*EDGE_EVAP_MULT*P_EDGE;
       const bf=wetF[i]*wetK;
       const evapR=EVAP_DRY*Math.exp(bf*LN_EVAP);
       const fixR =FIX_DRY *Math.exp(bf*LN_FIX);
@@ -1446,7 +1109,7 @@ function simulateStep(){
       wetF[i]*=0.9994;
       water[i]=Math.max(0,w-evapR*w*edgeFac);const wn=water[i];c=VIS_W*(w-wn);
       const dry=1-wn/WATER_CAP;
-      const fix=fixR*dry*dry*absorb[i]*paperPhysics.fix;
+      const fix=fixR*dry*dry*absorb[i]*P_FIX;
       const pRoom=Math.max(0,PIGMENT_CAP-fPig[i]);
       const amount=Math.min(mPig[i]*fix,pRoom);
       if(amount>0.0001){
@@ -1484,6 +1147,9 @@ function simulateStep(){
 }
 
 // Tile renderer — only flagged tiles recomposite; one upload per horizontal run.
+// 32-bit views for copying paper pixels into the frame without allocating a subarray per row.
+const px32=new Uint32Array(imgData.data.buffer),pp32=new Uint32Array(paperPixels.buffer);
+const upX0=new Int32Array(NT),upX1=new Int32Array(NT),upY0=new Int32Array(NT),upY1=new Int32Array(NT),upOpen=new Uint8Array(NT);
 function render(){
   if(fullRepaint){tileRen.fill(1);fullRepaint=false;renderPending=true}
   if(!renderPending)return;
@@ -1493,13 +1159,14 @@ function render(){
   for(let q=0;q<renTileCount;q++){const t=renTileIds[q];tileAcc[t]=0;tileAge[t]=0;tileRen[t]=0}
   if(!nRuns)return;
   const px=imgData.data,RX0=renRuns.x0,RX1=renRuns.x1,RROW=renRuns.row;
+  let upN=0;
   const DKM=DEN_K/DEN_MAX;
   for(let ty=0;ty<TY;ty++){const r0=RROW[ty],r1=RROW[ty+1];if(r0===r1)continue;
   const y0=ty*TS,y1=Math.min(NY-1,y0+TS-1);
   for(let r=r0;r<r1;r++){const x0=RX0[r],x1=RX1[r];
   for(let y=y0;y<=y1;y++){
-    const row=y*NX,s0=(row+x0)*4,s1=(row+x1+1)*4;
-    px.set(paperPixels.subarray(s0,s1),s0);
+    const row=y*NX;
+    for(let k=row+x0,ke=row+x1;k<=ke;k++)px32[k]=pp32[k];
     for(let x=x0;x<=x1;x++){
       const i=row+x;const fp=fPig[i],mp=mPig[i],w=water[i];
       if(fp<0.003&&mp<0.003&&w<0.01)continue;
@@ -1517,7 +1184,14 @@ function render(){
       }
       if(w>0.02){const sheen=Math.min(0.12,w*0.08);r=Math.min(255,r*(1+sheen)+sheen*6);g=Math.min(255,g*(1+sheen)+sheen*8);b=Math.min(255,b*(1+sheen)+sheen*14)}
       px[pi]=r|0;px[pi+1]=g|0;px[pi+2]=b|0}}
-  ctx.putImageData(imgData,0,0,x0,y0,x1-x0+1,y1-y0+1)}}
+  // Merge with the same run on the tile row above; upload when it stops continuing.
+  let hit=-1;for(let k=0;k<upN;k++){if(upX0[k]===x0&&upX1[k]===x1&&upY1[k]===y0-1&&upOpen[k]){hit=k;break}}
+  if(hit>=0){upY1[hit]=y1;upOpen[hit]=2}
+  else{upX0[upN]=x0;upX1[upN]=x1;upY0[upN]=y0;upY1[upN]=y1;upOpen[upN]=2;upN++}}
+  // Rects not extended by this tile row are finished.
+  {let w=0;for(let k=0;k<upN;k++){if(upOpen[k]===2){upOpen[k]=1;if(w!==k){upX0[w]=upX0[k];upX1[w]=upX1[k];upY0[w]=upY0[k];upY1[w]=upY1[k];upOpen[w]=1}w++}
+    else ctx.putImageData(imgData,0,0,upX0[k],upY0[k],upX1[k]-upX0[k]+1,upY1[k]-upY0[k]+1)}upN=w}}
+  for(let k=0;k<upN;k++)ctx.putImageData(imgData,0,0,upX0[k],upY0[k],upX1[k]-upX0[k]+1,upY1[k]-upY0[k]+1);
 }
 
 
@@ -1930,7 +1604,7 @@ function postState(){
       drop:splDropK()*100,
       wabi:Math.min(NAP_WABI_CAP,WABI+NAP_WABI_Z*NAP.Z)*100}})}
 
-function resetEngine(){water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
+function resetEngine(){cSeed.fill(-1);water.fill(0);wetF.fill(0);mPig.fill(0);fPig.fill(0);mR.fill(0);mG.fill(0);mB.fill(0);fR.fill(0);fG.fill(0);fB.fill(0);
   wDelta.fill(0);pDelta.fill(0);pRDelta.fill(0);pGDelta.fill(0);pBDelta.fill(0);
   hasWet=false;tileWet.fill(0);tileNext.fill(0);tileAcc.fill(0);tileStep.fill(0);tileAge.fill(0);
   splatParticles.length=0;partBox=null;lastOrient=null;
@@ -1969,7 +1643,7 @@ function strokeCancel(){drawing=false;lastOrient=null;strokePts=[];lastPressure=
 function setHidden(h){
   hidden=!!h;
   if(hidden){if(frameHandle)CAF(frameHandle);frameHandle=0;lastFrameTime=0;simAccumulator=0;drawing=false;strokePts=[];holding=null}
-  else if(animationNeedsWork())wakeAnimation()}
+  else{requestFullRepaint()}}
 
 const SETTERS={
   chat:v=>{CHAT_MAX=v},grain:v=>{GRAIN_MAX=v},heel:v=>{HEEL=v},wet:v=>{WET_GAIN=v},bloom:v=>{BLOOM_GAIN=v},
@@ -1996,9 +1670,13 @@ function onMessage(m){
     case'json':importJsonLayer(m.data,m.palettes);break;
     case'snap':snapshot();break;
     case'vis':setHidden(m.hidden);break;
+    case'repaint':requestFullRepaint();break;
   }}
 
 render();postState();
+// The synchronous render above can land outside an animation frame, and iOS may never present
+// that first commit (canvas stays dark until something redraws). Repaint inside a real frame.
+requestFullRepaint();
 return{onMessage};
 }
 </script>
@@ -2023,6 +1701,7 @@ const W_PX=Math.floor(window.innerWidth),H_PX=Math.floor(window.innerHeight);
 const NX=W_PX,NY=H_PX;   // CELL = 1: one sim cell per CSS pixel
 canvas.width=W_PX;canvas.height=H_PX;
 const buildEl=document.getElementById('build');
+if(/[?&]debug/.test(location.search))document.body.classList.add('debug');
 
 // Mirror of the engine's brush, refreshed by its state messages.
 const B={w:25000,p:4000,cw:50000,cp:40000,r:1,live:null,inFlight:0,lastSplat:null,paperId:'gasenshi',flick:false};
@@ -2042,7 +1721,7 @@ self.onmessage=e=>{const m=e.data;
 let eng=null;const queue=[];
 function send(m){if(eng)eng.post(m);else queue.push(m)}
 function attach(e,mode,why){eng=e;window.__sumiMode=mode;
-  if(buildEl)buildEl.textContent='SUMI_v9.2.1 · SUMI-E · '+(mode==='worker'?'worker':'main'+(why?' ('+why+')':''));
+  if(buildEl)buildEl.textContent='SUMI_v9.5 · SUMI-E · '+(mode==='worker'?'worker':'main'+(why?' ('+why+')':''));
   while(queue.length)eng.post(queue.shift())}
 function startOnPage(why){
   const make=new Function(ENGINE_SRC+'\nreturn SUMI_ENGINE;')();
@@ -2130,27 +1809,22 @@ bindHold(document.getElementById('dipWater'),'water');
 // ═══ NAPKIN — drains the brush and shapes it ═══
 // Zones stay as they were: left drains ink, middle both, right water. How you
 // work the brush on it sets its shape (see NAP and the gesture reader below).
-const napCvs=document.getElementById('napCanvas'),napCtx=napCvs.getContext('2d');const NAP_W=360,NAP_H=120;
-let napBasePixels=null;
-function initNapkin(){napCvs.width=NAP_W;napCvs.height=NAP_H;napCtx.fillStyle='#ece5d2';napCtx.fillRect(0,0,NAP_W,NAP_H);for(let i=0;i<NAP_W*NAP_H*0.015;i++){const x=hash11(i*1.7)*NAP_W,y=hash11(i*3.1)*NAP_H,g=218+hash11(i*5.3)*22;napCtx.fillStyle=`rgb(${g},${g-4},${g-10})`;napCtx.fillRect(x,y,hash11(i*7.1)*3+1,1)}
-  napCtx.strokeStyle='rgba(160,150,135,0.35)';napCtx.lineWidth=1;
-  const x1=Math.floor(NAP_W/3),x2=Math.floor(NAP_W*2/3);
-  napCtx.beginPath();napCtx.moveTo(x1+0.5,0);napCtx.lineTo(x1+0.5,NAP_H);napCtx.stroke();
-  napCtx.beginPath();napCtx.moveTo(x2+0.5,0);napCtx.lineTo(x2+0.5,NAP_H);napCtx.stroke();
-  napBasePixels=napCtx.getImageData(0,0,NAP_W,NAP_H)}
-// Each time the tray closes, stains relax partway toward the clean cloth texture.
-// The base texture is retained, so repeated closes fade pigment without bleaching the napkin.
-function fadeNapkinInk(amount=0.18){
-  if(!napBasePixels||!napCvs.width||!napCvs.height)return;
-  try{
-    const cur=napCtx.getImageData(0,0,NAP_W,NAP_H),a=cur.data,b=napBasePixels.data,k=Math.max(0,Math.min(.8,amount));
-    for(let i=0;i<a.length;i+=4){a[i]=a[i]+(b[i]-a[i])*k;a[i+1]=a[i+1]+(b[i+1]-a[i+1])*k;a[i+2]=a[i+2]+(b[i+2]-a[i+2])*k;a[i+3]=b[i+3]}
-    napCtx.putImageData(cur,0,0);
-  }catch(err){console.warn('Napkin fade skipped:',err)}
-}
+const napCvs=document.getElementById('napCanvas'),napCtx=napCvs.getContext('2d');
+const NAP_DPR=Math.min(2,window.devicePixelRatio||1);let NAP_W=0,NAP_H=0;
+// Cloth texture, drawn in CSS px (the context is scaled by NAP_DPR).
+function paintCloth(){napCtx.fillStyle='#ece5d2';napCtx.fillRect(0,0,NAP_W,NAP_H);
+  for(let i=0;i<NAP_W*NAP_H*0.015;i++){const x=hash11(i*1.7)*NAP_W,y=hash11(i*3.1)*NAP_H,g=218+hash11(i*5.3)*22;napCtx.fillStyle=`rgb(${g},${g-4},${g-10})`;napCtx.fillRect(x,y,hash11(i*7.1)*3+1,1)}}
+// Match the canvas to the napkin's real size. A width change rescales the stains
+// instead of wiping them; only reset (clearNapkin) clears the cloth.
+function fitNapkin(){const r=napCvs.getBoundingClientRect(),w=Math.round(r.width),h=Math.round(r.height);
+  if(!w||!h||(w===NAP_W&&h===NAP_H))return;
+  let old=null;if(NAP_W){old=document.createElement('canvas');old.width=napCvs.width;old.height=napCvs.height;old.getContext('2d').drawImage(napCvs,0,0)}
+  NAP_W=w;NAP_H=h;napCvs.width=Math.round(w*NAP_DPR);napCvs.height=Math.round(h*NAP_DPR);napCtx.setTransform(NAP_DPR,0,0,NAP_DPR,0,0);
+  if(old)napCtx.drawImage(old,0,0,w,h);else paintCloth()}
+function clearNapkin(){if(!NAP_W)return;napCtx.setTransform(NAP_DPR,0,0,NAP_DPR,0,0);paintCloth()}
 // One dab of the brush on the napkin: draws the mark and returns how much of
 // the drained load stays on the brush (multiplied up per move, sent once).
-function napDabAt(cx,cy,drainZone,dk=1){if(B.w<0.5&&B.p<0.5)return 1;const wFrac=B.w/(B.w+B.p+1e-12),pigDensity=B.p/B.cp;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4));napCtx.fillStyle=col;napCtx.strokeStyle=col;
+function napDabAt(cx,cy,drainZone,dk=1){if(!NAP_W||(B.w<0.5&&B.p<0.5))return 1;const wFrac=B.w/(B.w+B.p+1e-12),pigDensity=B.p/B.cp;const alpha=Math.min(1,pigDensity*(0.3+0.7*(1-wFrac*0.6)));const r=Math.round(inkR*255),g=Math.round(inkG*255),b=Math.round(inkB*255);const col=`rgb(${r},${g},${b})`;const dabR=Math.min(NAP_H*0.35,Math.max(2,brushRadius*0.45*(0.6+pigDensity*0.4)));napCtx.fillStyle=col;napCtx.strokeStyle=col;
   if(brushStyle==='point'){const pr=dabR*0.5;napCtx.globalAlpha=Math.max(0.06,alpha*0.8);napCtx.beginPath();napCtx.arc(cx,cy,pr,0,Math.PI*2);napCtx.fill()}
   else if(brushStyle==='side'){napCtx.globalAlpha=Math.max(0.04,alpha*0.55);napCtx.save();napCtx.translate(cx,cy);napCtx.beginPath();napCtx.ellipse(0,0,dabR*1.4,dabR*0.5,0,0,Math.PI*2);napCtx.fill();napCtx.restore()}
   else if(brushStyle==='rake'){const bristles=Math.max(3,Math.floor(dabR*0.8));const spacing=dabR*2/bristles;napCtx.globalAlpha=Math.max(0.05,alpha*0.65);for(let i=0;i<bristles;i++){const bx=cx+(i-bristles/2)*spacing;napCtx.beginPath();napCtx.arc(bx,cy,spacing*0.35,0,Math.PI*2);napCtx.fill()}}
@@ -2164,7 +1838,7 @@ function napDabAt(cx,cy,drainZone,dk=1){if(B.w<0.5&&B.p<0.5)return 1;const wFrac
   if(drainZone==='napWater'||drainZone==='napBoth')B.w=Math.max(0,B.w*keep);
   return keep}
 function napClientToCanvas(cx,cy){const rect=napCvs.getBoundingClientRect();return[(cx-rect.left)/rect.width*NAP_W,(cy-rect.top)/rect.height*NAP_H]}
-setTimeout(initNapkin,300);let _napRz=null;window.addEventListener('resize',()=>{clearTimeout(_napRz);_napRz=setTimeout(initNapkin,200)},{passive:true});
+let _napRz=null;window.addEventListener('resize',()=>{clearTimeout(_napRz);_napRz=setTimeout(fitNapkin,150)},{passive:true});
 
 // ── Brush shape ──────────────────────────────────────────────────────────
 // Four charges, 0..1, that the engine applies on top of the sliders:
@@ -2319,7 +1993,7 @@ let lastContact=0;
 document.querySelectorAll('#sizeRow .size').forEach(sz=>{sz.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=Number(sz.dataset.r);brushRange=BRUSH_RANGES[r]||[r*0.5,r*2];brushRadius=brushRange[0]+0.5*(brushRange[1]-brushRange[0]);send({t:'set',v:{radius:brushRadius}});document.querySelectorAll('#sizeRow .size').forEach(s=>s.classList.remove('active'));sz.classList.add('active');schedClose()})});
 document.querySelectorAll('#brushRow .bstyle').forEach(bs=>{bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectBrushStyle(bs.dataset.style,true)})});
 
-function resetAll(){send({t:'reset'});initNapkin()}
+function resetAll(){send({t:'reset'});clearNapkin()}
 document.getElementById('resetBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();resetAll()});
 document.getElementById('resetBtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();resetAll()}});
 const resetQuick=document.getElementById('resetQuick');
@@ -2335,34 +2009,48 @@ function showSnap(m){
   if(m.blob){const fr=new FileReader();fr.onload=()=>open(fr.result);fr.onerror=()=>alert('Snapshot failed: could not read the image');fr.readAsDataURL(m.blob)}}
 snapWrap.addEventListener('click',()=>{snapWrap.classList.remove('open');snapImg.removeAttribute('src')});
 
-// ═══ MATERIAL-FIRST TRAY · one invariant material layout ═══
+// ═══ MATERIAL-FIRST TRAY ═══
 const trayTab=document.getElementById('trayTab');
-let trayMode='closed'; // closed | full; material geometry is invariant
+const napTab=document.getElementById('napTab');
+let trayMode='closed'; // closed | full | nap
 const brushOptions=document.getElementById('brushOptions');
 const settingsPanel=document.getElementById('settingsPanel');
 const settingsBtn=document.getElementById('settingsBtn');
 function closeBrushOptions(){brushOptions.classList.remove('open');document.getElementById('charRow').classList.remove('open');document.getElementById('charToggle').classList.remove('on')}
 function closeSettings(){settingsPanel.classList.remove('open');settingsBtn.classList.remove('on');tray.classList.remove('settings-open')}
+// Closing the tray wipes the brush on the cloth: a share of its ink comes off
+// (the Napkin wipe slider in Settings; 0 = off) and leaves a faint smear.
+let NAP_CLOSE_INK=0.15;
+function wipeOnClose(){const k=1-NAP_CLOSE_INK;if(k>=1||B.p<=0.5)return;
+  fitNapkin();
+  if(NAP_W){const y=NAP_H*0.5;for(let i=0;i<3;i++)napDabAt(NAP_W*(0.07+0.06*i),y+(i-1)*NAP_H*0.12,'none',1)}
+  B.p*=k;send({t:'drain',zone:'napInk',keep:k});updateFills();drawBrushIcon()}
 function setTrayMode(m){
-  const previous=trayMode;
-  trayMode=m==='full'?'full':'closed';
-  const visible=trayMode==='full';
+  const wasOpen=trayMode!=='closed';
+  trayMode=(m==='full'||m==='nap')?m:'closed';
+  if(wasOpen&&trayMode==='closed')wipeOnClose();
+  const visible=trayMode!=='closed';
   tray.classList.toggle('visible',visible);
+  tray.classList.toggle('napOnly',trayMode==='nap');
+  if(visible)fitNapkin();
   trayTab.textContent=visible?'⌄':'⌃';
-  trayTab.classList.toggle('on',visible);
-  if(!visible){
+  trayTab.classList.toggle('on',trayMode==='full');
+  napTab.classList.toggle('on',trayMode==='nap');
+  if(trayMode==='closed'){
     clearTimeout(trayTimer);if(holding)stopHold();
     closeBrushOptions();closeSettings();
-    if(previous!=='closed')fadeNapkinInk(0.18);
+    // The cloth keeps its stains: they are part of the material state.
+  }else if(trayMode==='nap'){
+    closeBrushOptions();closeSettings();keepOpen();
   }else keepOpen();
 }
 function openTray(){setTrayMode('full')}
-function openMaterialTray(){openTray()}
-function openNapkinOnly(){openTray()}
+function openMaterialTray(){setTrayMode('nap')}
 function closeTray(){setTrayMode('closed')}
 trayTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setTrayMode(trayMode==='full'?'closed':'full')});
 trayTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setTrayMode(trayMode==='full'?'closed':'full')}});
-document.getElementById('grab').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeTray()});
+napTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setTrayMode(trayMode==='nap'?'closed':'nap')});
+napTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setTrayMode(trayMode==='nap'?'closed':'nap')}});
 function openBrushOptions(){openTray();closeSettings();brushOptions.classList.add('open')}
 function toggleSettings(){if(trayMode!=='full')openTray();closeBrushOptions();const on=!settingsPanel.classList.contains('open');settingsPanel.classList.toggle('open',on);settingsBtn.classList.toggle('on',on);tray.classList.toggle('settings-open',on)}
 settingsBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleSettings()});
@@ -2418,10 +2106,10 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&studyPanel.classList.
 const PAPER_ORDER=['gasenshi','kozo','torinoko'];
 const PAPER_LABELS={gasenshi:'GASEN-SHI',kozo:'KOZO / MA-SHI',torinoko:'TORINOKO'};
 const paperTab=document.getElementById('paperTab');
-function updatePaperTab(){const id=B.paperId||'gasenshi';paperTab.textContent='紙';paperTab.dataset.paper=id;paperTab.title='Paper: '+(PAPER_LABELS[id]||'GASEN-SHI')+' · tap to change';}
+let _paperShown='';function updatePaperTab(){const id=B.paperId||'gasenshi';if(id===_paperShown)return;_paperShown=id;paperTab.textContent='紙';paperTab.dataset.paper=id;paperTab.title='Paper: '+(PAPER_LABELS[id]||'GASEN-SHI')+' · tap to change';}
 function cyclePaper(){const current=PAPER_ORDER.indexOf(B.paperId||'gasenshi'),next=PAPER_ORDER[(current+1+PAPER_ORDER.length)%PAPER_ORDER.length];
   if(!confirm('Change the paper to '+PAPER_LABELS[next]+'? This creates a new sheet and clears the current painting.'))return;
-  paperTab.textContent='紙';paperTab.title='Paper: '+PAPER_LABELS[next]+' · tap to change';B.paperId=next;send({t:'paper',id:next});keepOpen();}
+  B.paperId=next;send({t:'paper',id:next});keepOpen();}
 paperTab.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();cyclePaper()});
 paperTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cyclePaper()}});
 updatePaperTab();
@@ -2509,6 +2197,10 @@ function importJsonLayer(jsonStr){let data;try{data=JSON.parse(jsonStr)}catch(e)
   link('sDrop','vDrop','drop',100);
   link('sSpray','vSpray','spray',100);
   link('sHeight','vHeight','height',1);
+  // Napkin wipe on close: page-side only, so it is not sent to the engine.
+  {const el=document.getElementById('sWipe'),out=document.getElementById('vWipe');
+   if(el&&out){el.addEventListener('input',()=>{out.textContent=el.value;NAP_CLOSE_INK=Number(el.value)/100});
+     el.addEventListener('pointerdown',e=>e.stopPropagation())}}
 })();
 
 // Initial brush settings for the engine (queued until it is up).
@@ -2521,130 +2213,18 @@ drawBrushIcon();
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){drawing=false;holding=null}
   send({t:'vis',hidden:document.hidden})});
+// Repaint nudges (cheap, one full-canvas draw each): after load, when a page is restored, after rotation.
+{const nudge=()=>send({t:'repaint'});
+ window.addEventListener('pageshow',nudge);window.addEventListener('load',nudge);window.addEventListener('orientationchange',()=>setTimeout(nudge,250));
+ setTimeout(nudge,250);setTimeout(nudge,900)}
 if(location.search.includes('debug')){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/eruda';s.onload=()=>eruda.init();document.body.appendChild(s)}
-window.resetAll=resetAll;window.openTray=openTray;window.openMaterialTray=openMaterialTray;window.openNapkinOnly=openNapkinOnly;window.closeTray=closeTray;
+window.resetAll=resetAll;window.openTray=openTray;window.closeTray=closeTray;
 window.SUMI={state:()=>({water:B.w/B.cw,ink:B.p/B.cp,tray:trayMode!=='closed',trayMode,brushOptions:brushOptions.classList.contains('open'),settings:settingsPanel.classList.contains('open'),contact:lastContact,radius:brushRadius,style:brushStyle,
   live:B.live,nap:napOut(),inFlight:B.inFlight,lastSplat:B.lastSplat,paper:B.paperId,flick:B.flick,engine:window.__sumiMode||'starting',
   dryness:1-B.w/(B.w+B.p+1e-12)})};
 })();
 </script>
 
-<script>
-/* ===== SUMI ENHANCEMENTS: visual/tactile layer only ===== */
-(()=>{
-  const base = document.getElementById('canvas');
-  const fx = document.getElementById('fxCanvas');
-  if(!base || !fx) return;
-  const ctx = fx.getContext('2d', {alpha:true});
-  let dpr=1, w=1, h=1;
-  let pointer={x:0,y:0,active:false,pressure:0.5,radius:8};
-  let pulse=0, raf=0, running=false;
-
-  const liveMode=document.getElementById('liveMode');
-  const liveLoad=document.getElementById('liveLoad');
-  const liveWater=document.getElementById('liveWater');
-  const liveTouch=document.getElementById('liveTouch');
-  const liveStatus=document.getElementById('liveStatus');
-
-  function resizeFX(){
-    dpr=Math.min(window.devicePixelRatio||1,2);
-    w=innerWidth; h=innerHeight;
-    fx.width=Math.max(1,Math.round(w*dpr));
-    fx.height=Math.max(1,Math.round(h*dpr));
-    fx.style.width=w+'px'; fx.style.height=h+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  let rzT=null;
-  addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(resizeFX,200)},{passive:true});
-  resizeFX();
-
-  function draw(){
-    ctx.clearRect(0,0,w,h);
-    if(pointer.active){
-      const r=Math.max(5,Math.min(120,pointer.radius));
-      const alpha=.18 + pointer.pressure*.16;
-      ctx.beginPath();
-      ctx.arc(pointer.x,pointer.y,r,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(236,234,210,${alpha})`;
-      ctx.lineWidth=1;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(pointer.x,pointer.y,2.1,0,Math.PI*2);
-      ctx.fillStyle=`rgba(145,185,161,${.28+pointer.pressure*.25})`;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(pointer.x,pointer.y,r*.72,0,Math.PI*2);
-      ctx.strokeStyle='rgba(236,234,210,.045)';
-      ctx.stroke();
-    }
-    if(pulse>0){
-      pulse*=.86;
-      if(pulse>.002){
-        const r=8+(1-pulse)*34;
-        ctx.beginPath();
-        ctx.arc(pointer.x,pointer.y,r,0,Math.PI*2);
-        ctx.strokeStyle=`rgba(145,185,161,${pulse*.22})`;
-        ctx.stroke();
-      }else pulse=0;
-    }
-    if(pointer.active||pulse>0){raf=requestAnimationFrame(draw)}
-    else{running=false;raf=0;ctx.clearRect(0,0,w,h)}
-  }
-  function wake(){if(!running){running=true;raf=requestAnimationFrame(draw)}}
-
-  function pos(e){
-    const t=e.touches&&e.touches[0];
-    const x=t?t.clientX:e.clientX, y=t?t.clientY:e.clientY;
-    if(Number.isFinite(x)&&Number.isFinite(y)){
-      pointer.x=x; pointer.y=y;
-    }
-  }
-  function down(e){
-    pos(e);
-    pointer.active=true;
-    pointer.pressure=(e.pressure>0?e.pressure:.5);
-    pointer.radius=Math.max(8,Math.max(e.width||0,e.height||0));
-    liveStatus?.classList.add('pressed');
-    wake();
-  }
-  function move(e){
-    pos(e);
-    if(e.pressure>0) pointer.pressure=e.pressure;
-    const c=Math.max(e.width||0,e.height||0);
-    if(c>0) pointer.radius=Math.max(8,c);
-  }
-  function up(e){
-    pos(e);
-    pointer.active=false;
-    pulse=1;
-    liveStatus?.classList.remove('pressed');
-    wake();
-  }
-  base.addEventListener('pointerdown',down,{passive:true});
-  base.addEventListener('pointermove',move,{passive:true});
-  base.addEventListener('pointerup',up,{passive:true});
-  base.addEventListener('pointercancel',up,{passive:true});
-  base.addEventListener('pointerleave',()=>{pointer.active=false;wake()},{passive:true});
-
-  let pm='',pl='',pw='',pt='';
-  function pct(v){return Number.isFinite(v)?Math.max(0,Math.min(100,v*100)).toFixed(0)+'%':'—'}
-  const showStatus=/[?&]debug/.test(location.search);
-  if(showStatus&&liveStatus)liveStatus.classList.add('on');
-  if(showStatus)setInterval(()=>{
-    const st=window.SUMI&&window.SUMI.state?window.SUMI.state():null;
-    if(!st)return;
-    const m=st.tray?'PALETTE':'READY';
-    const l='INK '+pct(st.ink), wq='WATER '+pct(st.water);
-    const t='C'+(st.contact||0).toFixed(0)+' R'+(st.radius||0).toFixed(0);
-    if(liveMode&&m!==pm){liveMode.textContent=m;pm=m}
-    if(liveLoad&&l!==pl){liveLoad.textContent=l;pl=l}
-    if(liveWater&&wq!==pw){liveWater.textContent=wq;pw=wq}
-    if(liveTouch&&t!==pt){liveTouch.textContent=t;pt=t}
-  },250);
-})();
-</script>
 
 </body>
 </html>
