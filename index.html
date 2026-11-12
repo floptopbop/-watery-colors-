@@ -5,9 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>SUMI v9.2.1 — Material-first Sumi-e Studio</title>
 <style>
-* { margin: 0px; padding: 0px; box-sizing: border-box; }
-html, body { width: 100%; height: 100dvh; background: rgb(7, 11, 18); overflow: hidden; user-select: none; touch-action: none; font-family: "Share Tech Mono", "IBM Plex Mono", monospace; }
+* { margin: 0px; padding: 0px; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+::selection { background: transparent; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+input[type="range"] { -webkit-user-select: none; user-select: none; }
+html, body { width: 100%; height: 100vh; height: 100dvh; position: fixed; inset: 0; background: rgb(7, 11, 18); overflow: hidden; user-select: none; touch-action: none; font-family: "Share Tech Mono", "IBM Plex Mono", monospace; }
 canvas { position: absolute; inset: 0px; width: 100%; height: 100%; touch-action: none; }
+#canvas { transform: translateZ(0); will-change: transform; object-fit: contain; object-position: center; -webkit-user-select: none; user-select: none; }
 #bstate { position: fixed; top: 8px; right: 10px; display: flex; gap: 5px; z-index: 20; pointer-events: none; }
 #trayTab { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); z-index: 11; padding: 5px 20px 6px; background: rgba(7, 11, 18, 0.88); backdrop-filter: blur(18px); border-radius: 10px 10px 0px 0px; border-width: 1px 1px medium; border-style: solid solid none; border-color: rgba(87, 242, 161, 0.15) rgba(87, 242, 161, 0.15) currentcolor; border-image: none; color: rgba(87, 242, 161, 0.5); font-size: 12px; letter-spacing: 0.15em; font-family: "IBM Plex Mono", "Share Tech Mono", monospace; touch-action: none; cursor: pointer; }
 #tray { position: fixed; left: 0px; right: 0px; bottom: 0px; padding: 11px 14px calc(18px + env(safe-area-inset-bottom)); background: rgba(7, 11, 18, 0.88); backdrop-filter: blur(18px); border-top: 1px solid rgba(87, 242, 161, 0.08); display: flex; flex-direction: column; gap: 9px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10; touch-action: none; }
@@ -40,7 +44,7 @@ canvas { position: absolute; inset: 0px; width: 100%; height: 100%; touch-action
 .palPage { display: none; gap: 7px; }
 #palToggle { width: 22px; height: 26px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(87, 242, 161, 0.2); color: rgba(87, 242, 161, 0.45); font-size: 16px; line-height: 1; touch-action: none; cursor: pointer; transition: transform 0.2s; }
 #palToggle.flipped { transform: scaleX(-1); }
-#canvas { position: fixed; inset: 0px; touch-action: none; object-fit: contain; object-position: 50% 50%; }
+#canvas { position: fixed; inset: 0px; touch-action: none; object-fit: contain; object-position: 50% 50%; background: #ecead2; }
 #trayTab:active { transform: translateY(1px) scale(0.985); }
 button, .btn, [role="button"] { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
@@ -55,7 +59,7 @@ button, .btn, [role="button"] { -webkit-tap-highlight-color: transparent; }
 #paletteWrap, .palPage { gap: 4px; }
 #snapWrap { position: fixed; inset: 0px; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(20, 18, 15, 0.84); touch-action: auto; }
 #snapWrap.open { display: flex; }
-#snapImg { display: block; max-width: 94vw; max-height: 80vh; border: 1px solid rgba(236, 229, 210, 0.25); user-select: auto; touch-action: auto; }
+#snapImg { -webkit-user-select: auto; -webkit-touch-callout: default; display: block; max-width: 94vw; max-height: 80vh; border: 1px solid rgba(236, 229, 210, 0.25); user-select: auto; touch-action: auto; }
 #snapHint { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(236, 229, 210, 0.6); }
 #resetBtn:active { background: var(--shu-soft); }
 #jsonBtn:active, #snapBtn:active { background: rgba(31, 28, 24, 0.06); }
@@ -336,14 +340,14 @@ body.debug #build{display:block}
         <div id="palToggle" title="Switch between ink values and mineral colour">›</div>
       </div>
       <div id="charRow">
-        <div class="chr"><label>Dry drag <span class="lv" id="lChat">0</span><b id="vChat">6</b></label><input type="range" id="sChat" min="0" max="100" step="1" value="6"></div>
-        <div class="chr"><label>Bristle <span class="lv" id="lGrain">0</span><b id="vGrain">14</b></label><input type="range" id="sGrain" min="0" max="45" step="1" value="14"></div>
-        <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">90</b></label><input type="range" id="sHeel" min="0" max="300" step="5" value="90"></div>
+        <div class="chr"><label>Dry drag <span class="lv" id="lChat">0</span><b id="vChat">16</b></label><input type="range" id="sChat" min="0" max="100" step="1" value="16"></div>
+        <div class="chr"><label>Bristle <span class="lv" id="lGrain">0</span><b id="vGrain">28</b></label><input type="range" id="sGrain" min="0" max="60" step="1" value="28"></div>
+        <div class="chr"><label>Heel <span class="lv" id="lHeel">0</span><b id="vHeel">150</b></label><input type="range" id="sHeel" min="0" max="300" step="5" value="150"></div>
         <div class="chr"><label>Water <span class="lv" id="lWet">0</span><b id="vWet">82</b></label><input type="range" id="sWet" min="0" max="100" step="1" value="82"></div>
-        <div class="chr"><label>Spread <span class="lv" id="lBloom">78</span><b id="vBloom">78</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="78"></div>
-        <div class="chr nolive"><label>Tone load <span class="lv"></span><b id="vTip">70</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="70"></div>
+        <div class="chr"><label>Spread <span class="lv" id="lBloom">78</span><b id="vBloom">88</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="88"></div>
+        <div class="chr nolive"><label>Tone load <span class="lv"></span><b id="vTip">85</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="85"></div>
         <div class="chr nolive"><label>Wet blend <span class="lv"></span><b id="vFeather">85</b></label><input type="range" id="sFeather" min="0" max="150" step="5" value="85"></div>
-        <div class="chr"><label>Variation <span class="lv" id="lWabi">0</span><b id="vWabi">22</b></label><input type="range" id="sWabi" min="0" max="100" step="1" value="22"></div>
+        <div class="chr"><label>Variation <span class="lv" id="lWabi">0</span><b id="vWabi">42</b></label><input type="range" id="sWabi" min="0" max="100" step="1" value="42"></div>
         <div class="chrDiv"></div>
         <div class="chr"><label>Drop <span class="lv" id="lDrop">95</span><b id="vDrop">95</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="95"></div>
         <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
@@ -617,7 +621,7 @@ const pRDelta=new Float32Array(N),pGDelta=new Float32Array(N),pBDelta=new Float3
 const paperPixels=new Uint8ClampedArray(W_PX*H_PX*4);
 const imgData=ctx.createImageData(W_PX,H_PX);
 
-const brush={w:BRUSH_W_CAP*0.5,p:BRUSH_P_CAP*0.1};
+const brush={w:BRUSH_W_CAP*0.45,p:BRUSH_P_CAP*0.6};
 let brushRadius=1,inkR=0.05,inkG=0.04,inkB=0.035,brushStyle='round';
 let hasWet=false;
 
@@ -639,14 +643,21 @@ const tileAcc=new Float32Array(NT),tileStep=new Float32Array(NT),tileAge=new Uin
 // pigment counts MOB_K and fixing it counts (1-MOB_K); water only shows as sheen.
 // REN_EPS ≈ one 8-bit level of black on paper.
 const REN_EPS=0.002,REN_TRICKLE=0.0002,REN_MAX_AGE=12,VIS_W=0.04,VIS_FIX=1-MOB_K;
-const simRuns={x0:new Int32Array(NT),x1:new Int32Array(NT),row:new Int32Array(TY+1)};
-const renRuns={x0:new Int32Array(NT),x1:new Int32Array(NT),row:new Int32Array(TY+1)};
-// Collapse each tile row into horizontal runs of flagged tiles (cell coords).
-function buildRuns(flags,R,collectTiles){let n=0,cn=0;
-  for(let ty=0;ty<TY;ty++){R.row[ty]=n;const r=ty*TX;let tx=0;
-    while(tx<TX){if(!flags[r+tx]){tx++;continue}const s=tx;
-      while(tx<TX&&flags[r+tx]){if(collectTiles)collectTiles[cn++]=r+tx;tx++}
-      R.x0[n]=s*TS;R.x1[n]=Math.min(NX,tx*TS)-1;n++}}
+// Run-length encoding of flagged tiles: for each tile row ty, runs RROW[ty]..RROW[ty+1]-1
+// give the cell x-range [x0,x1] of each horizontal stretch of flagged tiles.
+function makeRuns(){return{row:new Int32Array(TY+1),x0:new Int32Array(NT),x1:new Int32Array(NT)}}
+const simRuns=makeRuns(),renRuns=makeRuns();
+// Fills R with the runs for `flags` and collectTiles with the flagged tile ids.
+// Returns the number of runs (0 = nothing flagged).
+function buildRuns(flags,R,collectTiles){
+  let n=0,cn=0;
+  for(let ty=0;ty<TY;ty++){
+    R.row[ty]=n;const r=ty*TX;let tx=0;
+    while(tx<TX){
+      if(!flags[r+tx]){tx++;continue}
+      const s=tx;
+      while(tx<TX&&flags[r+tx]){collectTiles[cn++]=r+tx;tx++}
+     R.x0[n]=s*TS;R.x1[n]=Math.min(NX,tx*TS)-1;n++}}
   R.row[TY]=n;if(collectTiles===simTileIds)simTileCount=cn;else if(collectTiles===renTileIds)renTileCount=cn;return n}
 function markTiles(flags,x0,y0,x1,y1){
   const a=Math.max(0,x0|0),b=Math.max(0,y0|0),c=Math.min(NX-1,Math.ceil(x1)),d=Math.min(NY-1,Math.ceil(y1));
@@ -656,6 +667,9 @@ function markTiles(flags,x0,y0,x1,y1){
   return true}
 
 let renderPending=false,fullRepaint=true;
+// The first commit can be dropped before the canvas is on screen (stays dark until a later redraw).
+// Repaint for the first few real frames so one of them is always presented.
+let bootRepaints=8;
 // The wet-paper simulation is calibrated around 60 steps/second. Keep that
 // rate stable on both 60 Hz and 120 Hz phones, and let the renderer sleep when
 // there is no wet ink, flying splatter, held control, or pending paint update.
@@ -687,7 +701,7 @@ function holdNeedsWork(){
   }
 }
 function animationNeedsWork(){
-  return hasWet||splatParticles.length>0||renderPending||fullRepaint||holdNeedsWork();
+  return hasWet||splatParticles.length>0||renderPending||fullRepaint||bootRepaints>0||holdNeedsWork();
 }
 function markRender(x0,y0,x1,y1){if(markTiles(tileRen,x0,y0,x1,y1)){renderPending=true;wakeAnimation()}}
 function requestFullRepaint(){fullRepaint=true;renderPending=true;wakeAnimation()}
@@ -1469,10 +1483,12 @@ function importJsonLayer(data,palettes){
     const out=[raw[0]];
     for(let i=0;i<raw.length-1;i++){
       const p0=raw[Math.max(0,i-1)],p1=raw[i],p2=raw[Math.min(raw.length-1,i+1)],p3=raw[Math.min(raw.length-1,i+2)];
-      const steps=8;
-      for(let s=1;s<=steps;s++)out.push(catmullPt(p0,p1,p2,p3,s/steps))
+      const dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]);
+      const steps=Math.max(2,Math.min(16,Math.ceil(dist*0.5)));
+      for(let s=1;s<=steps;s++)out.push(catmullPt(p0,p1,p2,p3,s/steps));
     }
-    return out
+    if(out.length>0&&raw.length>0)out[out.length-1]=raw[raw.length-1];
+    return out;
   }
 
   if(Array.isArray(data)){for(const d of data){const gx=Math.round(d.x),gy=Math.round(d.y);if(gx<0||gy<0||gx>=NX||gy>=NY)continue;const idx=gy*NX+gx;const sat=Math.min(1,Math.max(0,d.sat||0));const pig=Math.min(sat*PIGMENT_CAP,Math.max(0,d.pig||0));const toPixel=v=>(v==null?0:v<=1.0?v*255:v);const ir=toPixel(d.r),ig=toPixel(d.g),ib=toPixel(d.b);const A=absOf(ir/255,ig/255,ib/255);const existing=fPig[idx];const total=existing+pig;if(total>1e-6){const ew=existing/total,nw=pig/total;fR[idx]=fR[idx]*ew+A[0]*nw;fG[idx]=fG[idx]*ew+A[1]*nw;fB[idx]=fB[idx]*ew+A[2]*nw;fPig[idx]=Math.min(PIGMENT_CAP,total)}else{fPig[idx]=Math.min(PIGMENT_CAP,pig);fR[idx]=A[0];fG[idx]=A[1];fB[idx]=A[2]}}requestFullRepaint();statePending=true;host.post({t:'jsonDone',pixels:data.length});return}
@@ -1541,6 +1557,7 @@ function animate(timestamp){
   frameHandle=0;
   if(hidden){lastFrameTime=0;simAccumulator=0;return}
   frameExecuting=true;
+  if(bootRepaints>0){bootRepaints--;fullRepaint=true;renderPending=true}
   const now=Number.isFinite(timestamp)?timestamp:performance.now();
   if(!lastFrameTime)lastFrameTime=now-SIM_STEP_MS;
   const elapsed=Math.max(0,Math.min(100,now-lastFrameTime));
@@ -1697,14 +1714,20 @@ function hash11(n){let s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 
 const canvas=document.getElementById('canvas');
-const W_PX=Math.floor(window.innerWidth),H_PX=Math.floor(window.innerHeight);
+// Stop stray text highlighting / long-press menus (everything except the snapshot image)
+['selectstart','contextmenu','dragstart'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target&&e.target.closest&&e.target.closest('#snapWrap,input[type=text],textarea'))return;e.preventDefault()},{passive:false}));
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+// Use the visual viewport (what is really on screen) so GitHub Pages / iframes / mobile bars fit
+const _vv=window.visualViewport;
+const W_PX=Math.max(320,Math.floor((_vv&&_vv.width)||document.documentElement.clientWidth||window.innerWidth)),
+      H_PX=Math.max(320,Math.floor((_vv&&_vv.height)||document.documentElement.clientHeight||window.innerHeight));
 const NX=W_PX,NY=H_PX;   // CELL = 1: one sim cell per CSS pixel
 canvas.width=W_PX;canvas.height=H_PX;
 const buildEl=document.getElementById('build');
 if(/[?&]debug/.test(location.search))document.body.classList.add('debug');
 
 // Mirror of the engine's brush, refreshed by its state messages.
-const B={w:25000,p:4000,cw:50000,cp:40000,r:1,live:null,inFlight:0,lastSplat:null,paperId:'gasenshi',flick:false};
+const B={w:22500,p:24000,cw:50000,cp:40000,r:1,live:null,inFlight:0,lastSplat:null,paperId:'gasenshi',flick:false};
 let inkR=0.05,inkG=0.04,inkB=0.035,brushStyle='round',disperseOn=true;
 
 // ═══ ENGINE LINK ═══
@@ -1713,14 +1736,15 @@ const WORKER_BOOT=`
 let __sumi=null;
 self.onmessage=e=>{const m=e.data;
   if(m&&m.t==='probe'){let ok=false;
-    try{const c=new OffscreenCanvas(8,8),x=c.getContext('2d',{alpha:false});
-      if(x){const d=x.createImageData(8,8);x.putImageData(d,0,0,0,0,4,4);ok=typeof c.convertToBlob==='function'}}catch(_){}
+    try{if(typeof OffscreenCanvas!=='undefined'){const c=new OffscreenCanvas(8,8),x=c.getContext('2d',{alpha:false});
+      if(x){const d=x.createImageData(8,8);x.putImageData(d,0,0);ok=true;}}}catch(_){ok=false;}
     self.postMessage({t:'probe',ok});return}
   if(m&&m.t==='init'){__sumi=SUMI_ENGINE({canvas:m.canvas,W:m.W,H:m.H,post:msg=>self.postMessage(msg)});return}
   if(__sumi)__sumi.onMessage(m)};`;
 let eng=null;const queue=[];
 function send(m){if(eng)eng.post(m);else queue.push(m)}
 function attach(e,mode,why){eng=e;window.__sumiMode=mode;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>send({t:'repaint'})));
   if(buildEl)buildEl.textContent='SUMI_v9.5 · SUMI-E · '+(mode==='worker'?'worker':'main'+(why?' ('+why+')':''));
   while(queue.length)eng.post(queue.shift())}
 function startOnPage(why){
@@ -1731,6 +1755,10 @@ function startOnPage(why){
   attach({post:m=>inst.onMessage(m)},'main',why)}
 function startEngine(){
   if(/[?&]main\b/.test(location.search))return startOnPage('forced');
+  // iOS/iPadOS WebKit: an OffscreenCanvas drawn from a worker can sit un-presented until the page
+  // is nudged (opening the tray, touching buttons). Run on the page there; add ?worker to force the worker.
+  const apple=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(apple&&!/[?&]worker\b/.test(location.search))return startOnPage('ios');
   if(typeof Worker!=='function'||typeof canvas.transferControlToOffscreen!=='function')return startOnPage('no offscreen');
   let w;
   try{w=new Worker(URL.createObjectURL(new Blob([ENGINE_SRC+'\n'+WORKER_BOOT],{type:'text/javascript'})))}
@@ -1907,11 +1935,13 @@ function readGesture(dx,dy,now){
     if(hRev>=2)addScrub(ax*NG.kScrub+(hTurn?NG.bumpScrub:0));
     else if(AX.h.run>NG.flatStart)addFlat(ax*NG.kFlat*Math.max(0.3,1-1.5*AX.h.lat/Math.max(1,AX.h.run)));
   }else if(ay>ax*NG.axis){
-    if(vRev>=2){addSplay(ay*NG.kSplay+(vTurn?NG.bumpSplay:0));return NG.smushBlot}
-    if(dy>0){if(AX.v.run>NG.pointStart)addPoint(ay*NG.kPoint*Math.max(0,1-1.5*AX.v.lat/Math.max(1,AX.v.run)))}
+    if(vRev>=2){addSplay(ay*NG.kSplay+(vTurn?NG.bumpSplay:0));return NG.smushBlot;}
+    if(dy>0){if(AX.v.run>NG.pointStart)addPoint(ay*NG.kPoint*Math.max(0,1-1.5*AX.v.lat/Math.max(1,AX.v.run)));}
     else addSplay(ay*NG.kSplay*NG.pushUp);
+  }else if(ax>2&&ay>2){
+    addScrub((ax+ay)*0.5*NG.kScrub*0.5);
   }
-  return 1}
+  return 1;}
 function contactK(e){const c=Math.max(e.width||0,e.height||0);return clamp((c-18)/30,0.4,1.6)}
 
 // Tiny brush on the napkin showing its current shape and load.
