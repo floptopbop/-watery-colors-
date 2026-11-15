@@ -613,6 +613,10 @@ const tex=new Float32Array(N),absorb=new Float32Array(N),pinTex=new Float32Array
 // Per-pixel noise that depends only on the pixel and the stroke seed. Stamps overlap by
 // 10x or more, so each value is computed once per stroke instead of once per stamp.
 const cSeed=new Float64Array(N).fill(-1),cEdge=new Float64Array(N),cBris=new Float64Array(N);
+// Catch noise depends only on this cell and the current stroke's catch scale.
+// Cache it across overlapping stamps: broad wet brushes revisit the same cells
+// many times, so recalculating four lattice hashes per visit was needless work.
+const cCatch=new Float32Array(N);
 // v6: per-cell memory of the brush wetness that deposited here. Drives the
 // evaporation / fixing / capillary-threshold / pigment-damming behaviour.
 const wetF=new Float32Array(N);
@@ -904,8 +908,10 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     const fx=px-gx,fy=py-gy,vRaw=-fx*sinT+fy*cosT;
     const u=(fx*cosT+fy*sinT)/aa,v=vRaw/bb;
     const norm=u*u+v*v;if(norm>9)continue;
-    const ci=rowOff+px;if(cSeed[ci]!==strokeSeed){cSeed[ci]=strokeSeed;cEdge[ci]=NaN;cBris[ci]=NaN}
-    let wt=Math.exp(-0.5*norm);
+    const ci=rowOff+px;if(cSeed[ci]!==strokeSeed){cSeed[ci]=strokeSeed;cEdge[ci]=NaN;cBris[ci]=NaN;cCatch[ci]=-1}
+    // Use the renderer's high-resolution exponential table. This preserves the
+    // Gaussian footprint while avoiding a native exp() for every covered cell.
+    let wt=expn(0.5*norm);
     let tabI=0;
     if(wb>0){tabI=((vRaw+vOff)*2+0.5)|0;if(tabI<0)tabI=0;else if(tabI>=vTabN)tabI=vTabN-1;tabI*=4}
     // v4: rake tines fade instead of hard-dropping 8% of cells at random.
@@ -922,7 +928,8 @@ function addDeposit(gx,gy,pressure,orientation,speed,sDist,roll){
     const idx=rowOff+px;
     wt*=gBase+gMul*tex[idx];
     if(wb>0)wt*=1+wb*1.4*(vTab[tabI+3]-0.5);
-    const catchNoise=valueNoise(px*catchF+strokeSeed*0.11,py*catchF-strokeSeed*0.07);
+    let catchNoise=cCatch[ci];
+    if(catchNoise<0){catchNoise=valueNoise(px*catchF+strokeSeed*0.11,py*catchF-strokeSeed*0.07);cCatch[ci]=catchNoise}
     if(catchNoise<catchThresh){wt*=0.15+0.85*(catchNoise/catchThresh)}
     if(doSkip){let laneNoise;
       if(wb>0){const lane=Math.round(vRaw*laneScale+vTab[tabI+2]*wb),li=lane+laneOff;
