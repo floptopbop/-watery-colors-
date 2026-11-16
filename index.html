@@ -347,7 +347,7 @@ body.debug #build{display:block}
         <div class="chr"><label>Spread <span class="lv" id="lBloom">78</span><b id="vBloom">88</b></label><input type="range" id="sBloom" min="0" max="100" step="1" value="88"></div>
         <div class="chr nolive"><label>Tone load <span class="lv"></span><b id="vTip">85</b></label><input type="range" id="sTip" min="0" max="100" step="1" value="85"></div>
         <div class="chr nolive"><label>Wet blend <span class="lv"></span><b id="vFeather">85</b></label><input type="range" id="sFeather" min="0" max="150" step="5" value="85"></div>
-        <div class="chr"><label>Variation <span class="lv" id="lWabi">0</span><b id="vWabi">42</b></label><input type="range" id="sWabi" min="0" max="100" step="1" value="42"></div>
+        <div class="chr"><label>Variation <span class="lv" id="lWabi">0</span><b id="vWabi">135</b></label><input type="range" id="sWabi" min="0" max="135" step="1" value="135"></div>
         <div class="chrDiv"></div>
         <div class="chr"><label>Drop <span class="lv" id="lDrop">95</span><b id="vDrop">95</b></label><input type="range" id="sDrop" min="25" max="300" step="5" value="95"></div>
         <div class="chr nolive"><label>Spray <span class="lv"></span><b id="vSpray">100</b></label><input type="range" id="sSpray" min="10" max="400" step="5" value="100"></div>
@@ -396,7 +396,7 @@ function hash11(n){let s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(
 // Exact-result lattice cache for valueNoise(). Adjacent pixels/stamps repeatedly
 // request the same integer lattice hashes; caching removes the repeated sin()
 // calls without changing a single noise value. Collisions only replace entries.
-const NOISE_CACHE_SIZE=1<<16,NOISE_CACHE_MASK=NOISE_CACHE_SIZE-1;
+const NOISE_CACHE_SIZE=1<<16,NOISE_CACHE_MASK=NOISE_CACHE_SIZE-2;
 const noiseCacheX=new Int32Array(NOISE_CACHE_SIZE);
 const noiseCacheY=new Int32Array(NOISE_CACHE_SIZE);
 const noiseCacheV=new Float64Array(NOISE_CACHE_SIZE);
@@ -411,8 +411,8 @@ function hashLattice(ix,iy){
 function valueNoise(x,y){const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy),a=hashLattice(ix,iy),b=hashLattice(ix+1,iy),c=hashLattice(ix,iy+1),d=hashLattice(ix+1,iy+1);return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy}
 
 const CELL=1;
-const WATER_CAP=1.0,PIGMENT_CAP=6.00;
-// v4: water deposit raised ~45x. The old 0.0000004 meant strokes were pigment with
+const WATER_CAP=1.0,PIGMENT_CAP=4.0;
+// v4: water deposit raised ~45x. The old 0.0000006 meant strokes were pigment with
 // no vehicle — nothing for the transport step to move, so every pinhole stayed a
 // pinhole. Ink still outweighs water heavily; this is a wetted brush, not a wash.
 const BRUSH_RAD=1.0,BRUSH_W_CAP=50000,BRUSH_P_CAP=40000,DEP_W=0.000025,DEP_P=0.0001;
